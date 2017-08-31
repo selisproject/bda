@@ -5,7 +5,6 @@ About
 -----
 This repository contains the source code of the SELIS Big Data Analytics component.
 
-
 Installation
 ------------
 TBD
