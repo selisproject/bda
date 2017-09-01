@@ -1,4 +1,4 @@
-package java.gr.ntua.ece.cslab.selis.bda.analytics;
+package gr.ntua.ece.cslab.selis.bda.analytics;
 
 public class HelloWorld {
     public static void main(String[] args) {
