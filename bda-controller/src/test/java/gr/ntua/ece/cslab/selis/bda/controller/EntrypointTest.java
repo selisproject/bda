@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 /**
  * Created by Giannis Giannakopoulos on 8/31/17.
  */
-public class HelloWorldTest {
+public class EntrypointTest {
     @org.junit.Before
     public void setUp() throws Exception {
     }

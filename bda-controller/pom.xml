@@ -7,6 +7,24 @@
     <groupId>gr.ntua.ece.cslab</groupId>
     <artifactId>bda-controller</artifactId>
     <version>0.1.0</version>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
     <name>SELIS Big Data Analytics - Controller Submodule</name>
     <parent>
         <groupId>gr.ntua.ece.cslab</groupId>
@@ -24,5 +42,11 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>9.4.6.v20170531</version>
+        </dependency>
     </dependencies>
+
 </project>
