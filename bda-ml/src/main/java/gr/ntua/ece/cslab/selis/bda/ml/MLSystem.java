@@ -1,30 +1,45 @@
 package gr.ntua.ece.cslab.selis.bda.ml;
 
+import java.util.List;
+
+import gr.ntua.ece.cslab.selis.bda.ml.basicObjects.AlgorithmDescriptor;
+import gr.ntua.ece.cslab.selis.bda.ml.catalogs.AlgorithmCatalog;
+import gr.ntua.ece.cslab.selis.bda.ml.catalogs.ModelCatalog;
+
 public class MLSystem implements MLInterface {
 
-	private MLSystem system;
+	private static MLSystem system;
 	
 	private MLSystem() {	}
 	
-	public MLSystem getInstance() {
+	public static MLSystem getInstance() {
 		if (system == null)
-			this.system = new MLSystem();
+			system = new MLSystem();
 		return system;
 		
 	}
 
-	public void getAlgoCatalog() {
-		// TODO Auto-generated method stu
-
+	public AlgorithmCatalog getAlgoCatalog() {
+		return AlgorithmCatalog.getInstance();
 	}
 
-	public void getModelCatalog() {
-		// TODO Auto-generated method stub
-
+	public ModelCatalog getModelCatalog() {
+		return ModelCatalog.getInstance();
 	}
 
 	public void getModelFactory() {
 		// TODO Auto-generated method stub
+
+	}
+	
+	public static void main(String[] args) {
+		MLSystem mySystem = MLSystem.getInstance();
+		AlgorithmCatalog algoCat = mySystem.getAlgoCatalog();
+		List<AlgorithmDescriptor> algorithms = algoCat.getAllAlgorithms();
+		
+		for (AlgorithmDescriptor a : algorithms) {
+			System.out.println(a.toString());
+		}
 
 	}
 
