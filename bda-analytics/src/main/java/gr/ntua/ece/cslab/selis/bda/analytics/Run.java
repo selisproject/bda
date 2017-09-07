@@ -9,10 +9,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class CreateKPI {
-
+public class Run {
+	
 	public static void main(String[] args) {
 		// load properties file from classpath
+		/*
 		Properties prop = new Properties();
 		InputStream input = null;
 		String dblocation = null;
@@ -97,7 +98,10 @@ public class CreateKPI {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
+		Database database = new Database();
+		database.fetchCatalogue();
+		
 
 	}
 
