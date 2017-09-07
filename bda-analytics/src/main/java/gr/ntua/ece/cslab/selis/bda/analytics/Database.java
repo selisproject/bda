@@ -92,7 +92,7 @@ class Database {
 		
 	}
 
-	public void storeKPI(int kpi_id, double value, Data data) {}
+	public void storeKPI(int kpi_id, double value, String[] data) {}
 
 
 }

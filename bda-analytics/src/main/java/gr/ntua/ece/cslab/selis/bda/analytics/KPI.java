@@ -1,6 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.analytics;
 
-abstract class KPI {
+class KPI {
 	private int id;
 	private String formula;
 	private String description;
@@ -15,13 +15,15 @@ abstract class KPI {
 		return new KPI(formula, description);
 	}
 	
-	public void calcstoreKPI(int id, Data data) {
+	public void calcstoreKPI(int id, String[] data) {
 		double value = calculateKPI(id, data);
 		
 		Database database = new Database();
-		database.storeKPI(kpi_id, value, data);
+		database.storeKPI(id, value, data);
 	}
 	
-	private double calculateKPI(int id, Data data) {}
+	private double calculateKPI(int id, String[] data) {
+		return 0;
+	}
 
 }
