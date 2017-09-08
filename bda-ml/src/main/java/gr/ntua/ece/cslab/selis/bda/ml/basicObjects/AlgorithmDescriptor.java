@@ -25,7 +25,7 @@ public class AlgorithmDescriptor {
 	public String toString() {
 		String retString = "Name: " + this.algorithmName + "\n";
 		for (SystemDescriptor s : this.systems) {
-			retString += "\tAvailable System: " + s.getSystemName() + "\n";
+			retString += "\t"+s.toString()+"\n";
 		}
 		return retString;
 	}

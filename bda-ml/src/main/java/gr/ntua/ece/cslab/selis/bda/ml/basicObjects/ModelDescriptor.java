@@ -7,13 +7,15 @@ public class ModelDescriptor {
 	private int trainMachine;
 	private Date timestamp;
 	private DatasetDescriptor datasetDescriptor;
+	private String osPath;
 	
-	public ModelDescriptor(String algoName, int trainMachine, Date timestamp, DatasetDescriptor datasetDescriptor) {
+	public ModelDescriptor(String algoName, int trainMachine, Date timestamp, DatasetDescriptor datasetDescriptor, String ospath) {
 		super();
 		this.algoName = algoName;
 		this.trainMachine = trainMachine;
 		this.timestamp = timestamp;
 		this.datasetDescriptor = datasetDescriptor;
+		this.osPath = ospath;
 	}
 
 	public String getAlgoName() {
@@ -34,6 +36,10 @@ public class ModelDescriptor {
 
 	public DatasetDescriptor getDatasetDescriptor() {
 		return datasetDescriptor;
+	}
+	
+	public String getOsPath() {
+		return algoName;
 	}
 
 }
