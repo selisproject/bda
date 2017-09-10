@@ -42,7 +42,7 @@ class Database {
 
 		}
 	}
-
+/*
 	public void fetchCatalogue() {
 		try {
 			Class.forName("org.postgresql.Driver");
@@ -91,7 +91,7 @@ class Database {
 		}		
 		
 	}
-
+*/
 	public void storeKPI(int kpi_id, double value, String[] data) {}
 
 
