@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.Connector;
@@ -11,60 +12,80 @@ import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
 
 public class StorageBackend {
 
-    private static Connector ELConnector = null;
-    private static Connector DTConnector = null;
+    private Connector connector;
 
-    // Create datastore with star schema
-    public void create(String EventLogFS, String DimensionTablesFS, List<String> dimensionTables) throws Exception {
-        ConnectorFactory factory = new ConnectorFactory();
-        ELConnector = factory.getConnector(EventLogFS);
-        DTConnector = factory.getConnector(DimensionTablesFS);
-        List<String> primaryKeys = new ArrayList<String>();
+    public StorageBackend(String FS) {
+        this.connector = ConnectorFactory.getInstance().generateConnector(FS);
+    }
 
-        // put each table in DimensionTablesFS + create columns in EventLog
+    // Create dimension tables
+    public void create(List<String> dimensionTables) throws Exception { // get jdbc, json as input too!!!!!!!!!!!!!!!!!!!!!
+        // put each table in DimensionTablesFS
         for (String table : dimensionTables) {
             InputStream input = StorageBackend.class.getClassLoader().getResourceAsStream(table);
             if ( input == null )
                 throw new Exception("resource not found: " + table);
+            connector.put(table);
+        }
+    }
 
-            DTConnector.put(table);
+    public HashMap<String, String> getPrimaryKeys(List<String> dimensionTables) throws Exception {
+        HashMap<String, String> hmap = new HashMap<String, String>();
+        for (String table : dimensionTables) {
+            InputStream input = StorageBackend.class.getClassLoader().getResourceAsStream(table);
+            if ( input == null )
+                throw new Exception("resource not found: " + table);
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-            primaryKeys.add(reader.readLine().split("\t")[0]);
+            hmap.put(reader.readLine().split("\t")[0], "");
             reader.close();
         }
-        ELConnector.put(primaryKeys.toString());
+        return hmap;
     }
 
     // Insert row in EventLog
-    public void insert(List<String> field){
-        ELConnector.put(String.valueOf(field));
+    public void insert(HashMap<String, String> message){
+        connector.put(message);
     }
 
     // Select rows from EventLog
-    public ArrayList<String> select(String type, Integer value){
-        return ELConnector.get(String.valueOf(value));
+    public HashMap<String, String> select(String type, Integer value) throws Exception {
+        if (type.equals("rows"))
+            return connector.getLast(value);
+        else if (type.equals("days"))
+            return connector.getFrom(value);
+        else
+            throw new Exception("type not found: " + type);
     }
 
     // Get entry id from dimension table
-    public ArrayList<String> fetch(String column, String value){
-        return DTConnector.get(String.valueOf(value));
+    public ArrayList<String> fetch(String table, String column, String value){
+        return connector.get(table, column, value);
     }
 
-    public static void main(String[] args) throws Exception {
-        StorageBackend mybackend = new StorageBackend();
+    // function to get all table names and all tables fields!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    public static void main(String[] args) throws Exception { // test!!!!!!!!!! + function to initiate parameters from hashmap with factory for each object!!!!!!!!!!
 
         String EventLogFS = "hdfs://master:9000/"; // hdfs or hbase
-        String DimensionTablesFS = "hdfs://master:9000/"; // hdfs or postgres
+        String DimensionTablesFS = "hdfs2://master:9000/"; // hdfs or postgres
+        StorageBackend ELbackend = new StorageBackend(EventLogFS);
+        StorageBackend DTbackend = new StorageBackend(DimensionTablesFS);
+
         List<String> dimensionTables = new ArrayList<String>();
         dimensionTables.add("trucks.csv");
         dimensionTables.add("warehouses.csv");
         dimensionTables.add("RAs.csv");
-        mybackend.create(EventLogFS, DimensionTablesFS, dimensionTables);
+        ELbackend.create(dimensionTables);
 
-        mybackend.insert(new ArrayList<String>());
-        mybackend.select("rows", 3);
-        mybackend.select("days", 3);
-        mybackend.select("raws", -1);
-        mybackend.fetch("truck_platenr", "X1423");
+        HashMap<String, String> ELkeys = ELbackend.getPrimaryKeys(dimensionTables);
+        ELbackend.insert(ELkeys);
+
+        HashMap<String, String> hmap = new HashMap<String, String>();
+        hmap.put("key", "value");
+        ELbackend.insert(hmap);
+        ELbackend.select("rows", 3);
+        ELbackend.select("days", 3);
+        ELbackend.select("rows", -1);
+        DTbackend.fetch("trucks","truck_platenr", "X1423");
     }
 }

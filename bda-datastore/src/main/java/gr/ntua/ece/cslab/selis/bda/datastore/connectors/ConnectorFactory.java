@@ -2,16 +2,26 @@ package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 public class ConnectorFactory {
 
-    public Connector getConnector(String FS){
+    private static ConnectorFactory connFactory;
+
+    private ConnectorFactory() {}
+
+    public static ConnectorFactory getInstance(){
+        if (connFactory == null)
+            connFactory = new ConnectorFactory();
+        return connFactory;
+    }
+
+    public Connector generateConnector(String FS){
         Connector connector = null;
         if (FS.contains("hdfs")){
-            connector = new HDFSConnector();
+            connector = new HDFSConnector(FS);
         }
         else if (FS.contains("hbase")){
-            connector = new HBaseConnector();
+            connector = new HBaseConnector(FS);
         }
         else
-            connector = new PostgresqlConnector();
+            connector = new PostgresqlConnector(FS);
         return connector;
     }
 

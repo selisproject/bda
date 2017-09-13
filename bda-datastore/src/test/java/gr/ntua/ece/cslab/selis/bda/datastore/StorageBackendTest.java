@@ -2,7 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.datastore;
 
 import static org.junit.Assert.*;
 
-public class HelloWorldTest {
+public class StorageBackendTest {
     @org.junit.Before
     public void setUp() throws Exception {
     }
