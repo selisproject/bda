@@ -9,5 +9,6 @@ public interface Connector {
     HashMap<String, String> getLast(Integer args);
     HashMap<String, String> getFrom(Integer args);
     ArrayList<String> get(String args, String args2, String args3);
+    HashMap<String, String> describe(String args);
     void close();
 }

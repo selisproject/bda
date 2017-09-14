@@ -34,5 +34,10 @@ public class PostgresqlConnector implements Connector {
         return new ArrayList<String>();
     }
 
+    public HashMap<String, String> describe(String args){
+        System.out.println("print PostgreSQL schema " + FS);
+        return new HashMap<String, String>();
+    }
+
     public void close(){};
 }

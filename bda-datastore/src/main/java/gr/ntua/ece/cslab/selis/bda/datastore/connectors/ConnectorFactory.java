@@ -20,8 +20,11 @@ public class ConnectorFactory {
         else if (FS.contains("hbase")){
             connector = new HBaseConnector(FS);
         }
-        else
+        else if (FS.contains("jdbc")) {
             connector = new PostgresqlConnector(FS);
+        }
+        else
+            connector = new LocalFSConnector(FS);
         return connector;
     }
 
