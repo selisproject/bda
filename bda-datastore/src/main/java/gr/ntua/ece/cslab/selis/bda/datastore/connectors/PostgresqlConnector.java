@@ -19,24 +19,24 @@ public class PostgresqlConnector implements Connector {
         System.out.println("put in PostgreSQL " + FS);
     }
 
-    public HashMap<String, String> getLast(Integer args){
+    public HashMap<String, String>[] getLast(Integer args){
         System.out.println("get from PostgreSQL " + FS);
-        return new HashMap<String, String>();
+        return new HashMap[0];
     }
 
-    public HashMap<String, String> getFrom(Integer args){
+    public ArrayList<HashMap<String, String>> getFrom(Integer args){
         System.out.println("get from PostgreSQL " + FS);
-        return new HashMap<String, String>();
+        return new ArrayList<HashMap<String, String>>();
     }
 
-    public ArrayList<String> get(String args, String args2, String args3){
+    public HashMap<String, String> get(String args, String args2, String args3){
         System.out.println("get from PostgreSQL " + FS);
-        return new ArrayList<String>();
+        return new HashMap();
     }
 
-    public HashMap<String, String> describe(String args){
+    public String[] describe(String args){
         System.out.println("print PostgreSQL schema " + FS);
-        return new HashMap<String, String>();
+        return new String[0];
     }
 
     public void close(){};
