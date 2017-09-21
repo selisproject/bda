@@ -16,7 +16,7 @@ public class StorageBackend {
     }
 
     // Create dimension tables
-    public void create(ArrayList<String> dimensionTables) throws Exception { // get jdbc, json as input too!!!!!!!!!!!!!!!!!!!!!
+    public void create(ArrayList<String> dimensionTables) throws Exception { // get jdbc as input too!!!!!!!!
         for (String table : dimensionTables)
             connector.put(table);
     }
@@ -25,15 +25,9 @@ public class StorageBackend {
     public void init(ArrayList<String> dimensionTables) throws Exception {
         // create empty message as a hashmap whose field names are the first columns of the dimension tables and save it
         HashMap<String, String> hmap = new HashMap<String, String>();
-
         for (String table : dimensionTables) {
-            InputStream input = StorageBackend.class.getClassLoader().getResourceAsStream(table);
-            if ( input == null )
-                throw new Exception("resource not found: " + table);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-            // save in a hashmap first column's name with empty content
-            hmap.put(reader.readLine().split("\t")[0], "");
-            reader.close();
+            String[] columns = connector.describe(table.split("\\.")[0]);
+            hmap.put(columns[0], "");
         }
         // put empty message in EventLog
         connector.put(hmap);

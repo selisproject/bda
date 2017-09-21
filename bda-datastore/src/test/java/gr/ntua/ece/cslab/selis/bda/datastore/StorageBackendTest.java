@@ -26,7 +26,7 @@ public class StorageBackendTest {
         // List of dimension tables filenames
         ArrayList<String> dimensionTables = new ArrayList<String>();
         dimensionTables.add("trucks.csv");
-        dimensionTables.add("warehouses.csv");
+        dimensionTables.add("warehouses.json");
         dimensionTables.add("RAs.csv");
 
         // Create dimension tables

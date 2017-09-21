@@ -1,11 +1,11 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.TreeSet;
+import java.util.*;
+
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.ReversedLinesFileReader;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class LocalFSConnector implements Connector {
     private String FS;
@@ -14,7 +14,7 @@ public class LocalFSConnector implements Connector {
         this.FS = FS;
     }
 
-    // append message in EventLog
+    // Append message in EventLog which is a csv file
     public void put(HashMap<String, String> row) throws IOException {
         File evlog = new File(FS + "/EventLog.csv");
         FileWriter fw;
@@ -41,21 +41,37 @@ public class LocalFSConnector implements Connector {
         fw.close();
     }
 
-    // Store dimension table
+    // Store dimension table from csv or json file to csv file
     public void put(String file) throws Exception {
         InputStream input = LocalFSConnector.class.getClassLoader().getResourceAsStream(file);
         if ( input == null )
             throw new Exception("resource not found: " + file);
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-        FileWriter fw = new FileWriter(FS + '/' + file);
+        FileWriter fw = new FileWriter(FS + '/' + file.replace("json","csv"));
         BufferedWriter bw = new BufferedWriter(fw);
-        String line;
-        while ((line = reader.readLine()) != null) {
-            bw.write(line);
-            bw.newLine();
+        String ext = FilenameUtils.getExtension(file);
+        if (ext.equals("csv")) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                bw.write(line);
+                bw.newLine();
+            }
+            reader.close();
         }
-        reader.close();
+        else if (ext.equals("json")) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ArrayList<LinkedHashMap<String, Object>> rows =
+                    objectMapper.readValue(input, objectMapper.getTypeFactory().constructCollectionType(ArrayList.class, LinkedHashMap.class));
+            for (Map.Entry<String, Object> row : rows.get(0).entrySet())
+                bw.write(row.getKey() + "\t");
+            bw.newLine();
+            for (HashMap<String, Object> row : rows) {
+                for (Map.Entry<String, Object> line : row.entrySet())
+                    bw.write(line.getValue() + "\t");
+                bw.newLine();
+            }
+        }
         bw.close();
         fw.close();
     }
