@@ -43,15 +43,14 @@ public class LocalFSConnector implements Connector {
 
     // Store dimension table from csv or json file to csv file
     public void put(String file) throws Exception {
-        InputStream input = LocalFSConnector.class.getClassLoader().getResourceAsStream(file);
-        if ( input == null )
-            throw new Exception("resource not found: " + file);
-
-        FileWriter fw = new FileWriter(FS + '/' + file.replace("json","csv"));
+        String[] output = file.replace("json","csv").split("/"); // save in csv
+        FileWriter fw = new FileWriter(FS + '/' + output[output.length-1]);
         BufferedWriter bw = new BufferedWriter(fw);
         String ext = FilenameUtils.getExtension(file);
+
+        // if file is a csv read line by line
         if (ext.equals("csv")) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+            BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
             while ((line = reader.readLine()) != null) {
                 bw.write(line);
@@ -59,13 +58,16 @@ public class LocalFSConnector implements Connector {
             }
             reader.close();
         }
+        // if file is a json read as an arraylist of linked hashmaps to retain columns order
         else if (ext.equals("json")) {
             ObjectMapper objectMapper = new ObjectMapper();
             ArrayList<LinkedHashMap<String, Object>> rows =
-                    objectMapper.readValue(input, objectMapper.getTypeFactory().constructCollectionType(ArrayList.class, LinkedHashMap.class));
+                    objectMapper.readValue(new File(file), objectMapper.getTypeFactory().constructCollectionType(ArrayList.class, LinkedHashMap.class));
+            // write column names
             for (Map.Entry<String, Object> row : rows.get(0).entrySet())
                 bw.write(row.getKey() + "\t");
             bw.newLine();
+            // write values
             for (HashMap<String, Object> row : rows) {
                 for (Map.Entry<String, Object> line : row.entrySet())
                     bw.write(line.getValue() + "\t");

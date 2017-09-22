@@ -26,7 +26,8 @@ public class StorageBackend {
         // create empty message as a hashmap whose field names are the first columns of the dimension tables and save it
         HashMap<String, String> hmap = new HashMap<String, String>();
         for (String table : dimensionTables) {
-            String[] columns = connector.describe(table.split("\\.")[0]);
+            String[] tablename = table.split("\\.")[0].split("/"); // get tablename from properties?
+            String[] columns = connector.describe(tablename[tablename.length -1]);
             hmap.put(columns[0], "");
         }
         // put empty message in EventLog
