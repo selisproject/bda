@@ -12,8 +12,10 @@ public class ConnectorFactory {
         return connFactory;
     }
 
+    /** Depending on the FS string format initialize a connector from a different class.
+     *  Connectors are implemented for four different filesystems: local, HBase, HDFS, PostgreSQL. **/
     public Connector generateConnector(String FS){
-        Connector connector = null;
+        Connector connector;
         if (FS.contains("hdfs")){
             connector = new HDFSConnector(FS);
         }

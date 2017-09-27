@@ -75,7 +75,7 @@ public class StorageBackendTest {
         System.out.println(Arrays.toString(ELbackend.select("rows", -1)));
 
         // Get info for specific entity from dimension table
-        System.out.println(DTbackend.fetch("trucks","truck_platenr", "OYO-4488"));
+        System.out.println(Arrays.toString(DTbackend.fetch("trucks","RA", "AG.072")));
 
         // Print EventLog format
         System.out.println(Arrays.toString(ELbackend.getSchema("")));

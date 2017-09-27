@@ -29,9 +29,9 @@ public class PostgresqlConnector implements Connector {
         return new ArrayList<HashMap<String, String>>();
     }
 
-    public HashMap<String, String> get(String args, String args2, String args3){
+    public ArrayList<HashMap<String, String>> get(String args, String args2, String args3){
         System.out.println("get from PostgreSQL " + FS);
-        return new HashMap();
+        return new ArrayList<HashMap<String, String>>();
     }
 
     public String[] describe(String args){

@@ -116,25 +116,26 @@ public class LocalFSConnector implements Connector {
         return new ArrayList<HashMap<String, String>>();
     }
 
-    // Get all info for specific entity from dimension table
-    public HashMap<String, String> get(String table, String column, String value) throws IOException {
+    // Get all info for specific entities from a dimension table
+    public ArrayList<HashMap<String, String>> get(String table, String column, String value) throws IOException {
         String[] fields = describe(table);
         Integer pos = Arrays.asList(fields).indexOf(column);
-        HashMap<String, String> hmap = new HashMap<String, String>();
+        ArrayList<HashMap<String, String>> rows = new ArrayList<HashMap<String, String>>();
 
         String line;
         BufferedReader reader = new BufferedReader(new FileReader(FS + "/" + table + ".csv"));
         while((line = reader.readLine()) != null){
             String[] values = line.split("\t");
             if (values[pos].equals(value)) {
+                HashMap<String, String> hmap = new HashMap<String, String>();
                 for (int i = 0; i < fields.length; i++) {
                     hmap.put(fields[i], values[i]);
                 }
-                break;
+                rows.add(hmap);
             }
         }
         reader.close();
-        return hmap;
+        return rows;
     }
 
     // get column names for table args
