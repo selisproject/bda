@@ -116,15 +116,19 @@ public class LocalFSConnector implements Connector {
         return new ArrayList<HashMap<String, String>>();
     }
 
-    // Get all info for specific entities from a dimension table
+    // Get rows matching a specific column filter from a table
     public ArrayList<HashMap<String, String>> get(String table, String column, String value) throws IOException {
         String[] fields = describe(table);
         Integer pos = Arrays.asList(fields).indexOf(column);
         ArrayList<HashMap<String, String>> rows = new ArrayList<HashMap<String, String>>();
 
         String line;
-        BufferedReader reader = new BufferedReader(new FileReader(FS + "/" + table + ".csv"));
-        while((line = reader.readLine()) != null){
+        int counter = 0;
+        if (table.matches(""))
+            table = "EventLog";
+        ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(FS + "/" + table + ".csv"));
+        // Read the table line by line and filter the specified column. In the eventLog only the last 1000 rows are searched.
+        while((line = reader.readLine()) != null && (!table.equals("EventLog") || counter < 1000)){
             String[] values = line.split("\t");
             if (values[pos].equals(value)) {
                 HashMap<String, String> hmap = new HashMap<String, String>();
@@ -133,6 +137,7 @@ public class LocalFSConnector implements Connector {
                 }
                 rows.add(hmap);
             }
+            counter++;
         }
         reader.close();
         return rows;

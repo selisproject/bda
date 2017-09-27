@@ -74,8 +74,11 @@ public class StorageBackendTest {
         // Get all messages from EventLog
         System.out.println(Arrays.toString(ELbackend.select("rows", -1)));
 
-        // Get info for specific entity from dimension table
+        // Get info for specific entities from dimension table
         System.out.println(Arrays.toString(DTbackend.fetch("trucks","RA", "AG.072")));
+
+        // Get info for specific entities from EventLog
+        System.out.println(Arrays.toString(ELbackend.fetch("","RA", "AG.140")));
 
         // Print EventLog format
         System.out.println(Arrays.toString(ELbackend.getSchema("")));
