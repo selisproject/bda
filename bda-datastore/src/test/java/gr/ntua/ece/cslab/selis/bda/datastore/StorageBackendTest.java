@@ -66,19 +66,19 @@ public class StorageBackendTest {
         ELbackend.insert(hmap);
 
         // Get last message from EventLog
-        System.out.println(Arrays.toString(ELbackend.select("rows", 1)));
+        System.out.println(Arrays.toString(ELbackend.fetch("rows", 1)));
 
         // Get messages of last 3 days from Eventlog
         //ELbackend.select("days", 3);
 
         // Get all messages from EventLog
-        System.out.println(Arrays.toString(ELbackend.select("rows", -1)));
+        System.out.println(Arrays.toString(ELbackend.fetch("rows", -1)));
 
         // Get info for specific entities from dimension table
-        System.out.println(Arrays.toString(DTbackend.fetch("trucks","RA", "AG.072")));
+        System.out.println(Arrays.toString(DTbackend.select("trucks","RA", "AG.072")));
 
         // Get info for specific entities from EventLog
-        System.out.println(Arrays.toString(ELbackend.fetch("","RA", "AG.140")));
+        System.out.println(Arrays.toString(ELbackend.select("","RA", "AG.140")));
 
         // Print EventLog format
         System.out.println(Arrays.toString(ELbackend.getSchema("")));

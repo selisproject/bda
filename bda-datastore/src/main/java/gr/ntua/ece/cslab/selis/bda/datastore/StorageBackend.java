@@ -52,11 +52,11 @@ public class StorageBackend {
         connector.put(message);
     }
 
-    /** Select rows from EventLog. Selects either the last n messages or the messages received the last n days.
+    /** Get rows from EventLog. Fetches either the last n messages or the messages received the last n days.
      *  This method requires as input a string that denotes 'days' or 'rows' and an integer that denotes the
      *  number n. It returns an array of hashmaps (HashMap<String, String>[]) where each hashmap corresponds to
      *  a message that its keys are the eventLog columns. **/
-    public HashMap<String, String>[] select(String type, Integer value) throws Exception {
+    public HashMap<String, String>[] fetch(String type, Integer value) throws Exception {
         if (type.equals("rows"))
             return connector.getLast(value);
         else if (type.equals("days")){
@@ -67,13 +67,13 @@ public class StorageBackend {
             throw new Exception("type not found: " + type);
     }
 
-    /** Get rows filtered in a specific column with a specific value from a table.
+    /** Select rows filtered in a specific column with a specific value from a table.
      *  This method requires as input a string which is the dimension table name or an empty string if it refers to
      *  the eventLog table, the column name and the column value as strings. The eventLog can be filtered in a column
      *  that is a foreign key to a dimension table, not in the actual message and the last 1000 messages are searched.
      *  It returns an array of hashmaps (HashMap<String, String>[]) where each hashmap corresponds to
      *  a row that its keys are the table columns. **/
-    public HashMap<String, String>[] fetch(String table, String column, String value) throws Exception {
+    public HashMap<String, String>[] select(String table, String column, String value) throws Exception {
         if (column.equals("message") && table.matches(""))
             throw new Exception("Cannot filter the raw message in the eventLog.");
         ArrayList<HashMap<String, String>> res = connector.get(table, column, value);
