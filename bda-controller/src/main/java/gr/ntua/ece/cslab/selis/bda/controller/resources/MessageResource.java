@@ -1,6 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
-import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.KeyValue;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.Message;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.RequestResponse;
@@ -9,15 +8,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.annotation.XmlAccessorType;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  * Created by Giannis Giannakopoulos on 10/5/17.
  * This class represents the Message resource.
