@@ -31,6 +31,9 @@ public class StorageBackendTest {
         EventLogFS = "bda-datastore/src/test/resources/output"; // hdfs or hbase
         DimensionTablesFS = "bda-datastore/src/test/resources/output"; // hdfs or postgres
 
+        // File containing the EventLog columns
+        String event = "bda-datastore/src/test/resources/EventLog.json";
+
         // List of dimension tables filenames
         ArrayList<String> dimensionTables = new ArrayList<String>();
         dimensionTables.add("bda-datastore/src/test/resources/trucks.csv");
@@ -53,13 +56,12 @@ public class StorageBackendTest {
         DTbackend.create(dimensionTables);
 
         // Create EventLog
-        ELbackend.init(dimensionTables);
+        ELbackend.init(event);
 
         // Create example message for EventLog
         HashMap<String, String> hmap = new HashMap<String, String>();
-        hmap.put("truck_platenr", "ZPO-3395");
-        hmap.put("warehouse_id", "null");
-        hmap.put("RA","AG.140");
+        hmap.put("Warehouse", "1");
+        hmap.put("OrdDepositorFullName", "null");
         hmap.put("message","{latitude: 31.456, longitude: 36.542, timestamp: 2017-05-02.23:48:57}");
 
         // Insert message in EventLog
@@ -78,7 +80,7 @@ public class StorageBackendTest {
         System.out.println(Arrays.toString(DTbackend.select("trucks","RA", "AG.072")));
 
         // Get info for specific entities from EventLog
-        System.out.println(Arrays.toString(ELbackend.select("","RA", "AG.140")));
+        System.out.println(Arrays.toString(ELbackend.select("","Warehouse", "1")));
 
         // Print EventLog format
         System.out.println(Arrays.toString(ELbackend.getSchema("")));

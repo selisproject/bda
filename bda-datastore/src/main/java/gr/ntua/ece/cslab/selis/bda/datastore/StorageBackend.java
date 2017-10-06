@@ -27,22 +27,13 @@ public class StorageBackend {
     }
 
     /** Initialize the eventLog table in the underlying FS.
-     *  This method requires as input a list of strings (ArrayList<String>) that are the full paths to the files
-     *  containing the dimension tables master data. Each table must have a .csv or .json file named after the
-     *  table name that has in the first line the column names and the first column must be the primary key for
-     *  the table that will be used to create a foreign key in the eventLog. Except for the foreign keys to all
-     *  dimension tables an extra column is created in the eventLog that contains the actual message in json
-     *  format. **/
-    public void init(ArrayList<String> dimensionTables) throws Exception {
-        // create empty message as a hashmap whose field names are the first columns of the dimension tables and save it
-        HashMap<String, String> hmap = new HashMap<String, String>();
-        for (String table : dimensionTables) {
-            String[] tablename = table.split("\\.")[0].split("/"); // get tablename from properties?
-            String[] columns = connector.describe(tablename[tablename.length -1]);
-            hmap.put(columns[0], "");
-        }
-        // put empty message in EventLog
-        connector.put(hmap);
+     *  This method requires as input a String that is the full path to a .json file containing the EventLog
+     *  column names as keys. The values of the keys are ignored.
+     *  The keys are essentially foreign keys to dimension tables columns. Except of these columns, an extra
+     *  column named 'message' is created in the eventLog that contains the actual message (that will be in json
+     *  format). **/
+    public void init(String message) throws Exception {
+        connector.put(message);
     }
 
     /** Insert a new message in the EventLog.
