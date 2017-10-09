@@ -16,7 +16,7 @@ public class LocalFSConnector implements Connector {
     }
 
     // Used to initialize and append a message in the EventLog which is a csv file
-    public void put(HashMap<String, String> row) throws IOException {
+    public void put(HashMap<String, String> row) throws Exception {
         File evlog = new File(FS + "/EventLog.csv");
         FileWriter fw;
         BufferedWriter bw;
@@ -24,8 +24,10 @@ public class LocalFSConnector implements Connector {
             // Initialize eventLog by writing column names in first line
             fw = new FileWriter(evlog);
             bw = new BufferedWriter(fw);
-            for (Map.Entry<String, String> field : row.entrySet())
-                bw.write(field.getKey() + "\t");
+            for (Map.Entry<String, String> field : row.entrySet()){
+                String key = field.getKey();
+                bw.write( key + "\t");
+            }
             // add one more column named 'message' that will contain the blob
             bw.write("message");
             bw.newLine();
@@ -46,6 +48,11 @@ public class LocalFSConnector implements Connector {
                 if (!row.containsKey(column))
                     row.put(column, "null");
             row.put("message", json.toJSONString());
+
+            if (row.containsKey("message") && row.size() == 1)
+                throw new Exception("Message does not contain any foreign keys.");
+            else if (json.isEmpty())
+                throw new Exception("Message does not contain a new event.");
 
             // Append message in csv
             fw = new FileWriter(evlog, true);

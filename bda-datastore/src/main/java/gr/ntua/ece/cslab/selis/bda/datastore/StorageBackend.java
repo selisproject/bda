@@ -18,8 +18,7 @@ public class StorageBackend {
     /** Create and populate the dimension tables in the underlying FS.
      *  This method requires as input a list of Strings that are the full paths to the files containing the
      *  tables master data. Each table must have a .csv or .json file named after the table name that has in the
-     *  first line the column names and the rest lines are the master data. The name of the first column must be
-     *  the primary key for the table that will be used as a foreign key in the eventLog. **/
+     *  first line the column names and the rest lines are the master data. **/
     public void create(List<String> dimensionTables) throws Exception { // get jdbc as input too!!!!!!!!
         for (String table : dimensionTables)
             connector.put(table);
@@ -41,7 +40,7 @@ public class StorageBackend {
      *  This method takes as input a message as a hashmap (HashMap<String, String>) and saves each key that matches
      *  with an EventLog column name in the relevant column of the eventLog table, while all the non-matching keys
      *  are saved as a blob in json format in the 'message' column of the eventLog table. **/
-    public void insert(HashMap<String, String> message) throws IOException {
+    public void insert(HashMap<String, String> message) throws Exception {
         connector.put(message);
     }
 
