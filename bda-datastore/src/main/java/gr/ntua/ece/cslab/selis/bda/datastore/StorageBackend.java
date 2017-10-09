@@ -1,8 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.Connector;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
@@ -17,28 +16,31 @@ public class StorageBackend {
     }
 
     /** Create and populate the dimension tables in the underlying FS.
-     *  This method requires as input a list of strings (ArrayList<String>) that are the full paths to the files
-     *  containing the tables master data. Each table must have a .csv or .json file named after the table name
-     *  that has in the first line the column names and the rest lines are the master data. The name of the first
-     *  column must be the primary key for the table that will be used as a foreign key in the eventLog. **/
-    public void create(ArrayList<String> dimensionTables) throws Exception { // get jdbc as input too!!!!!!!!
+     *  This method requires as input a list of Strings that are the full paths to the files containing the
+     *  tables master data. Each table must have a .csv or .json file named after the table name that has in the
+     *  first line the column names and the rest lines are the master data. The name of the first column must be
+     *  the primary key for the table that will be used as a foreign key in the eventLog. **/
+    public void create(List<String> dimensionTables) throws Exception { // get jdbc as input too!!!!!!!!
         for (String table : dimensionTables)
             connector.put(table);
     }
 
     /** Initialize the eventLog table in the underlying FS.
-     *  This method requires as input a String that is the full path to a .json file containing the EventLog
-     *  column names as keys. The values of the keys are ignored.
-     *  The keys are essentially foreign keys to dimension tables columns. Except of these columns, an extra
+     *  This method requires as input a set of Strings that are the EventLog column names.
+     *  These columns are essentially foreign keys to dimension tables columns. Except of these columns, an extra
      *  column named 'message' is created in the eventLog that contains the actual message (that will be in json
      *  format). **/
-    public void init(String message) throws Exception {
-        connector.put(message);
+    public void init(Set<String> columns) throws Exception {
+        HashMap<String, String> hmap = new HashMap<String, String>();
+        for(String entry : columns)
+            hmap.put(entry, "");
+        connector.put(hmap);
     }
 
     /** Insert a new message in the EventLog.
-     *  This method takes as input a message as a hashmap (HashMap<String, String>) that must have as keys all
-     *  the column names of the eventLog table. **/
+     *  This method takes as input a message as a hashmap (HashMap<String, String>) and saves each key that matches
+     *  with an EventLog column name in the relevant column of the eventLog table, while all the non-matching keys
+     *  are saved as a blob in json format in the 'message' column of the eventLog table. **/
     public void insert(HashMap<String, String> message) throws IOException {
         connector.put(message);
     }

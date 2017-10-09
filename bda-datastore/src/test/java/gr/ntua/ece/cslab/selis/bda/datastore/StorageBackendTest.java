@@ -2,10 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.datastore;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Properties;
+import java.util.*;
 
 public class StorageBackendTest {
     public static void main(String[] args) throws Exception { // + function to initiate parameters from hashmap with factory for each object
@@ -31,8 +28,10 @@ public class StorageBackendTest {
         EventLogFS = "bda-datastore/src/test/resources/output"; // hdfs or hbase
         DimensionTablesFS = "bda-datastore/src/test/resources/output"; // hdfs or postgres
 
-        // File containing the EventLog columns
-        String event = "bda-datastore/src/test/resources/EventLog.json";
+        // Set containing the EventLog columns
+        Set<String> columns = new TreeSet<String>();
+        columns.add("Warehouse");
+        columns.add("OrdDepositorFullName");
 
         // List of dimension tables filenames
         ArrayList<String> dimensionTables = new ArrayList<String>();
@@ -56,13 +55,14 @@ public class StorageBackendTest {
         DTbackend.create(dimensionTables);
 
         // Create EventLog
-        ELbackend.init(event);
+        ELbackend.init(columns);
 
         // Create example message for EventLog
         HashMap<String, String> hmap = new HashMap<String, String>();
         hmap.put("Warehouse", "1");
-        hmap.put("OrdDepositorFullName", "null");
-        hmap.put("message","{latitude: 31.456, longitude: 36.542, timestamp: 2017-05-02.23:48:57}");
+        hmap.put("latitude", "31.456");
+        hmap.put("longitude", "36.542");
+        hmap.put("timestamp", "2017-05-02.23:48:57");
 
         // Insert message in EventLog
         ELbackend.insert(hmap);
