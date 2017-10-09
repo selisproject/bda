@@ -17,34 +17,22 @@ public class LocalFSConnector implements Connector {
     // Append message in EventLog which is a csv file
     public void put(HashMap<String, String> row) throws IOException {
         File evlog = new File(FS + "/EventLog.csv");
-        FileWriter fw;
-        BufferedWriter bw;
+        FileWriter fw = new FileWriter(evlog, true);
+        BufferedWriter bw = new BufferedWriter(fw);
 
-        // If it does not exist create it with provided empty message columns and an extra field to store message content
-        if (!evlog.exists()) {
-            fw = new FileWriter(evlog);
-            bw = new BufferedWriter(fw);
-            for (String field : new TreeSet<String>(row.keySet()))
-                bw.write(field + "\t");
-            bw.write("message");
-            bw.newLine();
-        }
-        // else append message
-        else {
-            fw = new FileWriter(evlog, true);
-            bw = new BufferedWriter(fw);
-            for (String value : new TreeSet<String>(row.values()))
-                bw.write(value + "\t");
-            bw.newLine();
-        }
+        for (String value : new TreeSet<String>(row.values()))
+            bw.write(value + "\t");
+        bw.newLine();
+
         bw.close();
         fw.close();
     }
 
-    // Store dimension table from csv or json file to csv file
+    // Create table with columns from csv or json file and store it in csv file
     public void put(String file) throws Exception {
-        String[] output = file.replace("json","csv").split("/"); // save in csv
-        FileWriter fw = new FileWriter(FS + '/' + output[output.length-1]);
+        String[] output_path = file.replace("json","csv").split("/"); // save in csv
+        String output = output_path[output_path.length-1];
+        FileWriter fw = new FileWriter(FS + '/' + output);
         BufferedWriter bw = new BufferedWriter(fw);
         String ext = FilenameUtils.getExtension(file);
 
@@ -66,12 +54,18 @@ public class LocalFSConnector implements Connector {
             // write column names
             for (Map.Entry<String, Object> row : rows.get(0).entrySet())
                 bw.write(row.getKey() + "\t");
+            // if we create the eventLog add one more column named 'message' that will contain the blob
+            if (output.matches("EventLog.csv"))
+                bw.write("message");
             bw.newLine();
-            // write values
-            for (HashMap<String, Object> row : rows) {
-                for (Map.Entry<String, Object> line : row.entrySet())
-                    bw.write(line.getValue() + "\t");
-                bw.newLine();
+            // if we create a dimension table populate it with the master data too
+            if (!(output.matches("EventLog.csv"))){
+                // fill-in column values
+                for (HashMap<String, Object> row : rows) {
+                    for (Map.Entry<String, Object> line : row.entrySet())
+                        bw.write(line.getValue() + "\t");
+                    bw.newLine();
+                }
             }
         }
         bw.close();
