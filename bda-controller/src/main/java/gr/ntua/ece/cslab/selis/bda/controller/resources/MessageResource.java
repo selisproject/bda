@@ -10,12 +10,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Created by Giannis Giannakopoulos on 10/5/17.
  * This class represents the Message resource.
  */
 @Path("message")
 public class MessageResource {
+    private final static Logger LOGGER = Logger.getLogger(MessageResource.class.getCanonicalName());
 
     /**
      * Demo method - just a proof of concept that the messages are correctly serialized/deserialized
@@ -42,10 +46,11 @@ public class MessageResource {
      * Message insertion method
      * @param m the method to insert
      */
-    @PUT @Path("/")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @PUT
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse insert(@Context HttpServletResponse response, Message m) {
         // FIXME: do something after getting a message
+        LOGGER.log(Level.INFO, m.toString());
         // placeholder
         response.setStatus(HttpServletResponse.SC_CREATED);
         try {
