@@ -47,15 +47,14 @@ public class StorageBackendTest {
         files = temp.listFiles();
         if (files != null) for (File f : files) f.delete();
 
-        // Create two new backends
-        StorageBackend ELbackend = new StorageBackend(EventLogFS);
-        StorageBackend DTbackend = new StorageBackend(DimensionTablesFS);
+        // Create a new backend to the BDA
+        StorageBackend backend = new StorageBackend(EventLogFS, DimensionTablesFS);
 
         // Create dimension tables
-        DTbackend.create(dimensionTables);
+        backend.create(dimensionTables);
 
         // Create EventLog
-        ELbackend.init(columns);
+        backend.init(columns);
 
         // Create example message for EventLog
         HashMap<String, String> hmap = new HashMap<String, String>();
@@ -65,27 +64,27 @@ public class StorageBackendTest {
         hmap.put("timestamp", "2017-05-02.23:48:57");
 
         // Insert message in EventLog
-        ELbackend.insert(hmap);
+        backend.insert(hmap);
 
         // Get last message from EventLog
-        System.out.println(Arrays.toString(ELbackend.fetch("rows", 1)));
+        System.out.println(Arrays.toString(backend.fetch("rows", 1)));
 
         // Get messages of last 3 days from Eventlog
         //ELbackend.select("days", 3);
 
         // Get all messages from EventLog
-        System.out.println(Arrays.toString(ELbackend.fetch("rows", -1)));
+        System.out.println(Arrays.toString(backend.fetch("rows", -1)));
 
         // Get info for specific entities from dimension table
-        System.out.println(Arrays.toString(DTbackend.select("trucks","RA", "AG.072")));
+        System.out.println(Arrays.toString(backend.select("trucks","RA", "AG.072")));
 
         // Get info for specific entities from EventLog
-        System.out.println(Arrays.toString(ELbackend.select("","Warehouse", "1")));
+        System.out.println(Arrays.toString(backend.select("","Warehouse", "1")));
 
         // Print EventLog format
-        System.out.println(Arrays.toString(ELbackend.getSchema("")));
+        System.out.println(Arrays.toString(backend.getSchema("")));
 
         // Print dimension table format
-        System.out.println(Arrays.toString(DTbackend.getSchema("trucks")));
+        System.out.println(Arrays.toString(backend.getSchema("trucks")));
     }
 }

@@ -8,11 +8,13 @@ import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
 
 public class StorageBackend {
 
-    private Connector connector;
+    private Connector ELconnector;
+    private Connector DTconnector;
 
     /** The StorageBackend constructor creates a new connection with the FS that is provided as an input String. **/
-    public StorageBackend(String FS) {
-        this.connector = ConnectorFactory.getInstance().generateConnector(FS);
+    public StorageBackend(String EventLogFS, String DimensionTablesFS) {
+        this.ELconnector = ConnectorFactory.getInstance().generateConnector(EventLogFS);
+        this.DTconnector = ConnectorFactory.getInstance().generateConnector(DimensionTablesFS);
     }
 
     /** Create and populate the dimension tables in the underlying FS.
@@ -21,7 +23,7 @@ public class StorageBackend {
      *  first line the column names and the rest lines are the master data. **/
     public void create(List<String> dimensionTables) throws Exception { // get jdbc as input too!!!!!!!!
         for (String table : dimensionTables)
-            connector.put(table);
+            DTconnector.put(table);
     }
 
     /** Initialize the eventLog table in the underlying FS.
@@ -33,7 +35,7 @@ public class StorageBackend {
         HashMap<String, String> hmap = new HashMap<String, String>();
         for(String entry : columns)
             hmap.put(entry, "");
-        connector.put(hmap);
+        ELconnector.put(hmap);
     }
 
     /** Insert a new message in the EventLog.
@@ -41,7 +43,7 @@ public class StorageBackend {
      *  with an EventLog column name in the relevant column of the eventLog table, while all the non-matching keys
      *  are saved as a blob in json format in the 'message' column of the eventLog table. **/
     public void insert(HashMap<String, String> message) throws Exception {
-        connector.put(message);
+        ELconnector.put(message);
     }
 
     /** Get rows from EventLog. Fetches either the last n messages or the messages received the last n days.
@@ -50,9 +52,9 @@ public class StorageBackend {
      *  a message that its keys are the eventLog columns. **/
     public HashMap<String, String>[] fetch(String type, Integer value) throws Exception {
         if (type.equals("rows"))
-            return connector.getLast(value);
+            return ELconnector.getLast(value);
         else if (type.equals("days")){
-            ArrayList<HashMap<String, String>> res = connector.getFrom(value);
+            ArrayList<HashMap<String, String>> res = ELconnector.getFrom(value);
             return res.toArray(new HashMap[0]);
         }
         else
@@ -66,9 +68,13 @@ public class StorageBackend {
      *  It returns an array of hashmaps (HashMap<String, String>[]) where each hashmap corresponds to
      *  a row that its keys are the table columns. **/
     public HashMap<String, String>[] select(String table, String column, String value) throws Exception {
+        ArrayList<HashMap<String, String>> res;
         if (column.equals("message") && table.matches(""))
             throw new Exception("Cannot filter the raw message in the eventLog.");
-        ArrayList<HashMap<String, String>> res = connector.get(table, column, value);
+        if (table.matches(""))
+            res = ELconnector.get(table, column, value);
+        else
+            res = DTconnector.get(table, column, value);
         return res.toArray(new HashMap[0]);
     }
 
@@ -76,7 +82,10 @@ public class StorageBackend {
      *  This method takes as input a string which is the dimension table name or an empty string if it refers to
      *  the eventLog table and returns an array of strings (String[]) that contains the column names of the table. **/
     public String[] getSchema(String table) throws IOException {
-        return connector.describe(table);
+        if (table.matches(""))
+            return ELconnector.describe(table);
+        else
+            return DTconnector.describe(table);
     }
 
 }
