@@ -11,7 +11,8 @@ public class StorageBackend {
     private Connector ELconnector;
     private Connector DTconnector;
 
-    /** The StorageBackend constructor creates a new connection with the FS that is provided as an input String. **/
+    /** The StorageBackend constructor creates two new connections, one for the EventLog FS and one for the Dimension
+     *  tables FS, using the FS parameters that are provided as input Strings. **/
     public StorageBackend(String EventLogFS, String DimensionTablesFS) {
         this.ELconnector = ConnectorFactory.getInstance().generateConnector(EventLogFS);
         this.DTconnector = ConnectorFactory.getInstance().generateConnector(DimensionTablesFS);
@@ -32,9 +33,16 @@ public class StorageBackend {
      *  column named 'message' is created in the eventLog that contains the actual message (that will be in json
      *  format). **/
     public void init(Set<String> columns) throws Exception {
+        String[] DTtables = DTconnector.list();
+        ArrayList<String> cols = new ArrayList<String>();
+        for (String table: DTtables)
+            cols.addAll(Arrays.asList(this.getSchema(table)));
         HashMap<String, String> hmap = new HashMap<String, String>();
         for(String entry : columns)
-            hmap.put(entry, "");
+            if (cols.contains(entry))
+                hmap.put(entry, "");
+            else
+                throw new Exception("Column not found in dimension tables: " + entry);
         ELconnector.put(hmap);
     }
 
@@ -69,8 +77,6 @@ public class StorageBackend {
      *  a row that its keys are the table columns. **/
     public HashMap<String, String>[] select(String table, String column, String value) throws Exception {
         ArrayList<HashMap<String, String>> res;
-        if (column.equals("message") && table.matches(""))
-            throw new Exception("Cannot filter the raw message in the eventLog.");
         if (table.matches(""))
             res = ELconnector.get(table, column, value);
         else
@@ -86,6 +92,16 @@ public class StorageBackend {
             return ELconnector.describe(table);
         else
             return DTconnector.describe(table);
+    }
+
+    /** List dimension tables. **/
+    public String[] listTables() {
+            return DTconnector.list();
+    }
+
+    public void close(){
+        DTconnector.close();
+        ELconnector.close();
     }
 
 }

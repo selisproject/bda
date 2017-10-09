@@ -142,7 +142,10 @@ public class LocalFSConnector implements Connector {
     }
 
     // Get rows matching a specific column filter from a table
-    public ArrayList<HashMap<String, String>> get(String table, String column, String value) throws IOException {
+    public ArrayList<HashMap<String, String>> get(String table, String column, String value) throws Exception {
+        if (column.equals("message") && table.matches(""))
+            throw new Exception("Cannot filter the raw message in the eventLog.");
+
         String[] fields = describe(table);
         Integer pos = Arrays.asList(fields).indexOf(column);
         ArrayList<HashMap<String, String>> rows = new ArrayList<HashMap<String, String>>();
@@ -178,6 +181,18 @@ public class LocalFSConnector implements Connector {
         String[] fields = reader.readLine().split("\t");
         reader.close();
         return fields;
+    }
+
+    public String[] list() {
+        File folder = new File(FS);
+        File[] dimensiontables = folder.listFiles();
+        String[] tables = new String[dimensiontables.length];
+        int i = 0;
+        for (File file: dimensiontables){
+            tables[i] = file.getName().split("\\.")[0];
+            i++;
+        }
+        return tables;
     }
 
     public void close(){};

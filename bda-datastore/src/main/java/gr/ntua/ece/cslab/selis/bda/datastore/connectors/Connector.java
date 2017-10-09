@@ -10,7 +10,8 @@ public interface Connector {
     void put(String args) throws Exception;
     HashMap<String, String>[] getLast(Integer args) throws IOException;
     ArrayList<HashMap<String, String>> getFrom(Integer args);
-    ArrayList<HashMap<String, String>> get(String args, String args2, String args3) throws IOException;
+    ArrayList<HashMap<String, String>> get(String args, String args2, String args3) throws Exception;
     String[] describe(String args) throws IOException;
+    String[] list();
     void close();
 }

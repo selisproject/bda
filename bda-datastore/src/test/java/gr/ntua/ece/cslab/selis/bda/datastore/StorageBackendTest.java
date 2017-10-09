@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.util.*;
 
 public class StorageBackendTest {
-    public static void main(String[] args) throws Exception { // + function to initiate parameters from hashmap with factory for each object
+    public static void main(String[] args) throws Exception {
         String EventLogFS;
         String DimensionTablesFS;
 
@@ -30,8 +30,8 @@ public class StorageBackendTest {
 
         // Set containing the EventLog columns
         Set<String> columns = new TreeSet<String>();
-        columns.add("Warehouse");
-        columns.add("OrdDepositorFullName");
+        columns.add("warehouse_id");
+        columns.add("RA");
 
         // List of dimension tables filenames
         ArrayList<String> dimensionTables = new ArrayList<String>();
@@ -58,7 +58,7 @@ public class StorageBackendTest {
 
         // Create example message for EventLog
         HashMap<String, String> hmap = new HashMap<String, String>();
-        hmap.put("Warehouse", "1");
+        hmap.put("warehouse_id", "1");
         hmap.put("latitude", "31.456");
         hmap.put("longitude", "36.542");
         hmap.put("timestamp", "2017-05-02.23:48:57");
@@ -79,12 +79,15 @@ public class StorageBackendTest {
         System.out.println(Arrays.toString(backend.select("trucks","RA", "AG.072")));
 
         // Get info for specific entities from EventLog
-        System.out.println(Arrays.toString(backend.select("","Warehouse", "1")));
+        System.out.println(Arrays.toString(backend.select("","warehouse_id", "1")));
 
         // Print EventLog format
         System.out.println(Arrays.toString(backend.getSchema("")));
 
         // Print dimension table format
         System.out.println(Arrays.toString(backend.getSchema("trucks")));
+
+        // List dimension tables
+        System.out.println(Arrays.toString(backend.listTables()));
     }
 }
