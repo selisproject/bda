@@ -23,8 +23,8 @@ public class Entrypoint {
 
     private static void storageBackendInitialization() {
         LOGGER.log(Level.INFO, "Configuring storage backend...");
-        eventLog = new StorageBackend(configuration.storageBackend.getEventLogURL());
-        dimensionTables = new StorageBackend(configuration.storageBackend.getDimensionTablesURL());
+//        eventLog = new StorageBackend(configuration.storageBackend.getEventLogURL());
+//        dimensionTables = new StorageBackend(configuration.storageBackend.getDimensionTablesURL());
     }
 
     public static void main(String[] args) throws IOException {
