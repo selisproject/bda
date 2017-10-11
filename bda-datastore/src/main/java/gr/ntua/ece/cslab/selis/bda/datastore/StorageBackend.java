@@ -1,46 +1,57 @@
 package gr.ntua.ece.cslab.selis.bda.datastore;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.Connector;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
 
 public class StorageBackend {
 
-    private Connector connector;
+    private Connector ELconnector;
+    private Connector DTconnector;
 
-    /** The StorageBackend constructor creates a new connection with the FS that is provided as an input String. **/
-    public StorageBackend(String FS) {
-        this.connector = ConnectorFactory.getInstance().generateConnector(FS);
+    /** The StorageBackend constructor creates two new connections, one for the EventLog FS and one for the Dimension
+     *  tables FS, using the FS parameters that are provided as input Strings. **/
+    public StorageBackend(String EventLogFS, String DimensionTablesFS) {
+        this.ELconnector = ConnectorFactory.getInstance().generateConnector(EventLogFS);
+        this.DTconnector = ConnectorFactory.getInstance().generateConnector(DimensionTablesFS);
     }
 
     /** Create and populate the dimension tables in the underlying FS.
-     *  This method requires as input a list of strings (ArrayList<String>) that are the full paths to the files
-     *  containing the tables master data. Each table must have a .csv or .json file named after the table name
-     *  that has in the first line the column names and the rest lines are the master data. The name of the first
-     *  column must be the primary key for the table that will be used as a foreign key in the eventLog. **/
-    public void create(ArrayList<String> dimensionTables) throws Exception { // get jdbc as input too!!!!!!!!
+     *  This method requires as input a list of Strings that are the full paths to the files containing the
+     *  tables master data. Each table must have a .csv or .json file named after the table name that has in the
+     *  first line the column names and the rest lines are the master data. **/
+    public void create(List<String> dimensionTables) throws Exception { // get jdbc as input too!!!!!!!!
         for (String table : dimensionTables)
-            connector.put(table);
+            DTconnector.put(table);
     }
 
     /** Initialize the eventLog table in the underlying FS.
-     *  This method requires as input a String that is the full path to a .json file containing the EventLog
-     *  column names as keys. The values of the keys are ignored.
-     *  The keys are essentially foreign keys to dimension tables columns. Except of these columns, an extra
+     *  This method requires as input a set of Strings that are the EventLog column names.
+     *  These columns are essentially foreign keys to dimension tables columns. Except of these columns, an extra
      *  column named 'message' is created in the eventLog that contains the actual message (that will be in json
      *  format). **/
-    public void init(String message) throws Exception {
-        connector.put(message);
+    public void init(Set<String> columns) throws Exception {
+        String[] DTtables = DTconnector.list();
+        ArrayList<String> cols = new ArrayList<String>();
+        for (String table: DTtables)
+            cols.addAll(Arrays.asList(this.getSchema(table)));
+        HashMap<String, String> hmap = new HashMap<String, String>();
+        for(String entry : columns)
+            if (cols.contains(entry))
+                hmap.put(entry, "");
+            else
+                throw new Exception("Column not found in dimension tables: " + entry);
+        ELconnector.put(hmap);
     }
 
     /** Insert a new message in the EventLog.
-     *  This method takes as input a message as a hashmap (HashMap<String, String>) that must have as keys all
-     *  the column names of the eventLog table. **/
-    public void insert(HashMap<String, String> message) throws IOException {
-        connector.put(message);
+     *  This method takes as input a message as a hashmap (HashMap<String, String>) and saves each key that matches
+     *  with an EventLog column name in the relevant column of the eventLog table, while all the non-matching keys
+     *  are saved as a blob in json format in the 'message' column of the eventLog table. **/
+    public void insert(HashMap<String, String> message) throws Exception {
+        ELconnector.put(message);
     }
 
     /** Get rows from EventLog. Fetches either the last n messages or the messages received the last n days.
@@ -49,9 +60,9 @@ public class StorageBackend {
      *  a message that its keys are the eventLog columns. **/
     public HashMap<String, String>[] fetch(String type, Integer value) throws Exception {
         if (type.equals("rows"))
-            return connector.getLast(value);
+            return ELconnector.getLast(value);
         else if (type.equals("days")){
-            ArrayList<HashMap<String, String>> res = connector.getFrom(value);
+            ArrayList<HashMap<String, String>> res = ELconnector.getFrom(value);
             return res.toArray(new HashMap[0]);
         }
         else
@@ -65,9 +76,11 @@ public class StorageBackend {
      *  It returns an array of hashmaps (HashMap<String, String>[]) where each hashmap corresponds to
      *  a row that its keys are the table columns. **/
     public HashMap<String, String>[] select(String table, String column, String value) throws Exception {
-        if (column.equals("message") && table.matches(""))
-            throw new Exception("Cannot filter the raw message in the eventLog.");
-        ArrayList<HashMap<String, String>> res = connector.get(table, column, value);
+        ArrayList<HashMap<String, String>> res;
+        if (table.matches(""))
+            res = ELconnector.get(table, column, value);
+        else
+            res = DTconnector.get(table, column, value);
         return res.toArray(new HashMap[0]);
     }
 
@@ -75,7 +88,20 @@ public class StorageBackend {
      *  This method takes as input a string which is the dimension table name or an empty string if it refers to
      *  the eventLog table and returns an array of strings (String[]) that contains the column names of the table. **/
     public String[] getSchema(String table) throws IOException {
-        return connector.describe(table);
+        if (table.matches(""))
+            return ELconnector.describe(table);
+        else
+            return DTconnector.describe(table);
+    }
+
+    /** List dimension tables. **/
+    public String[] listTables() {
+            return DTconnector.list();
+    }
+
+    public void close(){
+        DTconnector.close();
+        ELconnector.close();
     }
 
 }

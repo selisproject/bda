@@ -39,5 +39,9 @@ public class PostgresqlConnector implements Connector {
         return new String[0];
     }
 
+    public String[] list() {
+        return new String[0];
+    }
+
     public void close(){};
 }
