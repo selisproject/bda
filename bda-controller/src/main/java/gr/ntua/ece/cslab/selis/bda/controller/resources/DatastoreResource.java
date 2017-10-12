@@ -63,8 +63,15 @@ public class DatastoreResource {
     @GET
     @Path("dtable")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public DimensionTable getTable(@QueryParam("name") String tableName) {
+    public DimensionTable getTable(
+            @QueryParam("tableName") String tableName,
+            @QueryParam("columnName") String columnName,
+            @QueryParam("columnValue") String columnValue
+    ) {
         // TODO: implement it
+        if(columnValue.equals("")) {
+            // return everything
+        }
         return new DimensionTable();
     }
 
