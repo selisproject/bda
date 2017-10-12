@@ -19,12 +19,12 @@ public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
 
-    public static StorageBackend eventLog, dimensionTables;
+    public static StorageBackend my_backend;
 
     private static void storageBackendInitialization() {
-        LOGGER.log(Level.INFO, "Configuring storage backend...");
-//        eventLog = new StorageBackend(configuration.storageBackend.getEventLogURL());
-//        dimensionTables = new StorageBackend(configuration.storageBackend.getDimensionTablesURL());
+        LOGGER.log(Level.INFO, "Initializing storage backend...");
+//        my_backend = new StorageBackend(configuration.storageBackend.getEventLogURL(),
+//                configuration.storageBackend.getDimensionTablesURL());
     }
 
     public static void main(String[] args) throws IOException {

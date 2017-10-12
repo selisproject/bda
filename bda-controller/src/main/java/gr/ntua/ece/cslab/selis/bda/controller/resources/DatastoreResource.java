@@ -69,9 +69,6 @@ public class DatastoreResource {
             @QueryParam("columnValue") String columnValue
     ) {
         // TODO: implement it
-        if(columnValue.equals("")) {
-            // return everything
-        }
         return new DimensionTable();
     }
 
