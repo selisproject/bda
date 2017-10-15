@@ -1,16 +1,21 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.CDL;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * This class holds the REST API of the datastore object.
@@ -50,9 +55,44 @@ public class DatastoreResource {
     @Path("boot")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse bootstrap(MasterData masterData) {
-        // TODO: implement it
-        return new RequestResponse("ERROR", "Not implemented");
+    public RequestResponse bootstrap(@Context HttpServletResponse response, MasterData masterData) throws IOException {
+        ArrayList<String> dimensionTables = new ArrayList<String>();
+        for (DimensionTable table: masterData.getTables()){
+            List<Tuple> data = table.getData();
+            String name = table.getName();
+            JSONArray array = new JSONArray();
+            for (Tuple tuple: data){
+                LOGGER.log(Level.INFO, tuple.toString());
+                JSONObject obj = new JSONObject();
+                for (KeyValue element: tuple.getTuple())
+                    obj.put(element.getKey(), element.getValue());
+                array.put(obj);
+            }
+            String csv = CDL.toString(array).replaceAll(",","\t");
+            FileWriter fw = new FileWriter("../bda-datastore/src/main/resources/"+name+".csv");
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(csv);
+            bw.close();
+            fw.close();
+            dimensionTables.add("../bda-datastore/src/main/resources/"+name+".csv");
+        }
+        try {
+            Entrypoint.myBackend.create(dimensionTables);
+            // Set containing the EventLog columns
+            Set<String> columns = new TreeSet<String>();
+            columns.add("warehouse_id");
+            columns.add("RA");
+            Entrypoint.myBackend.init(columns);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        try {
+            response.flushBuffer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new RequestResponse("OK", "");
     }
 
     /**
