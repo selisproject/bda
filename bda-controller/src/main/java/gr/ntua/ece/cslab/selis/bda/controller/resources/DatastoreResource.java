@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -33,9 +32,16 @@ public class DatastoreResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse insert(@Context HttpServletResponse response, Message m) {
-        // TODO: implement it
         LOGGER.log(Level.INFO, m.toString());
-        // placeholder
+        HashMap<String,String> hmap = new HashMap<>();
+        for (KeyValue element: m.getEntries())
+            hmap.put(element.getKey(), element.getValue());
+
+        try {
+            Entrypoint.myBackend.insert(hmap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         response.setStatus(HttpServletResponse.SC_CREATED);
         try {
             response.flushBuffer();
@@ -70,9 +76,7 @@ public class DatastoreResource {
             }
             String csv = CDL.toString(array).replaceAll(",","\t");
             FileWriter fw = new FileWriter("../bda-datastore/src/main/resources/"+name+".csv");
-            BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(csv);
-            bw.close();
+            fw.write(csv);
             fw.close();
             dimensionTables.add("../bda-datastore/src/main/resources/"+name+".csv");
         }
@@ -103,13 +107,32 @@ public class DatastoreResource {
     @GET
     @Path("dtable")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public DimensionTable getTable(
+    public List<Tuple> getTable(
             @QueryParam("tableName") String tableName,
             @QueryParam("columnName") String columnName,
             @QueryParam("columnValue") String columnValue
     ) {
-        // TODO: implement it
-        return new DimensionTable();
+        try {
+            HashMap<String, String>[] rows = Entrypoint.myBackend.select(tableName, columnName, columnValue);
+            List<Tuple> res = new LinkedList<>();
+            for (HashMap<String,String> row: rows){
+                List<KeyValue> entries = new LinkedList<>();
+                Tuple tuple = new Tuple();
+                for (Map.Entry entry: row.entrySet()){
+                    KeyValue kv = new KeyValue();
+                    kv.setKey(entry.getKey().toString());
+                    kv.setValue(entry.getValue().toString());
+                    entries.add(kv);
+                }
+                tuple.setTuple(entries);
+                LOGGER.log(Level.INFO, tuple.toString());
+                res.add(tuple);
+            }
+            return res;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new LinkedList<>();
     }
 
     /**
@@ -119,9 +142,20 @@ public class DatastoreResource {
     @GET
     @Path("schema")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public DimensionTableSchema getSchema() {
-        // TODO: implement it
-        return new DimensionTableSchema();
+    public List<DimensionTableSchema> getSchema() {
+        try {
+            String[] tables = Entrypoint.myBackend.listTables();
+            List res = new LinkedList<>();
+            for (String table: tables){
+                String[] schema = Entrypoint.myBackend.getSchema(table);
+                LOGGER.log(Level.INFO, "Table: " +table + ", Columns: "+Arrays.toString(schema));
+                res.add(new DimensionTableSchema(Arrays.asList(schema), new LinkedList<>()));
+            }
+            return res;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new LinkedList<>();
 
     }
 
@@ -134,9 +168,27 @@ public class DatastoreResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Message> getEntries(@QueryParam("type") String type,
-                                           @QueryParam("n") Integer n) {
-        // TODO: implement it
+                                    @QueryParam("n") Integer n) {
+        try {
+            HashMap<String, String>[] rows = Entrypoint.myBackend.fetch(type,n);
+            List<Message> res = new LinkedList<>();
+            for (HashMap<String,String> row: rows){
+                List<KeyValue> entries = new LinkedList<>();
+                Message msg = new Message();
+                for (Map.Entry entry: row.entrySet()){
+                    KeyValue kv = new KeyValue();
+                    kv.setKey(entry.getKey().toString());
+                    kv.setValue(entry.getValue().toString());
+                    entries.add(kv);
+                }
+                msg.setEntries(entries);
+                res.add(msg);
+                LOGGER.log(Level.INFO, msg.toString());
+            }
+            return res;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return new LinkedList();
-
     }
 }
