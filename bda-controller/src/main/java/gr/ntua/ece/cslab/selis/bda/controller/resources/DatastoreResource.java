@@ -63,6 +63,7 @@ public class DatastoreResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse bootstrap(@Context HttpServletResponse response, MasterData masterData) throws IOException {
         ArrayList<String> dimensionTables = new ArrayList<String>();
+        Set<String> columns = new TreeSet<String>();
         for (DimensionTable table: masterData.getTables()){
             List<Tuple> data = table.getData();
             String name = table.getName();
@@ -78,14 +79,12 @@ public class DatastoreResource {
             FileWriter fw = new FileWriter("../bda-datastore/src/main/resources/"+name+".csv");
             fw.write(csv);
             fw.close();
+
             dimensionTables.add("../bda-datastore/src/main/resources/"+name+".csv");
+            columns.add(table.getSchema().getPrimaryKey());
         }
         try {
             Entrypoint.myBackend.create(dimensionTables);
-            // Set containing the EventLog columns
-            Set<String> columns = new TreeSet<String>();
-            columns.add("warehouse_id");
-            columns.add("RA");
             Entrypoint.myBackend.init(columns);
         } catch (Exception e) {
             e.printStackTrace();
@@ -142,14 +141,17 @@ public class DatastoreResource {
     @GET
     @Path("schema")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<DimensionTableSchema> getSchema() {
+    public List<DimensionTable> getSchema() {
         try {
             String[] tables = Entrypoint.myBackend.listTables();
             List res = new LinkedList<>();
             for (String table: tables){
                 String[] schema = Entrypoint.myBackend.getSchema(table);
                 LOGGER.log(Level.INFO, "Table: " +table + ", Columns: "+Arrays.toString(schema));
-                res.add(new DimensionTableSchema(Arrays.asList(schema), new LinkedList<>()));
+                DimensionTable tbl = new DimensionTable(table,
+                        new DimensionTableSchema(Arrays.asList(schema), new LinkedList<>(), ""),
+                        new LinkedList<>());
+                res.add(tbl);
             }
             return res;
         } catch (IOException e) {

@@ -11,7 +11,12 @@ import org.json.simple.JSONObject;
 public class LocalFSConnector implements Connector {
     private String FS;
 
+    // The constructor creates the filesystem folder using the 'FS' parameter.
+    // If this folder exists, it should be initially empty (before the bootstraping).
     public LocalFSConnector(String FS){
+        File fs = new File(FS);
+        if (!fs.exists())
+            fs.mkdir();
         this.FS = FS;
     }
 
@@ -52,7 +57,7 @@ public class LocalFSConnector implements Connector {
             if (row.containsKey("message") && row.size() == 1)
                 throw new Exception("Message does not contain any foreign keys.");
             else if (json.isEmpty())
-                throw new Exception("Message does not contain a new event.");
+                throw new Exception("Message does not contain a new event. Append aborted.");
 
             // Append message in csv
             fw = new FileWriter(evlog, true);
@@ -183,6 +188,7 @@ public class LocalFSConnector implements Connector {
         return fields;
     }
 
+    // List dimension tables in FS
     public String[] list() {
         File folder = new File(FS);
         File[] dimensiontables = folder.listFiles();
@@ -191,6 +197,11 @@ public class LocalFSConnector implements Connector {
         for (File file: dimensiontables){
             tables[i] = file.getName().split("\\.")[0];
             i++;
+        }
+        if (Arrays.asList(tables).contains("EventLog")){
+            List<String> list = new ArrayList<String>(Arrays.asList(tables));
+            list.removeAll(Arrays.asList("EventLog"));
+            tables = list.toArray(new String[0]);
         }
         return tables;
     }

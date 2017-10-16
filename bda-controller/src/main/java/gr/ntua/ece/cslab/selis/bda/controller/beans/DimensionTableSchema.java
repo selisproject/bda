@@ -14,12 +14,14 @@ import java.util.List;
 public class DimensionTableSchema {
     private List<String> columnNames;
     private List<KeyValue> columnTypes;
+    private String primaryKey;
 
     public DimensionTableSchema(){ this.columnNames = new LinkedList<>();};
 
-    public DimensionTableSchema(List<String> columnNames, List<KeyValue> columnTypes) {
+    public DimensionTableSchema(List<String> columnNames, List<KeyValue> columnTypes, String primaryKey) {
         this.columnNames = columnNames;
         this.columnTypes = columnTypes;
+        this.primaryKey = primaryKey;
     }
 
     public List<String> getColumnNames() {
@@ -36,5 +38,13 @@ public class DimensionTableSchema {
 
     public void setColumnTypes(List<KeyValue> columnTypes) {
         this.columnTypes = columnTypes;
+    }
+
+    public String getPrimaryKey() {
+        return primaryKey;
+    }
+
+    public void setPrimaryKey(String primaryKey) {
+        this.primaryKey = primaryKey;
     }
 }
