@@ -1,7 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class HBaseConnector implements Connector {
@@ -22,22 +21,22 @@ public class HBaseConnector implements Connector {
 
     public List<Message> getLast(Integer args){
         System.out.println("get from HBase " + FS);
-        return new ArrayList<>();
+        return null;
     }
 
     public List<Message> getFrom(Integer args){
         System.out.println("get from HBase " + FS);
-        return new ArrayList<>();
+        return null;
     }
 
     public List<Tuple> get(String args, String args2, String args3){
         System.out.println("get from HBase " + FS);
-        return new ArrayList<>();
+        return null;
     }
 
     public String[] describe(String args){
         System.out.println("print HBase schema " + FS);
-        return new String[0];
+        return null;
     }
 
     public String[] list() {

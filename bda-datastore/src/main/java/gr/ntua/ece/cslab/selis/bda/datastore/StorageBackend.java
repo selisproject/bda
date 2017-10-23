@@ -47,8 +47,7 @@ public class StorageBackend {
 
     /** Get rows from EventLog. Fetches either the last n messages or the messages received the last n days.
      *  This method requires as input a string that denotes 'days' or 'rows' and an integer that denotes the
-     *  number n. It returns an array of hashmaps (HashMap<String, String>[]) where each hashmap corresponds to
-     *  a message that its keys are the eventLog columns. **/
+     *  number n. **/
     public List<Message> fetch(String type, Integer value) throws Exception {
         if (type.equals("rows"))
             return ELconnector.getLast(value);
@@ -58,19 +57,24 @@ public class StorageBackend {
             throw new Exception("type not found: " + type);
     }
 
-    /** Select rows filtered in a specific column with a specific value from a table.
-     *  This method requires as input a string which is the dimension table name or an empty string if it refers to
-     *  the eventLog table, the column name and the column value as strings. The eventLog can be filtered in a column
-     *  that is a foreign key to a dimension table, not in the actual message and the last 1000 messages are searched.
-     *  It returns an array of hashmaps (HashMap<String, String>[]) where each hashmap corresponds to
-     *  a row that its keys are the table columns. **/
+    /** Select rows filtered in a specific column with a specific value from a dimension table.
+     *  This method requires as input a string which is the dimension table name, the column name and the column value
+     *  as strings. **/
     public List<Tuple> select(String table, String column, String value) throws Exception {
-        //ArrayList<HashMap<String, String>> res;
-        //if (table.matches(""))
-        //    res = ELconnector.get(table, column, value);
-        //else
-        //    res = DTconnector.get(table, column, value);
         return DTconnector.get(table, column, value);
+    }
+
+    /** Select rows filtered in a specific column with a specific value from the eventLog table.
+     *  This method requires as input the column name and the column value as strings. The eventLog can be filtered in
+     *  a column that is a foreign key to a dimension table, not in the actual message and the last 1000 messages are
+     *  searched.**/
+    public List<Message> select(String column, String value) throws Exception {
+        List<Tuple> tmp = ELconnector.get("", column, value);
+        List<Message> messages = new LinkedList<>();
+        for (Tuple msg: tmp){
+            messages.add(new Message(new LinkedList<>(), msg.getTuple()));
+        }
+        return messages;
     }
 
     /** Get table schema.
