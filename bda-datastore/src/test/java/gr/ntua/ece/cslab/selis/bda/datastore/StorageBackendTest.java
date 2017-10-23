@@ -28,11 +28,6 @@ public class StorageBackendTest {
         EventLogFS = "bda-datastore/src/test/resources/output"; // hdfs or hbase
         DimensionTablesFS = "bda-datastore/src/test/resources/output"; // hdfs or postgres
 
-        // Set containing the EventLog columns
-        Set<String> columns = new TreeSet<String>();
-        columns.add("warehouse_id");
-        columns.add("RA");
-
         // List of dimension tables filenames
         ArrayList<String> dimensionTables = new ArrayList<String>();
         dimensionTables.add("bda-datastore/src/test/resources/trucks.csv");
@@ -50,11 +45,8 @@ public class StorageBackendTest {
         // Create a new backend to the BDA
         StorageBackend backend = new StorageBackend(EventLogFS, DimensionTablesFS);
 
-        // Create dimension tables
-        backend.create(dimensionTables);
-
-        // Create EventLog
-        backend.init(columns);
+        // Create EventLog and dimension tables
+        //backend.init();
 
         // Create example message for EventLog
         HashMap<String, String> hmap = new HashMap<String, String>();
@@ -64,22 +56,22 @@ public class StorageBackendTest {
         hmap.put("timestamp", "2017-05-02.23:48:57");
 
         // Insert message in EventLog
-        backend.insert(hmap);
+        //backend.insert(hmap);
 
         // Get last message from EventLog
-        System.out.println(Arrays.toString(backend.fetch("rows", 1)));
+        //System.out.println(Arrays.toString(backend.fetch("rows", 1)));
 
         // Get messages of last 3 days from Eventlog
         //ELbackend.select("days", 3);
 
         // Get all messages from EventLog
-        System.out.println(Arrays.toString(backend.fetch("rows", -1)));
+        //System.out.println(Arrays.toString(backend.fetch("rows", -1)));
 
         // Get info for specific entities from dimension table
-        System.out.println(Arrays.toString(backend.select("trucks","RA", "AG.072")));
+        //System.out.println(Arrays.toString(backend.select("trucks","RA", "AG.072")));
 
         // Get info for specific entities from EventLog
-        System.out.println(Arrays.toString(backend.select("","warehouse_id", "1")));
+        //System.out.println(Arrays.toString(backend.select("","warehouse_id", "1")));
 
         // Print EventLog format
         System.out.println(Arrays.toString(backend.getSchema("")));

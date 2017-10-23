@@ -1,0 +1,17 @@
+{
+		"entries":[
+				{
+				"key":"warehouse_id",
+				"value":"1"
+		},{
+				"key":"latitude",
+				"value":"31.456"
+		},{
+				"key":"longitude",
+				"value":"36.542"
+		},{
+				"key":"timestamp",
+				"value":"2017-05-02.23:48:57"
+		}],
+		"nested":[]
+}

@@ -1,7 +1,9 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class HDFSConnector implements Connector {
 
@@ -11,27 +13,27 @@ public class HDFSConnector implements Connector {
         this.FS = FS;
     }
 
-    public void put(HashMap<String, String> row){
+    public void put(Message message){
         System.out.println("put in HDFS " + FS);
     }
 
-    public void put(String file){
+    public void put(MasterData masterData){
         System.out.println("put in HDFS " + FS);
     }
 
-    public HashMap<String, String>[] getLast(Integer args){
+    public List<Message> getLast(Integer args){
         System.out.println("get from HDFS " + FS);
-        return new HashMap[0];
+        return new ArrayList<>();
     }
 
-    public ArrayList<HashMap<String, String>> getFrom(Integer args){
+    public List<Message> getFrom(Integer args){
         System.out.println("get from HDFS " + FS);
-        return new ArrayList<HashMap<String, String>>();
+        return new ArrayList<>();
     }
 
-    public ArrayList<HashMap<String, String>> get(String args, String args2, String args3){
+    public List<Tuple> get(String args, String args2, String args3){
         System.out.println("get from HDFS " + FS);
-        return new ArrayList<HashMap<String, String>>();
+        return new ArrayList<>();
     }
 
     public String[] describe(String args){

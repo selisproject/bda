@@ -1,12 +1,12 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+
+import org.apache.commons.io.input.ReversedLinesFileReader;
+import org.json.simple.JSONObject;
+
 import java.io.*;
 import java.util.*;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.input.ReversedLinesFileReader;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.json.simple.JSONObject;
 
 public class LocalFSConnector implements Connector {
     private String FS;
@@ -20,8 +20,8 @@ public class LocalFSConnector implements Connector {
         this.FS = FS;
     }
 
-    // Used to initialize and append a message in the EventLog which is a csv file
-    public void put(HashMap<String, String> row) throws Exception {
+    // Used to initialize or append a message in the EventLog which is a csv file
+    public void put(Message row) throws Exception {
         File evlog = new File(FS + "/EventLog.csv");
         FileWriter fw;
         BufferedWriter bw;
@@ -29,8 +29,8 @@ public class LocalFSConnector implements Connector {
             // Initialize eventLog by writing column names in first line
             fw = new FileWriter(evlog);
             bw = new BufferedWriter(fw);
-            for (Map.Entry<String, String> field : row.entrySet()){
-                String key = field.getKey();
+            for (KeyValue fields : row.getEntries()){
+                String key = fields.getKey();
                 bw.write( key + "\t");
             }
             // add one more column named 'message' that will contain the blob
@@ -39,22 +39,21 @@ public class LocalFSConnector implements Connector {
         }
         else {
             // Convert message to appropriate format taking into account the schema
-            JSONObject json = new JSONObject();
+            JSONObject json = new JSONObject(); // to store blob
             String[] fields = this.describe("");
-            Iterator it = row.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry element = (Map.Entry) it.next();
-                if (!Arrays.asList(fields).contains(element.getKey())) {
+            HashMap<String, String> message = new HashMap<>();
+            for (KeyValue element: row.getEntries()) {
+                if (!Arrays.asList(fields).contains(element.getKey()))
                     json.put(element.getKey(), element.getValue());
-                    it.remove();
-                }
+                else
+                    message.put(element.getKey(), element.getValue());
             }
-            for (String column : fields)
-                if (!row.containsKey(column))
-                    row.put(column, "null");
-            row.put("message", json.toJSONString());
+            for (String column: fields)
+                if (!message.containsKey(column))
+                    message.put(column, "null");
+            message.put("message", json.toJSONString());
 
-            if (row.containsKey("message") && row.size() == 1)
+            if (message.containsKey("message") && message.size() == 1)
                 throw new Exception("Message does not contain any foreign keys.");
             else if (json.isEmpty())
                 throw new Exception("Message does not contain a new event. Append aborted.");
@@ -63,53 +62,40 @@ public class LocalFSConnector implements Connector {
             fw = new FileWriter(evlog, true);
             bw = new BufferedWriter(fw);
             for (String field : fields)
-                bw.write(row.get(field) + "\t");
+                bw.write(message.get(field) + "\t");
             bw.newLine();
         }
         bw.close();
         fw.close();
     }
 
-    // Create table with columns from csv or json file and store it in csv file
-    public void put(String file) throws Exception {
-        String[] output_path = file.replace("json","csv").split("/"); // save in csv
-        String output = output_path[output_path.length-1];
-        FileWriter fw = new FileWriter(FS + '/' + output);
-        BufferedWriter bw = new BufferedWriter(fw);
-        String ext = FilenameUtils.getExtension(file);
+    // Create table, populate it and store it in csv file
+    public void put(MasterData masterData) throws Exception {
+        for (DimensionTable table: masterData.getTables()) {
+            String output = table.getName() + ".csv"; // save in csv
+            FileWriter fw = new FileWriter(FS + '/' + output);
+            BufferedWriter bw = new BufferedWriter(fw);
 
-        // if file is a csv read line by line
-        if (ext.equals("csv")) {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                bw.write(line);
-                bw.newLine();
-            }
-            reader.close();
-        }
-        // if file is a json read as an arraylist of linked hashmaps to retain columns order
-        else if (ext.equals("json")) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            ArrayList<LinkedHashMap<String, Object>> rows =
-                    objectMapper.readValue(new File(file), objectMapper.getTypeFactory().constructCollectionType(ArrayList.class, LinkedHashMap.class));
+            List<Tuple> data = table.getData();
             // write column names
-            for (Map.Entry<String, Object> row : rows.get(0).entrySet())
-                bw.write(row.getKey() + "\t");
+            List<KeyValue> fields = data.get(0).getTuple();
+            for (KeyValue element : fields)
+                bw.write(element.getKey() + "\t");
             bw.newLine();
             // fill-in column values
-            for (HashMap<String, Object> row : rows) {
-                for (Map.Entry<String, Object> line : row.entrySet())
-                    bw.write(line.getValue() + "\t");
+            for (Tuple tuple : data) {
+                for (KeyValue element : tuple.getTuple())
+                    bw.write(element.getValue() + "\t");
                 bw.newLine();
             }
+            bw.close();
+            fw.close();
         }
-        bw.close();
-        fw.close();
     }
 
     // get last num rows from EventLog
-    public HashMap<String, String>[] getLast(Integer num) throws IOException {
+    public List<Message> getLast(Integer num) throws IOException {
+        List<Message> res = new LinkedList<>();
         File file = new File(FS + "/EventLog.csv");
         String[] fields = describe("");
         LineNumberReader lnr;
@@ -121,39 +107,38 @@ public class LocalFSConnector implements Connector {
             num = lnr.getLineNumber()-1;
             lnr.close();
         }
-        HashMap<String, String>[] rows = new HashMap[num];
 
         int counter = 0;
         String line;
         ReversedLinesFileReader reader = new ReversedLinesFileReader(file);
         // Read from end of file with a counter
         while((line = reader.readLine()) != null && counter < num){
-            HashMap<String, String> hmap = new HashMap<String, String>();
+            List<KeyValue> entries = new LinkedList<>();
             String[] values = line.split("\t");
             for (int i=0; i < fields.length; i++) {
-                hmap.put(fields[i],values[i]);
+                entries.add(new KeyValue(fields[i],values[i]));
             }
-            rows[counter]=hmap;
+            res.add(new Message(new LinkedList<>(), entries));
             counter++;
         }
         reader.close();
-        return rows;
+        return res;
     }
 
     // Get rows for last num days from EventLog
-    public ArrayList<HashMap<String, String>> getFrom(Integer num){
+    public List<Message> getFrom(Integer num){
         System.out.println("get from " + FS);
-        return new ArrayList<HashMap<String, String>>();
+        return new LinkedList<>();
     }
 
     // Get rows matching a specific column filter from a table
-    public ArrayList<HashMap<String, String>> get(String table, String column, String value) throws Exception {
+    public List<Tuple> get(String table, String column, String value) throws Exception {
+        List<Tuple> res = new LinkedList<>();
         if (column.equals("message") && table.matches(""))
             throw new Exception("Cannot filter the raw message in the eventLog.");
 
         String[] fields = describe(table);
         Integer pos = Arrays.asList(fields).indexOf(column);
-        ArrayList<HashMap<String, String>> rows = new ArrayList<HashMap<String, String>>();
 
         String line;
         int counter = 0;
@@ -164,16 +149,15 @@ public class LocalFSConnector implements Connector {
         while((line = reader.readLine()) != null && (!table.equals("EventLog") || counter < 1000)){
             String[] values = line.split("\t");
             if (values[pos].equals(value)) {
-                HashMap<String, String> hmap = new HashMap<String, String>();
-                for (int i = 0; i < fields.length; i++) {
-                    hmap.put(fields[i], values[i]);
-                }
-                rows.add(hmap);
+                List<KeyValue> entries = new LinkedList<>();
+                for (int i = 0; i < fields.length; i++)
+                    entries.add(new KeyValue(fields[i], values[i]));
+                res.add(new Tuple(entries));
             }
             counter++;
         }
         reader.close();
-        return rows;
+        return res;
     }
 
     // get column names for table args
@@ -199,7 +183,7 @@ public class LocalFSConnector implements Connector {
             i++;
         }
         if (Arrays.asList(tables).contains("EventLog")){
-            List<String> list = new ArrayList<String>(Arrays.asList(tables));
+            List<String> list = new LinkedList<>(Arrays.asList(tables));
             list.removeAll(Arrays.asList("EventLog"));
             tables = list.toArray(new String[0]);
         }

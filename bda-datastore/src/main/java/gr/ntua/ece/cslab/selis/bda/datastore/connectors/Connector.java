@@ -1,16 +1,17 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
 /** Methods that a connector should implement for accessing the filesystem. **/
 public interface Connector {
-    void put(HashMap<String, String> args) throws Exception;
-    void put(String args) throws Exception;
-    HashMap<String, String>[] getLast(Integer args) throws IOException;
-    ArrayList<HashMap<String, String>> getFrom(Integer args);
-    ArrayList<HashMap<String, String>> get(String args, String args2, String args3) throws Exception;
+    void put(Message args) throws Exception;
+    void put(MasterData args) throws Exception;
+    List<Message> getLast(Integer args) throws IOException;
+    List<Message> getFrom(Integer args);
+    List<Tuple> get(String args, String args2, String args3) throws Exception;
     String[] describe(String args) throws IOException;
     String[] list();
     void close();
