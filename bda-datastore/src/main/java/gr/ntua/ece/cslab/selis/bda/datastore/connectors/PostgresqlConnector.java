@@ -34,7 +34,7 @@ public class PostgresqlConnector implements Connector {
         return null;
     }
 
-    public String[] describe(String args){
+    public DimensionTable describe(String args){
         System.out.println("print PostgreSQL schema " + FS);
         return null;
     }

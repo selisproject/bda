@@ -34,7 +34,7 @@ public class HDFSConnector implements Connector {
         return null;
     }
 
-    public String[] describe(String args){
+    public DimensionTable describe(String args){
         System.out.println("print HDFS schema " + FS);
         return null;
     }

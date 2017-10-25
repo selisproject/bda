@@ -40,10 +40,10 @@ public class LocalFSConnector implements Connector {
         else {
             // Convert message to appropriate format taking into account the schema
             JSONObject json = new JSONObject(); // to store blob
-            String[] fields = this.describe("");
+            List<String> fields = this.describe("").getSchema().getColumnNames();
             HashMap<String, String> message = new HashMap<>();
             for (KeyValue element: row.getEntries()) {
-                if (!Arrays.asList(fields).contains(element.getKey()))
+                if (!fields.contains(element.getKey()))
                     json.put(element.getKey(), element.getValue());
                 else
                     message.put(element.getKey(), element.getValue());
@@ -78,13 +78,13 @@ public class LocalFSConnector implements Connector {
 
             List<Tuple> data = table.getData();
             // write column names
-            List<KeyValue> fields = data.get(0).getTuple();
+            List<KeyValue> fields = data.get(0).getFields();
             for (KeyValue element : fields)
                 bw.write(element.getKey() + "\t");
             bw.newLine();
             // fill-in column values
             for (Tuple tuple : data) {
-                for (KeyValue element : tuple.getTuple())
+                for (KeyValue element : tuple.getFields())
                     bw.write(element.getValue() + "\t");
                 bw.newLine();
             }
@@ -97,7 +97,7 @@ public class LocalFSConnector implements Connector {
     public List<Message> getLast(Integer num) throws IOException {
         List<Message> res = new LinkedList<>();
         File file = new File(FS + "/EventLog.csv");
-        String[] fields = describe("");
+        List<String> fields = describe("").getSchema().getColumnNames();
         LineNumberReader lnr;
 
         // If num is negative get total number of rows
@@ -115,8 +115,8 @@ public class LocalFSConnector implements Connector {
         while((line = reader.readLine()) != null && counter < num){
             List<KeyValue> entries = new LinkedList<>();
             String[] values = line.split("\t");
-            for (int i=0; i < fields.length; i++) {
-                entries.add(new KeyValue(fields[i],values[i]));
+            for (int i=0; i < fields.size(); i++) {
+                entries.add(new KeyValue(fields.get(i),values[i]));
             }
             res.add(new Message(new LinkedList<>(), entries));
             counter++;
@@ -137,8 +137,8 @@ public class LocalFSConnector implements Connector {
         if (column.equals("message") && table.matches(""))
             throw new Exception("Cannot filter the raw message in the eventLog.");
 
-        String[] fields = describe(table);
-        Integer pos = Arrays.asList(fields).indexOf(column);
+        List<String> fields = describe(table).getSchema().getColumnNames();
+        Integer pos = fields.indexOf(column);
 
         String line;
         int counter = 0;
@@ -150,8 +150,8 @@ public class LocalFSConnector implements Connector {
             String[] values = line.split("\t");
             if (values[pos].equals(value)) {
                 List<KeyValue> entries = new LinkedList<>();
-                for (int i = 0; i < fields.length; i++)
-                    entries.add(new KeyValue(fields[i], values[i]));
+                for (int i = 0; i < fields.size(); i++)
+                    entries.add(new KeyValue(fields.get(i), values[i]));
                 res.add(new Tuple(entries));
             }
             counter++;
@@ -161,31 +161,29 @@ public class LocalFSConnector implements Connector {
     }
 
     // get column names for table args
-    public String[] describe(String args) throws IOException {
+    public DimensionTable describe(String args) throws IOException {
+        String table;
         if (args.matches(""))
-            args = FS + "/EventLog.csv";
+            table = FS + "/EventLog.csv";
         else
-            args = FS + "/" + args + ".csv";
-        BufferedReader reader = new BufferedReader(new FileReader(args));
+            table = FS + "/" + args + ".csv";
+        BufferedReader reader = new BufferedReader(new FileReader(table));
         String[] fields = reader.readLine().split("\t");
         reader.close();
-        return fields;
+        return new DimensionTable(args,
+                new DimensionTableSchema(Arrays.asList(fields), new LinkedList<>(), ""),
+                new LinkedList<>());
     }
 
     // List dimension tables in FS
     public String[] list() {
         File folder = new File(FS);
-        File[] dimensiontables = folder.listFiles();
+        File[] dimensiontables = folder.listFiles((dir, name) -> (!name.contains("EventLog")));
         String[] tables = new String[dimensiontables.length];
         int i = 0;
         for (File file: dimensiontables){
             tables[i] = file.getName().split("\\.")[0];
             i++;
-        }
-        if (Arrays.asList(tables).contains("EventLog")){
-            List<String> list = new LinkedList<>(Arrays.asList(tables));
-            list.removeAll(Arrays.asList("EventLog"));
-            tables = list.toArray(new String[0]);
         }
         return tables;
     }

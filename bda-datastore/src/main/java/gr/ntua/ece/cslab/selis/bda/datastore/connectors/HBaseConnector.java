@@ -34,7 +34,7 @@ public class HBaseConnector implements Connector {
         return null;
     }
 
-    public String[] describe(String args){
+    public DimensionTable describe(String args){
         System.out.println("print HBase schema " + FS);
         return null;
     }

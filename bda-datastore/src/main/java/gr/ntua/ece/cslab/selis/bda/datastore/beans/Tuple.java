@@ -10,27 +10,27 @@ import java.util.List;
 @XmlRootElement(name = "tuple")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class Tuple implements Serializable {
-    private List<KeyValue> tuple;
+    private List<KeyValue> fields;
 
-    public Tuple(){ this.tuple = new LinkedList<>();};
+    public Tuple(){ this.fields = new LinkedList<>();};
 
-    public Tuple(List<KeyValue> tuple) {
-        this.tuple = tuple;
+    public Tuple(List<KeyValue> fields) {
+        this.fields = fields;
     }
 
-    public List<KeyValue> getTuple() {
-        return tuple;
+    public List<KeyValue> getFields() {
+        return fields;
     }
 
-    public void setTuple(List<KeyValue> tuple) {
-        this.tuple = tuple;
+    public void setFields(List<KeyValue> fields) {
+        this.fields = fields;
     }
 
     public String toString() {
-        String entries = this.tuple.stream().
+        String row = this.fields.stream().
                 map(a -> "["+a.getKey() + "," + a.getValue()+"]").
                 reduce((a, b) -> a + "," + b).
                 get();
-        return entries;
+        return row;
     }
 }

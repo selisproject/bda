@@ -101,12 +101,9 @@ public class DatastoreResource {
             String[] tables = Entrypoint.myBackend.listTables();
             List res = new LinkedList<>();
             for (String table: tables){
-                String[] schema = Entrypoint.myBackend.getSchema(table);
-                LOGGER.log(Level.INFO, "Table: " +table + ", Columns: "+Arrays.toString(schema));
-                DimensionTable tbl = new DimensionTable(table,
-                        new DimensionTableSchema(Arrays.asList(schema), new LinkedList<>(), ""),
-                        new LinkedList<>());
-                res.add(tbl);
+                DimensionTable schema = Entrypoint.myBackend.getSchema(table);
+                LOGGER.log(Level.INFO, "Table: " +table + ", Columns: "+ schema.getSchema().getColumnNames());
+                res.add(schema);
             }
             return res;
         } catch (IOException e) {

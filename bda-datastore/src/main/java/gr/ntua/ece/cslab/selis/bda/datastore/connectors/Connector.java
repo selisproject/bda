@@ -12,7 +12,7 @@ public interface Connector {
     List<Message> getLast(Integer args) throws IOException;
     List<Message> getFrom(Integer args);
     List<Tuple> get(String args, String args2, String args3) throws Exception;
-    String[] describe(String args) throws IOException;
+    DimensionTable describe(String args) throws IOException;
     String[] list();
     void close();
 }

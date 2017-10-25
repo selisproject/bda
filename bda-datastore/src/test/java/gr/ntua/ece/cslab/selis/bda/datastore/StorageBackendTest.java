@@ -25,8 +25,8 @@ public class StorageBackendTest {
         DimensionTablesFS = new String(prop.getProperty("DimensionTablesFS"));*/
 
         // Where are the event log and dimension tables stored
-        EventLogFS = "bda-datastore/src/test/resources/output"; // hdfs or hbase
-        DimensionTablesFS = "bda-datastore/src/test/resources/output"; // hdfs or postgres
+        EventLogFS = "/home/evie/Desktop/output"; // hdfs or hbase
+        DimensionTablesFS = "/home/evie/Desktop/output"; // hdfs or postgres
 
         // List of dimension tables filenames
         ArrayList<String> dimensionTables = new ArrayList<String>();
@@ -35,12 +35,12 @@ public class StorageBackendTest {
         dimensionTables.add("bda-datastore/src/test/resources/RAs.csv");
 
         // Clean up the two filesystems before testing
-        File temp = new File(EventLogFS);
-        File[] files = temp.listFiles();
-        if (files != null) for (File f : files) f.delete();
-        temp = new File(DimensionTablesFS);
-        files = temp.listFiles();
-        if (files != null) for (File f : files) f.delete();
+        //File temp = new File(EventLogFS);
+        //File[] files = temp.listFiles();
+        //if (files != null) for (File f : files) f.delete();
+        //temp = new File(DimensionTablesFS);
+        //files = temp.listFiles();
+        //if (files != null) for (File f : files) f.delete();
 
         // Create a new backend to the BDA
         StorageBackend backend = new StorageBackend(EventLogFS, DimensionTablesFS);
@@ -74,10 +74,10 @@ public class StorageBackendTest {
         //System.out.println(Arrays.toString(backend.select("","warehouse_id", "1")));
 
         // Print EventLog format
-        System.out.println(Arrays.toString(backend.getSchema("")));
+        //System.out.println(Arrays.toString(backend.getSchema("")));
 
         // Print dimension table format
-        System.out.println(Arrays.toString(backend.getSchema("trucks")));
+        System.out.println(backend.getSchema("warehouses").getSchema().getColumnNames());
 
         // List dimension tables
         System.out.println(Arrays.toString(backend.listTables()));

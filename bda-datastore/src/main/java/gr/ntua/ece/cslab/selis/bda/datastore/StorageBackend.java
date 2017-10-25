@@ -72,7 +72,7 @@ public class StorageBackend {
         List<Tuple> tmp = ELconnector.get("", column, value);
         List<Message> messages = new LinkedList<>();
         for (Tuple msg: tmp){
-            messages.add(new Message(new LinkedList<>(), msg.getTuple()));
+            messages.add(new Message(new LinkedList<>(), msg.getFields()));
         }
         return messages;
     }
@@ -80,7 +80,7 @@ public class StorageBackend {
     /** Get table schema.
      *  This method takes as input a string which is the dimension table name or an empty string if it refers to
      *  the eventLog table and returns an array of strings (String[]) that contains the column names of the table. **/
-    public String[] getSchema(String table) throws IOException {
+    public DimensionTable getSchema(String table) throws IOException {
         if (table.matches(""))
             return ELconnector.describe(table);
         else
