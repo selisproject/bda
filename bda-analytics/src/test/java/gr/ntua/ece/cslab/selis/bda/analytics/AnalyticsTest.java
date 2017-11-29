@@ -12,7 +12,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiPrimitiveCatalog;
+import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor;
+import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutEngineCatalog;
+import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutableCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.Kpi;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
 
@@ -38,42 +40,47 @@ public class AnalyticsTest {
 	@Test
 	public void test() {
 		AnalyticsSystem mySystem = AnalyticsSystem.getInstance();
-		KpiPrimitiveCatalog kpiPrimitiveCatalog = mySystem.getKpiPrimitiveCatalog();
+		ExecutEngineCatalog executEngineCatalog = ExecutEngineCatalog.getInstance();
+		ExecutableCatalog executableCatalog = mySystem.getExecutableCatalog();
 		KpiCatalog kpiCatalog = mySystem.getKpiCatalog();
 
-		String kpiPrimitives = kpiPrimitiveCatalog.getAllKpiPrimitives();
-		assert(kpiPrimitives.equals("{}"));
-		System.out.println("KPI primitives: " + kpiPrimitives);
+		String executables = executableCatalog.getAllExecutables();
+		assert(executables.equals("{}"));
+		System.out.println("KPI primitives: " + executables);
 		KpiFactory kpiFactory = mySystem.getKpiFactory();
 
 		try {
-			List<String> argtypes = Arrays.asList("argtype1", "argtype2", "argtype3");
-			kpiPrimitiveCatalog.addNewKpiPrimitive(argtypes, 1, "/home/selis/blah...", "This calculates shit...");
-			kpiPrimitives = kpiPrimitiveCatalog.getAllKpiPrimitives();
+			executEngineCatalog.addNewExecutEngine("python3", "python3");
+			System.out.println(executEngineCatalog.getAllExecutEngines());
+			List<String> argtypes = Arrays.asList();
+			executableCatalog.addNewExecutable(argtypes, executEngineCatalog.getExecutEngine(0), "./bin/kpi_null.py", "This calculates 0");
+			executables = executableCatalog.getAllExecutables();
 
-			System.out.println("KPI primitives: " + kpiPrimitives);
-			assert(!kpiPrimitives.equals("{}"));
+			System.out.println("KPI binaries: " + executables);
+			assert(!executables.equals("{}"));
 
 			// add new kpi
 			int newKpiID = mySystem.getKpiCatalog().getKpiCounter();
 			assert(newKpiID==0);
-			int kpiPrimitiveID = mySystem.getKpiPrimitiveCatalog().getKpiPrimitiveCounter();
-			assert(kpiPrimitiveID==1);
+			int executableID = mySystem.getExecutableCatalog().getExecutableCounter();
+			assert(executableID==1);
 
-			kpiPrimitiveID = 0;
+			executableID = 0;
 			List<String> arguments = Arrays.asList("trucks", "amount of shit");
 			String description = "This calculates shit done by blue trucks...";
-			Kpi newKpi = kpiFactory.getKpiByPrim(newKpiID, kpiPrimitiveID, arguments, description);
+			Kpi newKpi = kpiFactory.getKpiByExecutable(newKpiID, executableID, arguments, description);
 
 			String kpis = kpiCatalog.getAllKpis();
 			assert(kpis.equals("{}"));
 
 			System.out.println("KPIs: " + kpis);
-			kpiCatalog.addNewKpi(arguments, description, newKpi.getKpiInfo().getKpiPrimitiveDescriptor());
+			kpiCatalog.addNewKpi(arguments, description, newKpi.getKpiInfo().getExecutable());
 			kpis = kpiCatalog.getAllKpis();
 			assert(!kpis.equals("{}"));
+			Kpi kpi =kpiFactory.getKpiById(0);
 
 			System.out.println("KPIs: " + kpis);
+			System.out.println("Output: "+kpi.calculate());
 
 			/*
 			 * ArrayList<ArrayList<Double>> dataset = new ArrayList<ArrayList<Double>>();

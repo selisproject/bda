@@ -3,23 +3,26 @@ package gr.ntua.ece.cslab.selis.bda.analytics.basicObjects;
 public class ExecutEngineDescriptor {
 	private int engineID;
 	private String engineName;
+	private String executionPreamble;
 
-	public ExecutEngineDescriptor(int systemID, String systemName) {
-		this.engineID = systemID;
-		this.engineName = systemName;
+
+	public ExecutEngineDescriptor(String engineName, String executionPreamble) {
+		this.engineName = engineName;
+		this.executionPreamble = executionPreamble;
 	}
 
-	public int getSystemID() {
-		return engineID;
-	}
 
-	public String getSystemName() {
+	public String getEngineName() {
 		return engineName;
+	}
+	
+	public String getExecutionPreamble() {
+		return executionPreamble;
 	}
 
 	@Override
 	public String toString() {
-		return "ExecutEngineDescriptor [engineID=" + engineID + ", engineName" + engineName + "]";
+		return "ExecutEngineDescriptor [engineName" + engineName + ", executionPreamble"+executionPreamble+"]";
 	}
 
 }
