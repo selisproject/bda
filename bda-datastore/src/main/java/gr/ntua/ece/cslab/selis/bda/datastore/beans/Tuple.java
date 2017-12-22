@@ -1,5 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 
+import jdk.nashorn.internal.objects.annotations.Getter;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -7,27 +9,27 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-@XmlRootElement(name = "tuple")
+@XmlRootElement(name = "data")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class Tuple implements Serializable {
-    private List<KeyValue> fields;
+    private List<KeyValue> tuple;
 
-    public Tuple(){ this.fields = new LinkedList<>();};
+    public Tuple(){ this.tuple = new LinkedList<>();}
 
-    public Tuple(List<KeyValue> fields) {
-        this.fields = fields;
+    public Tuple(List<KeyValue> tuple) {
+        this.tuple = tuple;
     }
 
-    public List<KeyValue> getFields() {
-        return fields;
+    public List<KeyValue> getTuple() {
+        return this.tuple;
     }
 
-    public void setFields(List<KeyValue> fields) {
-        this.fields = fields;
+    public void setTuple(List<KeyValue> tuple) {
+        this.tuple = tuple;
     }
 
     public String toString() {
-        String row = this.fields.stream().
+        String row = this.tuple.stream().
                 map(a -> "["+a.getKey() + "," + a.getValue()+"]").
                 reduce((a, b) -> a + "," + b).
                 get();

@@ -69,9 +69,11 @@ public class DatastoreResource {
     }
 
     /**
-     * Returns the content of a given dimension table
-     * @param tableName is the name of the table to fetch
-     * @return the content of the dimension table
+     * Returns the filtered content of a given dimension table
+     * @param tableName is the name of the table to search
+     * @param columnName is the name of the column to match
+     * @param columnValue is the value that the column will be filtered
+     * @return the selected content of the dimension table
      */
     @GET
     @Path("dtable")
@@ -91,14 +93,14 @@ public class DatastoreResource {
 
     /**
      * Returns the schema of all dimension tables
-     * @return
+     * @return a list of the dimension tables schemas
      */
     @GET
     @Path("schema")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<DimensionTable> getSchema() {
         try {
-            String[] tables = Entrypoint.myBackend.listTables();
+            List<String> tables = Entrypoint.myBackend.listTables();
             List res = new LinkedList<>();
             for (String table: tables){
                 DimensionTable schema = Entrypoint.myBackend.getSchema(table);
@@ -106,7 +108,7 @@ public class DatastoreResource {
                 res.add(schema);
             }
             return res;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return new LinkedList<>();
@@ -121,7 +123,7 @@ public class DatastoreResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<Message> getEntries(@QueryParam("type") String type,
+    public List<Tuple> getEntries(@QueryParam("type") String type,
                                     @QueryParam("n") Integer n) {
         try {
             return Entrypoint.myBackend.fetch(type,n);
@@ -129,5 +131,26 @@ public class DatastoreResource {
             e.printStackTrace();
         }
         return new LinkedList();
+    }
+
+    /**
+     * Returns the filtered entries (i.e., messages) stored in the event log.
+     * @param columnName is the name of the column to match
+     * @param columnValue is the value that the column will be filtered
+     * @return the denormalized messages
+     */
+    @GET
+    @Path("select")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<Tuple> getSelectedEntries(
+            @QueryParam("columnName") String columnName,
+            @QueryParam("columnValue") String columnValue
+    ) {
+        try {
+            return Entrypoint.myBackend.select(columnName, columnValue);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new LinkedList<>();
     }
 }

@@ -1,7 +1,7 @@
 {
 		"entries":[
 				{
-				"key":"warehouse_id",
+				"key":"warehouses_id",
 				"value":"1"
 		},{
 				"key":"latitude",

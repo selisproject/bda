@@ -9,10 +9,10 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 public interface Connector {
     void put(Message args) throws Exception;
     void put(MasterData args) throws Exception;
-    List<Message> getLast(Integer args) throws IOException;
-    List<Message> getFrom(Integer args);
+    List<Tuple> getLast(Integer args) throws Exception;
+    List<Tuple> getFrom(Integer args);
     List<Tuple> get(String args, String args2, String args3) throws Exception;
-    DimensionTable describe(String args) throws IOException;
-    String[] list();
+    DimensionTable describe(String args) throws Exception;
+    List<String> list();
     void close();
 }

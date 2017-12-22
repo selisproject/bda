@@ -34,7 +34,7 @@ public class LocalFSConnector implements Connector {
                 bw.write( key + "\t");
             }
             // add one more column named 'message' that will contain the blob
-            bw.write("message");
+            bw.write("event_type\tevent_timestamp\tmessage");
             bw.newLine();
         }
         else {
@@ -52,11 +52,12 @@ public class LocalFSConnector implements Connector {
                 if (!message.containsKey(column))
                     message.put(column, "null");
             message.put("message", json.toJSONString());
+            message.put("event_timestamp", String.valueOf(java.time.LocalDateTime.now()));
 
-            if (message.containsKey("message") && message.size() == 1)
+            if (message.containsKey("message") && message.containsKey("event_type") && message.size() == 3)
                 throw new Exception("Message does not contain any foreign keys.");
-            else if (json.isEmpty())
-                throw new Exception("Message does not contain a new event. Append aborted.");
+            else if (json.isEmpty() || !message.containsKey("event_type") || message.size() < 3)
+                throw new Exception("Message contains strange event format. Append aborted.");
 
             // Append message in csv
             fw = new FileWriter(evlog, true);
@@ -78,13 +79,13 @@ public class LocalFSConnector implements Connector {
 
             List<Tuple> data = table.getData();
             // write column names
-            List<KeyValue> fields = data.get(0).getFields();
+            List<KeyValue> fields = data.get(0).getTuple();
             for (KeyValue element : fields)
                 bw.write(element.getKey() + "\t");
             bw.newLine();
             // fill-in column values
             for (Tuple tuple : data) {
-                for (KeyValue element : tuple.getFields())
+                for (KeyValue element : tuple.getTuple())
                     bw.write(element.getValue() + "\t");
                 bw.newLine();
             }
@@ -94,8 +95,8 @@ public class LocalFSConnector implements Connector {
     }
 
     // get last num rows from EventLog
-    public List<Message> getLast(Integer num) throws IOException {
-        List<Message> res = new LinkedList<>();
+    public List<Tuple> getLast(Integer num) throws IOException {
+        List<Tuple> res = new LinkedList<>();
         File file = new File(FS + "/EventLog.csv");
         List<String> fields = describe("").getSchema().getColumnNames();
         LineNumberReader lnr;
@@ -116,9 +117,11 @@ public class LocalFSConnector implements Connector {
             List<KeyValue> entries = new LinkedList<>();
             String[] values = line.split("\t");
             for (int i=0; i < fields.size(); i++) {
-                entries.add(new KeyValue(fields.get(i),values[i]));
+                String columnValue = values[i];
+                if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
+                    entries.add(new KeyValue(fields.get(i),columnValue));
             }
-            res.add(new Message(new LinkedList<>(), entries));
+            res.add(new Tuple(entries));
             counter++;
         }
         reader.close();
@@ -126,7 +129,7 @@ public class LocalFSConnector implements Connector {
     }
 
     // Get rows for last num days from EventLog
-    public List<Message> getFrom(Integer num){
+    public List<Tuple> getFrom(Integer num){
         System.out.println("get from " + FS);
         return new LinkedList<>();
     }
@@ -176,15 +179,12 @@ public class LocalFSConnector implements Connector {
     }
 
     // List dimension tables in FS
-    public String[] list() {
+    public List<String> list() {
         File folder = new File(FS);
         File[] dimensiontables = folder.listFiles((dir, name) -> (!name.contains("EventLog")));
-        String[] tables = new String[dimensiontables.length];
-        int i = 0;
-        for (File file: dimensiontables){
-            tables[i] = file.getName().split("\\.")[0];
-            i++;
-        }
+        List<String> tables = new LinkedList<>();
+        for (File file: dimensiontables)
+            tables.add(file.getName().split("\\.")[0]);
         return tables;
     }
 

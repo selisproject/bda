@@ -1,6 +1,6 @@
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @master_data.json http://localhost:9999/api/datastore/boot && echo
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore && echo
-curl -ik -X GET http://localhost:9999/api/datastore?type=rows?n=-1 && echo
+curl -ik -X GET "http://localhost:9999/api/datastore?type=rows&n=-1" && echo
 curl -ik -X GET "http://localhost:9999/api/datastore/dtable?tableName=warehouses&columnName=warehouse_id&columnValue=1" && echo
 curl -ik -X GET http://localhost:9999/api/datastore/schema && echo
 

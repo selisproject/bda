@@ -4,22 +4,28 @@
 				"name": "RAs",
 				"schema":[
 						{
-						"columnNames":["RA","location"],
+						"columnNames":["id","name","location"],
 						"columnTypes":[
 								{
-								"key":"RA",
-								"value":"string"
+								"key":"id",
+								"value":"integer"
+						},{
+								"key":"name",
+								"value":"text"
 						},{
 								"key":"location",
-								"value":"string"
+								"value":"text"
 						}],
-						"primaryKey":"RA"
+						"primaryKey":"id"
 				}],
 				"data":[
 						{
 						"tuple":[
 								{
-								"key":"RA",
+								"key":"id",
+								"value":"1"
+						},{
+								"key":"name",
 								"value":"AG.265"
 						},{
 								"key":"location",
@@ -28,7 +34,10 @@
 				},{
 						"tuple":[
 								{
-								"key":"RA",
+								"key":"id",
+								"value":"2"
+						},{
+								"key":"name",
 								"value":"AG.108"
 						},{
 								"key":"location",
@@ -39,31 +48,31 @@
 				"name": "warehouses",
 				"schema":[
 						{
-						"columnNames":["warehouse_id", "warehouse_name", "warehouse_address"],
+						"columnNames":["id", "name", "address"],
 						"columnTypes":[
 								{
-								"key":"warehouse_id",
-								"value":"string"
+								"key":"id",
+								"value":"integer"
 						},{
-								"key":"warehouse_name",
-								"value":"string"
+								"key":"name",
+								"value":"text"
 						},{
-								"key":"warehouse_address",
-								"value":"string"
+								"key":"address",
+								"value":"text"
 						}],
-						"primaryKey":"warehouse_id"
+						"primaryKey":"id"
 				}],
 				"data":[
 						{
 						"tuple":[
 								{
-								"key":"warehouse_id",
+								"key":"id",
 								"value":"1"
 						},{
-								"key":"warehouse_name",
+								"key":"name",
 								"value":"SARMED_Attiki"
 						},{
-								"key":"warehouse_address",
+								"key":"address",
 								"value":"Marousi"
 						}]	
 				}]

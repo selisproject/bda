@@ -19,12 +19,12 @@ public class HBaseConnector implements Connector {
         System.out.println("put in HBase " + FS);
     }
 
-    public List<Message> getLast(Integer args){
+    public List<Tuple> getLast(Integer args){
         System.out.println("get from HBase " + FS);
         return null;
     }
 
-    public List<Message> getFrom(Integer args){
+    public List<Tuple> getFrom(Integer args){
         System.out.println("get from HBase " + FS);
         return null;
     }
@@ -39,8 +39,8 @@ public class HBaseConnector implements Connector {
         return null;
     }
 
-    public String[] list() {
-        return new String[0];
+    public List<String> list() {
+        return null;
     }
 
     public void close(){};

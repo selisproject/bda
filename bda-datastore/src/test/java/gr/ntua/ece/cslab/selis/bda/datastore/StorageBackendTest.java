@@ -43,7 +43,7 @@ public class StorageBackendTest {
         //if (files != null) for (File f : files) f.delete();
 
         // Create a new backend to the BDA
-        StorageBackend backend = new StorageBackend(EventLogFS, DimensionTablesFS);
+        //StorageBackend backend = new StorageBackend(EventLogFS, DimensionTablesFS);
 
         // Create EventLog and dimension tables
         //backend.init();
@@ -77,9 +77,9 @@ public class StorageBackendTest {
         //System.out.println(Arrays.toString(backend.getSchema("")));
 
         // Print dimension table format
-        System.out.println(backend.getSchema("warehouses").getSchema().getColumnNames());
+        //System.out.println(backend.getSchema("warehouses").getSchema().getColumnNames());
 
         // List dimension tables
-        System.out.println(Arrays.toString(backend.listTables()));
+        //System.out.println(backend.listTables().toString());
     }
 }
