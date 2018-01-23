@@ -12,13 +12,13 @@ import com.google.gson.Gson;
 
 public class KpiDescriptor {
 	private String description;
-	private KpiPrimitiveDescriptor kpiPrimitiveDescriptor;
+	private Executable executable;
 	private List<String> arguments;
 	
 	
-	public KpiDescriptor(String description, KpiPrimitiveDescriptor kpiPrimitiveDescriptor, List<String> arguments) {
+	public KpiDescriptor(String description, Executable executable, List<String> arguments) {
 		this.description = description;
-		this.kpiPrimitiveDescriptor = kpiPrimitiveDescriptor;
+		this.executable = executable;
 		this.arguments = arguments;
 	}
 
@@ -28,8 +28,8 @@ public class KpiDescriptor {
 	}
 
 
-	public KpiPrimitiveDescriptor getKpiPrimitiveDescriptor() {
-		return kpiPrimitiveDescriptor;
+	public Executable getExecutable() {
+		return executable;
 	}
 
 

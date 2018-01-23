@@ -6,7 +6,7 @@ import java.util.List;
 import com.google.gson.Gson;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
-import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiPrimitiveDescriptor;
+import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.Executable;
 
 public class KpiCatalog {
 	private static HashMap<Integer, KpiDescriptor> kpis;
@@ -39,8 +39,8 @@ public class KpiCatalog {
 		return kpiCounter;
 	}
 
-	public void addNewKpi(List<String> arguments, String description, KpiPrimitiveDescriptor kpiPrimitiveDescriptor) {
-		KpiDescriptor newKpi = new KpiDescriptor(description, kpiPrimitiveDescriptor, arguments);
+	public void addNewKpi(List<String> arguments, String description, Executable executable) {
+		KpiDescriptor newKpi = new KpiDescriptor(description, executable, arguments);
 		kpis.put(kpiCounter, newKpi);
 		kpiCounter++;
 	}

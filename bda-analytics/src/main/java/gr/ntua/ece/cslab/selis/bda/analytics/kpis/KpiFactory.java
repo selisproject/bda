@@ -4,7 +4,7 @@ import java.util.List;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
-import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiPrimitiveDescriptor;
+import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.Executable;
 
 public class KpiFactory {
 
@@ -24,8 +24,8 @@ public class KpiFactory {
 		KpiDescriptor kpi = AnalyticsSystem.getInstance().getKpiCatalog().getKpi(kpiID);
 		return new Kpi(kpiID, kpi);
 	}
-	public Kpi getKpiByPrim(int kpiID, int kpiPrimitiveID, List<String> arguments, String description)throws Exception {
-		KpiPrimitiveDescriptor kpiPrimitiveDescriptor = AnalyticsSystem.getInstance().getKpiPrimitiveCatalog().getKpiPrimitive(kpiPrimitiveID);
+	public Kpi getKpiByExecutable(int kpiID, int kpiPrimitiveID, List<String> arguments, String description)throws Exception {
+		Executable kpiPrimitiveDescriptor = AnalyticsSystem.getInstance().getExecutableCatalog().getExecutable(kpiPrimitiveID);
 
 		return new Kpi(kpiID, new KpiDescriptor(description, kpiPrimitiveDescriptor, arguments));
 	}

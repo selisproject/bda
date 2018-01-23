@@ -12,20 +12,20 @@ import java.util.List;
 
 import com.google.gson.Gson;
 
-public class KpiPrimitiveDescriptor {
-	private int executEngine;
+public class Executable {
+	private ExecutEngineDescriptor executEngine;
 	private List<String> argumentTypes;
 	private String description;
 	private String osPath;
 	
-	public KpiPrimitiveDescriptor(int executEngine, List<String> argumentTypes, String osPath, String description) {
+	public Executable(ExecutEngineDescriptor executEngine, List<String> argumentTypes, String osPath, String description) {
 		this.executEngine = executEngine;
 		this.argumentTypes = argumentTypes;
 		this.osPath = osPath;
 		this.description = description;
 	}
 
-	public int getExecutEngine() {
+	public ExecutEngineDescriptor getExecutEngine() {
 		return executEngine;
 	}
 
