@@ -1,7 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
-import gr.ntua.ece.cslab.selis.bda.controller.beans.KPIDescription;
-import gr.ntua.ece.cslab.selis.bda.controller.beans.RequestResponse;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

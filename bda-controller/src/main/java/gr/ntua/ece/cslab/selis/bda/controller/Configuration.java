@@ -32,7 +32,7 @@ public class Configuration {
         }
     }
     public class StorageBackend {
-        private String eventLogURL, dimensionTablesURL;
+        private String eventLogURL, dimensionTablesURL, dbUsername, dbPassword;
 
         public StorageBackend() {
         }
@@ -44,6 +44,10 @@ public class Configuration {
         public String getDimensionTablesURL() {
             return dimensionTablesURL;
         }
+
+        public String getDbUsername() { return dbUsername; }
+
+        public String getDbPassword() { return dbPassword; }
     }
 
     public Configuration() {
@@ -74,7 +78,9 @@ public class Configuration {
             return null;
         }
         conf.storageBackend.eventLogURL = properties.getProperty("backend.url.event.log");
-        conf.storageBackend.dimensionTablesURL= properties.getProperty("backend.url.dimension.tables");
+        conf.storageBackend.dimensionTablesURL = properties.getProperty("backend.url.dimension.tables");
+        conf.storageBackend.dbUsername = properties.getProperty("backend.db.username");
+        conf.storageBackend.dbPassword = properties.getProperty("backend.db.password");
         return conf;
     }
 }

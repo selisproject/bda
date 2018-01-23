@@ -1,14 +1,14 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
-import gr.ntua.ece.cslab.selis.bda.controller.beans.*;
+import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,9 +28,12 @@ public class DatastoreResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse insert(@Context HttpServletResponse response, Message m) {
-        // TODO: implement it
         LOGGER.log(Level.INFO, m.toString());
-        // placeholder
+        try {
+            Entrypoint.myBackend.insert(m);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         response.setStatus(HttpServletResponse.SC_CREATED);
         try {
             response.flushBuffer();
@@ -50,41 +53,65 @@ public class DatastoreResource {
     @Path("boot")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse bootstrap(MasterData masterData) {
-        // TODO: implement it
-        return new RequestResponse("ERROR", "Not implemented");
+    public RequestResponse bootstrap(@Context HttpServletResponse response, MasterData masterData) throws IOException {
+        try {
+            Entrypoint.myBackend.init(masterData);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        try {
+            response.flushBuffer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new RequestResponse("OK", "");
     }
 
     /**
-     * Returns the content of a given dimension table
-     * @param tableName is the name of the table to fetch
-     * @return the content of the dimension table
+     * Returns the filtered content of a given dimension table
+     * @param tableName is the name of the table to search
+     * @param columnName is the name of the column to match
+     * @param columnValue is the value that the column will be filtered
+     * @return the selected content of the dimension table
      */
     @GET
     @Path("dtable")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public DimensionTable getTable(
+    public List<Tuple> getTable(
             @QueryParam("tableName") String tableName,
             @QueryParam("columnName") String columnName,
             @QueryParam("columnValue") String columnValue
     ) {
-        // TODO: implement it
-        if(columnValue.equals("")) {
-            // return everything
+        try {
+            return Entrypoint.myBackend.select(tableName, columnName, columnValue);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return new DimensionTable();
+        return new LinkedList<>();
     }
 
     /**
      * Returns the schema of all dimension tables
-     * @return
+     * @return a list of the dimension tables schemas
      */
     @GET
     @Path("schema")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public DimensionTableSchema getSchema() {
-        // TODO: implement it
-        return new DimensionTableSchema();
+    public List<DimensionTable> getSchema() {
+        try {
+            List<String> tables = Entrypoint.myBackend.listTables();
+            List res = new LinkedList<>();
+            for (String table: tables){
+                DimensionTable schema = Entrypoint.myBackend.getSchema(table);
+                LOGGER.log(Level.INFO, "Table: " +table + ", Columns: "+ schema.getSchema().getColumnNames());
+                res.add(schema);
+            }
+            return res;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new LinkedList<>();
 
     }
 
@@ -96,10 +123,34 @@ public class DatastoreResource {
      */
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<Message> getEntries(@QueryParam("type") String type,
-                                           @QueryParam("n") Integer n) {
-        // TODO: implement it
+    public List<Tuple> getEntries(@QueryParam("type") String type,
+                                    @QueryParam("n") Integer n) {
+        try {
+            return Entrypoint.myBackend.fetch(type,n);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return new LinkedList();
+    }
 
+    /**
+     * Returns the filtered entries (i.e., messages) stored in the event log.
+     * @param columnName is the name of the column to match
+     * @param columnValue is the value that the column will be filtered
+     * @return the denormalized messages
+     */
+    @GET
+    @Path("select")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<Tuple> getSelectedEntries(
+            @QueryParam("columnName") String columnName,
+            @QueryParam("columnValue") String columnValue
+    ) {
+        try {
+            return Entrypoint.myBackend.select(columnName, columnValue);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new LinkedList<>();
     }
 }

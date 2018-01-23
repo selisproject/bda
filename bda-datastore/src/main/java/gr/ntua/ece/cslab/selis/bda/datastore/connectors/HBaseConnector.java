@@ -1,7 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+import java.util.List;
 
 public class HBaseConnector implements Connector {
 
@@ -11,36 +11,36 @@ public class HBaseConnector implements Connector {
         this.FS = FS;
     }
 
-    public void put(HashMap<String, String> row){
+    public void put(Message message){
         System.out.println("put in HBase " + FS);
     }
 
-    public void put(String file){
+    public void put(MasterData masterData){
         System.out.println("put in HBase " + FS);
     }
 
-    public HashMap<String, String>[] getLast(Integer args){
+    public List<Tuple> getLast(Integer args){
         System.out.println("get from HBase " + FS);
-        return new HashMap[0];
+        return null;
     }
 
-    public ArrayList<HashMap<String, String>> getFrom(Integer args){
+    public List<Tuple> getFrom(Integer args){
         System.out.println("get from HBase " + FS);
-        return new ArrayList<HashMap<String, String>>();
+        return null;
     }
 
-    public ArrayList<HashMap<String, String>> get(String args, String args2, String args3){
+    public List<Tuple> get(String args, String args2, String args3){
         System.out.println("get from HBase " + FS);
-        return new ArrayList<HashMap<String, String>>();
+        return null;
     }
 
-    public String[] describe(String args){
+    public DimensionTable describe(String args){
         System.out.println("print HBase schema " + FS);
-        return new String[0];
+        return null;
     }
 
-    public String[] list() {
-        return new String[0];
+    public List<String> list() {
+        return null;
     }
 
     public void close(){};
