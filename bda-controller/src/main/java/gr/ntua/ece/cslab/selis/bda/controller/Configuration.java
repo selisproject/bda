@@ -2,6 +2,8 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +17,7 @@ public class Configuration {
     private static Logger LOGGER =Logger.getLogger(Configuration.class.getCanonicalName());
     public final Server server;
     public final StorageBackend storageBackend;
+    public final PubSubSubscriber subscriber;
 
     public class Server {
         private String address;
@@ -49,10 +52,28 @@ public class Configuration {
 
         public String getDbPassword() { return dbPassword; }
     }
+    public class PubSubSubscriber {
+        private String authHash, hostname;
+        private int portNumber;
+        private List<String> rules;
+
+        public PubSubSubscriber(){
+        }
+
+        public String getAuthHash() { return authHash; }
+
+        public String getHostname() { return hostname; }
+
+        public int getPortNumber() { return portNumber; }
+
+        public List<String> getRules() { return rules; }
+
+    }
 
     public Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
+        this.subscriber = new PubSubSubscriber();
     }
 
     /**
@@ -81,6 +102,15 @@ public class Configuration {
         conf.storageBackend.dimensionTablesURL = properties.getProperty("backend.url.dimension.tables");
         conf.storageBackend.dbUsername = properties.getProperty("backend.db.username");
         conf.storageBackend.dbPassword = properties.getProperty("backend.db.password");
+        conf.subscriber.hostname = properties.getProperty("pubsub.address");
+        try {
+            conf.subscriber.portNumber = Integer.valueOf(properties.getProperty("pubsub.port"));
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage());
+            return null;
+        }
+        conf.subscriber.authHash = properties.getProperty("pubsub.authhash");
+        conf.subscriber.rules = Arrays.asList(properties.getProperty("pubsub.rules.message.type").split(","));
         return conf;
     }
 }

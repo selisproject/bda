@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
+import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubSubscriber;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -18,7 +19,7 @@ import java.util.logging.Logger;
 public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
-
+    public static PubSubSubscriber mySubscriber;
     public static StorageBackend myBackend;
 
     private static void storageBackendInitialization() {
@@ -27,6 +28,14 @@ public class Entrypoint {
                 configuration.storageBackend.getDimensionTablesURL(),
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword());
+    }
+
+    private static void pubSubSubscriberInitialization() {
+        LOGGER.log(Level.INFO, "Initializing PubSub subscriber...");
+        mySubscriber = new PubSubSubscriber(configuration.subscriber.getAuthHash(),
+                configuration.subscriber.getHostname(),
+                configuration.subscriber.getPortNumber(),
+                configuration.subscriber.getRules());
     }
 
     public static void main(String[] args) throws IOException {
@@ -40,8 +49,11 @@ public class Entrypoint {
             System.exit(1);
         }
 
-        // module initialization
+        // Datastore module initialization
         storageBackendInitialization();
+
+        // PubSub connector initialization
+        pubSubSubscriberInitialization();
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -60,17 +72,21 @@ public class Entrypoint {
         ServletContextHandler handler = new ServletContextHandler(server, "/api");
         handler.addServlet(servlet, "/*");
 
-        // run the server
+        Thread subscriber = new Thread(mySubscriber, "subscriber");
+        // run the server and the pubsub subscriber
         try {
             LOGGER.log(Level.INFO, "Starting server");
             server.start();
+            subscriber.start();
             server.join();
+            subscriber.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
             e.printStackTrace();
         } finally {
             LOGGER.log(Level.INFO,"Terminating server");
             server.destroy();
+            subscriber.interrupt();
         }
     }
 }
