@@ -1,7 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubSubscriber;
+import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -20,6 +20,7 @@ public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
     public static PubSubSubscriber mySubscriber;
+    public static PubSubPublisher myPublisher;
     public static StorageBackend myBackend;
 
     private static void storageBackendInitialization() {
@@ -30,12 +31,15 @@ public class Entrypoint {
                 configuration.storageBackend.getDbPassword());
     }
 
-    private static void pubSubSubscriberInitialization() {
+    private static void pubSubConnectorsInitialization() {
         LOGGER.log(Level.INFO, "Initializing PubSub subscriber...");
         mySubscriber = new PubSubSubscriber(configuration.subscriber.getAuthHash(),
                 configuration.subscriber.getHostname(),
                 configuration.subscriber.getPortNumber(),
                 configuration.subscriber.getRules());
+        LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
+        myPublisher = new PubSubPublisher(configuration.subscriber.getHostname(),
+                configuration.subscriber.getPortNumber());
     }
 
     public static void main(String[] args) throws IOException {
@@ -52,8 +56,8 @@ public class Entrypoint {
         // Datastore module initialization
         storageBackendInitialization();
 
-        // PubSub connector initialization
-        pubSubSubscriberInitialization();
+        // PubSub connectors initialization
+        pubSubConnectorsInitialization();
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
