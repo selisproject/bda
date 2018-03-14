@@ -46,7 +46,7 @@ public class LocalFSConnector implements Connector {
             for (String field : fields)
                 for (KeyValue entry: entries){
                     if (entry.getKey().equalsIgnoreCase(field)) {
-                        bw.write(entry.getKey() + "\t");
+                        bw.write(entry.getValue() + "\t");
                         break;
                     }
                 }
