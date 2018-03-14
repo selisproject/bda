@@ -1,14 +1,13 @@
 package gr.ntua.ece.cslab.selis.bda.analytics.kpis;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 
 public class Kpi {
 
 
-	private int kpiID;
 	private KpiDescriptor kpiInfo;
 	
 	public Kpi() {
@@ -18,22 +17,36 @@ public class Kpi {
 
 	public Kpi(int kpiID, KpiDescriptor kpiInfo) {
 		super();
-		this.kpiID = kpiID;
 		this.kpiInfo = kpiInfo;
 	}
 
-	
-	public int getKpiID() {
-		return kpiID;
-	}
 
 	public KpiDescriptor getKpiInfo() {
 		return kpiInfo;
 	}
 	
-	public int calculate(int executEngine, List<String> argNames, ArrayList<ArrayList<Double>> dataset) {
+	public int calculate() {
 		// TODO Auto-generated method stub
-		return 0;
+		String result = "";
+		try {
+		    Runtime r = Runtime.getRuntime();                    
+		    String command = kpiInfo.getExecutable().getExecutEngine().getExecutionPreamble()+" "+ kpiInfo.getExecutable().getOsPath();
+		    
+		    Process p = r.exec(command);
+		    p.waitFor();
+		    BufferedReader in =
+		        new BufferedReader(new InputStreamReader(p.getInputStream()));
+		    String inputLine;
+		    while ((inputLine = in.readLine()) != null) {
+		        System.out.println(inputLine);
+		        result += inputLine;
+		    }
+		    in.close();
+
+		} catch (Exception e) {
+		    System.out.println(e);
+		}
+		return Integer.parseInt(result);
 	}
 
 	public void store(int value) {

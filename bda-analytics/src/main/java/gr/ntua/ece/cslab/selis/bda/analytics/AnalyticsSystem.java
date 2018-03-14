@@ -3,9 +3,9 @@ package gr.ntua.ece.cslab.selis.bda.analytics;
 import java.util.Arrays;
 import java.util.List;
 
-import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiPrimitiveDescriptor;
+import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.Executable;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiPrimitiveCatalog;
+import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutableCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.Kpi;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
 
@@ -22,9 +22,9 @@ public class AnalyticsSystem implements AnalyticsInterface {
 		return system;
 	}
 
-	public KpiPrimitiveCatalog getKpiPrimitiveCatalog() {
+	public ExecutableCatalog getExecutableCatalog() {
 		// TODO Auto-generated method stub
-		return KpiPrimitiveCatalog.getInstance();
+		return ExecutableCatalog.getInstance();
 	}
 
 	public KpiCatalog getKpiCatalog() {
