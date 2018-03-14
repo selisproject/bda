@@ -3,8 +3,11 @@ package gr.ntua.ece.cslab.selis.bda.datastore;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.Connector;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
+import org.json.simple.JSONObject;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,6 +49,26 @@ public class StorageBackend {
      *  relevant column of the eventLog table, while all the non-matching keys are saved as a blob in json format
      *  in the 'message' column of the eventLog table. **/
     public void insert(Message message) throws Exception {
+        // Convert message to appropriate format taking into account the schema
+        /*JSONObject json = new JSONObject(); // to store blob
+        List<String> fields = ELconnector.describe("").getSchema().getColumnNames();
+        HashMap<String, String> msg = new HashMap<>();
+        for (KeyValue element : message.getEntries()) {
+            if (!fields.contains(element.getKey()))
+                json.put(element.getKey(), element.getValue());
+            else
+                msg.put(element.getKey(), element.getValue());
+        }
+        for (String column : fields)
+            if (!msg.containsKey(column))
+                msg.put(column, "null");
+        msg.put("message", json.toJSONString());
+        msg.put("event_timestamp", String.valueOf(LocalDateTime.now()));
+
+        if (msg.containsKey("message") && msg.containsKey("event_type") && msg.size() == 3)
+            throw new Exception("Message does not contain any foreign keys.");
+        else if (json.isEmpty() || !msg.containsKey("event_type") || msg.size() < 3)
+            throw new Exception("Message contains strange event format. Append aborted.");*/
         ELconnector.put(message);
     }
 

@@ -3,8 +3,6 @@ package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
-import org.json.simple.JSONObject;
-
 import java.io.*;
 import java.util.*;
 
@@ -38,32 +36,20 @@ public class LocalFSConnector implements Connector {
             bw.newLine();
         }
         else {
-            // Convert message to appropriate format taking into account the schema
-            JSONObject json = new JSONObject(); // to store blob
-            List<String> fields = this.describe("").getSchema().getColumnNames();
-            HashMap<String, String> message = new HashMap<>();
-            for (KeyValue element: row.getEntries()) {
-                if (!fields.contains(element.getKey()))
-                    json.put(element.getKey(), element.getValue());
-                else
-                    message.put(element.getKey(), element.getValue());
-            }
-            for (String column: fields)
-                if (!message.containsKey(column))
-                    message.put(column, "null");
-            message.put("message", json.toJSONString());
-            message.put("event_timestamp", String.valueOf(java.time.LocalDateTime.now()));
-
-            if (message.containsKey("message") && message.containsKey("event_type") && message.size() == 3)
-                throw new Exception("Message does not contain any foreign keys.");
-            else if (json.isEmpty() || !message.containsKey("event_type") || message.size() < 3)
-                throw new Exception("Message contains strange event format. Append aborted.");
-
             // Append message in csv
+            BufferedReader reader = new BufferedReader(new FileReader(FS + "/EventLog.csv"));
+            String[] fields = reader.readLine().split("\t");
+            reader.close();
             fw = new FileWriter(evlog, true);
             bw = new BufferedWriter(fw);
+            List<KeyValue> entries = row.getEntries();
             for (String field : fields)
-                bw.write(message.get(field) + "\t");
+                for (KeyValue entry: entries){
+                    if (entry.getKey().equalsIgnoreCase(field)) {
+                        bw.write(entry.getKey() + "\t");
+                        break;
+                    }
+                }
             bw.newLine();
         }
         bw.close();

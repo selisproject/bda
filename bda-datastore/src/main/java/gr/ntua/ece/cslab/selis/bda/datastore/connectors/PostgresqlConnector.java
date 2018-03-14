@@ -1,11 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
-import org.json.simple.JSONObject;
 
 import java.sql.*;
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,50 +54,30 @@ public class PostgresqlConnector implements Connector {
             ResultSet rs = dbm.getTables(null, null, "Events", null);
             if (rs.next()) {
                 // Table exists
-                JSONObject json = new JSONObject(); // to store blob
-                List<String> fields = this.describe("").getSchema().getColumnNames();
-                HashMap<String, String> message = new HashMap<>();
-                for (KeyValue element : row.getEntries()) {
-                    if (!fields.contains(element.getKey()))
-                        json.put(element.getKey(), element.getValue());
-                    else
-                        message.put(element.getKey(), element.getValue());
-                }
-                for (String column : fields)
-                    if (!message.containsKey(column))
-                        message.put(column, "null");
-                message.put("message", json.toJSONString());
-                message.put("event_timestamp", String.valueOf(LocalDateTime.now()));
-
-                if (message.containsKey("message") && message.containsKey("event_type") && message.size() == 3)
-                    throw new Exception("Message does not contain any foreign keys.");
-                else if (json.isEmpty() || !message.containsKey("event_type") || message.size() < 3)
-                    throw new Exception("Message contains strange event format. Append aborted.");
-
                 List<KeyValue> columns = new LinkedList<>(); // TODO: FIND EVENTLOG COLUMNS
                 String values = "";
                 String insertTableSQL = "INSERT INTO Events (";
-                for (String field : fields) {
-                    insertTableSQL += field + ",";
+                for (KeyValue element : row.getEntries()) {
+                    insertTableSQL += element.getKey() + ",";
                     values += "?,";
                 }
                 insertTableSQL = insertTableSQL.substring(0, insertTableSQL.length() - 1) + ") VALUES (" + values.substring(0, values.length() - 1) + ");";
 
                 PreparedStatement prepst = connection.prepareStatement(insertTableSQL);
                 int i = 1;
-                for (String field : fields){
+                for (KeyValue field : row.getEntries()){
                     for (KeyValue value : columns) {
-                        if (value.getKey().equals(field)) {
+                        if (value.getKey().equals(field.getKey())) {
                             if (value.getValue().contains("integer"))
-                                prepst.setInt(i, Integer.valueOf(message.get(field)));
+                                prepst.setInt(i, Integer.valueOf(field.getValue()));
                             else if (value.getValue().contains("timestamp"))
-                                prepst.setTimestamp(i, Timestamp.valueOf(message.get(field)));
+                                prepst.setTimestamp(i, Timestamp.valueOf(field.getValue()));
                             else if (value.getValue().contains("bytea"))
-                                prepst.setBytes(i, message.get(field).getBytes());
+                                prepst.setBytes(i, field.getValue().getBytes());
                             else if (value.getValue().contains("boolean"))
-                                prepst.setBoolean(i, Boolean.parseBoolean(message.get(field)));
+                                prepst.setBoolean(i, Boolean.parseBoolean(field.getValue()));
                             else
-                                prepst.setString(i, message.get(field));
+                                prepst.setString(i, field.getValue());
                         }
                     }
                     i++;
