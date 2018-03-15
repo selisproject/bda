@@ -10,7 +10,7 @@ public interface Connector {
     void put(Message args) throws Exception;
     void put(MasterData args) throws Exception;
     List<Tuple> getLast(Integer args) throws Exception;
-    List<Tuple> getFrom(Integer args);
+    List<Tuple> getFrom(Integer args) throws Exception;
     List<Tuple> get(String args, String args2, String args3) throws Exception;
     DimensionTable describe(String args) throws Exception;
     List<String> list();

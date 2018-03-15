@@ -10,6 +10,10 @@ import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -37,6 +41,7 @@ public class HBaseConnector implements Connector {
         connection = null;
         try {
             connection = ConnectionFactory.createConnection(conf);
+            System.out.println("HBase connection initialized!");
         } catch (IOException e) {
             System.out.println("Connection Failed! Check output console");
             e.printStackTrace();
@@ -55,10 +60,11 @@ public class HBaseConnector implements Connector {
         }
         else {
             Table table = connection.getTable(tableName);
-            String timestamp="", topic="";
+            Long timestamp = null;
+            String topic="";
             for (KeyValue fields: row.getEntries()){
                 if (fields.getKey().matches ("timestamp"))
-                    timestamp = fields.getValue();
+                    timestamp = Timestamp.valueOf(LocalDateTime.parse(fields.getValue(), DateTimeFormatter.ISO_DATE_TIME)).getTime();
                 else if (fields.getKey().matches("topic"))
                     topic = fields.getValue();
             }
@@ -80,11 +86,13 @@ public class HBaseConnector implements Connector {
         TableName tableName = TableName.valueOf("Events");
         Table table = connection.getTable(tableName);
         Scan s = new Scan();
+        s.addFamily(Bytes.toBytes("messages"));
         s.setReversed(true);
-        s.setMaxResultSize(args);
         ResultScanner scanner = table.getScanner(s);
-        for (Result result : scanner) {
+        Iterator<Result> it = scanner.iterator();
+        for ( int i=0; i<args && it.hasNext(); i++) {
             List<KeyValue> entries = new LinkedList<>();
+            Result result = it.next();
             for(Cell cell: result.listCells()) {
                 String qualifier = Bytes.toString(CellUtil.cloneQualifier(cell));
                 String value = Bytes.toString(CellUtil.cloneValue(cell));
@@ -96,21 +104,41 @@ public class HBaseConnector implements Connector {
         return res;
     }
 
-    public List<Tuple> getFrom(Integer args){
-        System.out.println("get from HBase " );
-        return null;
+    public List<Tuple> getFrom(Integer args) throws IOException {
+        List<Tuple> res = new LinkedList<>();
+        TableName tableName = TableName.valueOf("Events");
+        Table table = connection.getTable(tableName);
+        Scan s = new Scan();
+        s.addFamily(Bytes.toBytes("messages"));
+        s.setTimeRange(Timestamp.valueOf(LocalDateTime.now().minusDays(args)).getTime(),Timestamp.valueOf(LocalDateTime.now()).getTime());
+        ResultScanner scanner = table.getScanner(s);
+        for (Result result : scanner) {
+            List<KeyValue> entries = new LinkedList<>();
+            for(Cell cell: result.listCells()) {
+                String qualifier = Bytes.toString(CellUtil.cloneQualifier(cell));
+                String v = Bytes.toString(CellUtil.cloneValue(cell));
+                entries.add(new KeyValue(qualifier, v));
+            }
+            res.add(new Tuple(entries));
+        }
+        scanner.close();
+        return res;
     }
 
     public List<Tuple> get(String tablename, String column, String value) throws IOException {
         List<Tuple> res = new LinkedList<>();
+        if (tablename=="")
+            tablename = "Events";
         TableName tableName = TableName.valueOf(tablename);
         Table table = connection.getTable(tableName);
         Scan s = new Scan();
-        Filter filter = new QualifierFilter(
+        s.addFamily(Bytes.toBytes("messages"));
+        Filter filter = new SingleColumnValueFilter(
+                Bytes.toBytes("messages"),
+                Bytes.toBytes(column),
                 CompareFilter.CompareOp.EQUAL,
-                new RegexStringComparator(column));
-        Filter filter2 = new ValueFilter(CompareFilter.CompareOp.EQUAL, new RegexStringComparator(value));
-        s.setFilter(new FilterList(FilterList.Operator.MUST_PASS_ALL, filter, filter2));
+                new org.apache.hadoop.hbase.filter.SubstringComparator(value));
+        s.setFilter(filter);
         ResultScanner scanner = table.getScanner(s);
         for (Result result : scanner) {
             List<KeyValue> entries = new LinkedList<>();
