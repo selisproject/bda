@@ -55,12 +55,14 @@ public class HBaseConnector implements Connector {
         }
         else {
             Table table = connection.getTable(tableName);
-            String rowkey = "";
+            String timestamp="", topic="";
             for (KeyValue fields: row.getEntries()){
-                if (!fields.getKey().matches ("message"))
-                    rowkey += fields.getValue() + "_";
+                if (fields.getKey().matches ("timestamp"))
+                    timestamp = fields.getValue();
+                else if (fields.getKey().matches("topic"))
+                    topic = fields.getValue();
             }
-            rowkey.substring(0, rowkey.length() - 1);
+            String rowkey = timestamp + "_"+topic;
             Put p = new Put(Bytes.toBytes(rowkey));
             for (KeyValue fields: row.getEntries())
                 p.addColumn(Bytes.toBytes("messages"), Bytes.toBytes(fields.getKey()), Bytes.toBytes(fields.getValue()));

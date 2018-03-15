@@ -54,7 +54,7 @@ public class PostgresqlConnector implements Connector {
             ResultSet rs = dbm.getTables(null, null, "Events", null);
             if (rs.next()) {
                 // Table exists
-                List<KeyValue> columns = new LinkedList<>(); // TODO: FIND EVENTLOG COLUMNS
+                List<KeyValue> columns = describe("").getSchema().getColumnTypes();
                 String values = "";
                 String insertTableSQL = "INSERT INTO Events (";
                 for (KeyValue element : row.getEntries()) {
@@ -92,7 +92,7 @@ public class PostgresqlConnector implements Connector {
                     q += fields.getKey()+" "+fields.getValue()+",";
                 }
                 // add one more column named 'message' that will contain the blob
-                q+="event_type TEXT, event_timestamp timestamp(3), message TEXT);"; //BYTEA
+                q=q.substring(0, q.length() - 1)+");";
                 System.out.println(q);
                 st.executeUpdate(q);
                 st.executeUpdate("ALTER TABLE Events OWNER TO "+ this.user+";");
@@ -180,7 +180,7 @@ public class PostgresqlConnector implements Connector {
             Statement st = connection.createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            ResultSet rs = st.executeQuery("SELECT * FROM Events order by event_timestamp desc limit "+num+";");
+            ResultSet rs = st.executeQuery("SELECT * FROM Events order by timestamp desc limit "+num+";");
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             while (rs.next()) {
@@ -206,16 +206,23 @@ public class PostgresqlConnector implements Connector {
     }
 
     // Get rows matching a specific column filter from a table
-    public List<Tuple> get(String table, String column, String value) throws Exception {
+    public List<Tuple> get(String tablename, String column, String value) throws Exception {
         List<Tuple> res = new LinkedList<>();
-        if (column.equals("message") && table.matches(""))
-            throw new Exception("Cannot filter the raw message in the eventLog.");
-
+        if (tablename.matches("")){
+            DimensionTable table = this.describe(tablename);
+            List<KeyValue> columns = table.getSchema().getColumnTypes();
+            for (KeyValue field : columns) {
+                if (field.getKey().equals(column)) {
+                    if (field.getValue().contains("bytea"))
+                        throw new Exception("Cannot filter the raw message in the eventLog.");
+                }
+            }
+        }
         try {
             Statement st = connection.createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            ResultSet rs = st.executeQuery("SELECT * FROM "+table+" WHERE cast("+column+" as text) ='"+value+"';");
+            ResultSet rs = st.executeQuery("SELECT * FROM "+tablename+" WHERE cast("+column+" as text) ='"+value+"';");
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             while (rs.next()) {

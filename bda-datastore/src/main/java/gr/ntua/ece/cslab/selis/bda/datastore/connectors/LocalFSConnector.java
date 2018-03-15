@@ -31,8 +31,6 @@ public class LocalFSConnector implements Connector {
                 String key = fields.getKey();
                 bw.write( key + "\t");
             }
-            // add one more column named 'message' that will contain the blob
-            bw.write("event_type\tevent_timestamp\tmessage");
             bw.newLine();
         }
         else {
@@ -43,13 +41,16 @@ public class LocalFSConnector implements Connector {
             fw = new FileWriter(evlog, true);
             bw = new BufferedWriter(fw);
             List<KeyValue> entries = row.getEntries();
-            for (String field : fields)
-                for (KeyValue entry: entries){
+            for (String field : fields) {
+                String value = "null";
+                for (KeyValue entry : entries) {
                     if (entry.getKey().equalsIgnoreCase(field)) {
-                        bw.write(entry.getValue() + "\t");
+                        value = entry.getValue();
                         break;
                     }
                 }
+                bw.write(value+"\t");
+            }
             bw.newLine();
         }
         bw.close();
@@ -123,11 +124,10 @@ public class LocalFSConnector implements Connector {
     // Get rows matching a specific column filter from a table
     public List<Tuple> get(String table, String column, String value) throws Exception {
         List<Tuple> res = new LinkedList<>();
-        if (column.equals("message") && table.matches(""))
-            throw new Exception("Cannot filter the raw message in the eventLog.");
-
         List<String> fields = describe(table).getSchema().getColumnNames();
         Integer pos = fields.indexOf(column);
+        if (pos == -1)
+            throw new Exception("Column not found in the table.");
 
         String line;
         int counter = 0;
