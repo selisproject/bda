@@ -3,8 +3,10 @@ package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
 import java.sql.*;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class PostgresqlConnector implements Connector {
 
@@ -206,15 +208,17 @@ public class PostgresqlConnector implements Connector {
     }
 
     // Get rows matching a specific column filter from a table
-    public List<Tuple> get(String tablename, String column, String value) throws Exception {
+    public List<Tuple> get(String tablename, HashMap<String,String> filters) throws Exception {
         List<Tuple> res = new LinkedList<>();
         if (tablename.matches("")){
             DimensionTable table = this.describe(tablename);
             List<KeyValue> columns = table.getSchema().getColumnTypes();
-            for (KeyValue field : columns) {
-                if (field.getKey().equals(column)) {
-                    if (field.getValue().contains("bytea"))
-                        throw new Exception("Cannot filter the raw message in the eventLog.");
+            for (Map.Entry<String,String> filter: filters.entrySet()) {
+                for (KeyValue field : columns) {
+                    if (field.getKey().equals(filter.getKey())) {
+                        if (field.getValue().contains("bytea"))
+                            throw new Exception("Cannot filter the raw message in the eventLog.");
+                    }
                 }
             }
         }
@@ -222,7 +226,12 @@ public class PostgresqlConnector implements Connector {
             Statement st = connection.createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            ResultSet rs = st.executeQuery("SELECT * FROM "+tablename+" WHERE cast("+column+" as text) ='"+value+"';");
+            String q = "SELECT * FROM "+tablename+" WHERE ";
+            for (Map.Entry element : filters.entrySet()){
+                q+="cast("+element.getKey()+" as text) ='"+element.getValue()+"' AND ";
+            }
+            q=q.substring(0, q.length() - 4)+";";
+            ResultSet rs = st.executeQuery(q);
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             while (rs.next()) {

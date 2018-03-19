@@ -71,8 +71,7 @@ public class DatastoreResource {
     /**
      * Returns the filtered content of a given dimension table
      * @param tableName is the name of the table to search
-     * @param columnName is the name of the column to match
-     * @param columnValue is the value that the column will be filtered
+     * @param filters contains the names and values of the columns to be filtered
      * @return the selected content of the dimension table
      */
     @GET
@@ -80,11 +79,10 @@ public class DatastoreResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getTable(
             @QueryParam("tableName") String tableName,
-            @QueryParam("columnName") String columnName,
-            @QueryParam("columnValue") String columnValue
+            @QueryParam("filters") HashMap<String, String> filters
     ) {
         try {
-            return Entrypoint.myBackend.select(tableName, columnName, columnValue);
+            return Entrypoint.myBackend.select(tableName, filters);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -135,19 +133,17 @@ public class DatastoreResource {
 
     /**
      * Returns the filtered entries (i.e., messages) stored in the event log.
-     * @param columnName is the name of the column to match
-     * @param columnValue is the value that the column will be filtered
+     * @param filters contains the names and values of the columns to be filtered
      * @return the denormalized messages
      */
     @GET
     @Path("select")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getSelectedEntries(
-            @QueryParam("columnName") String columnName,
-            @QueryParam("columnValue") String columnValue
+            @QueryParam("filters") HashMap<String, String> filters
     ) {
         try {
-            return Entrypoint.myBackend.select(columnName, columnValue);
+            return Entrypoint.myBackend.select(filters);
         } catch (Exception e) {
             e.printStackTrace();
         }

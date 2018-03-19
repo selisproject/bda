@@ -13,9 +13,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class HBaseConnector implements Connector {
 
@@ -125,20 +123,26 @@ public class HBaseConnector implements Connector {
         return res;
     }
 
-    public List<Tuple> get(String tablename, String column, String value) throws IOException {
+    public List<Tuple> get(String tablename, HashMap<String,String> filters) throws IOException {
         List<Tuple> res = new LinkedList<>();
         if (tablename=="")
             tablename = "Events";
         TableName tableName = TableName.valueOf(tablename);
         Table table = connection.getTable(tableName);
         Scan s = new Scan();
+        s.setReversed(true);
         s.addFamily(Bytes.toBytes("messages"));
-        Filter filter = new SingleColumnValueFilter(
-                Bytes.toBytes("messages"),
-                Bytes.toBytes(column),
-                CompareFilter.CompareOp.EQUAL,
-                new org.apache.hadoop.hbase.filter.SubstringComparator(value));
-        s.setFilter(filter);
+        FilterList filterList = new FilterList();
+        for (Map.Entry<String,String> f: filters.entrySet()) {
+            Filter filter = new SingleColumnValueFilter(
+                    Bytes.toBytes("messages"),
+                    Bytes.toBytes(f.getKey()),
+                    CompareFilter.CompareOp.EQUAL,
+                    new org.apache.hadoop.hbase.filter.SubstringComparator(f.getValue()));
+            filterList.addFilter(filter);
+        }
+        s.setFilter(filterList);
+        s.setMaxResultsPerColumnFamily(1);
         ResultScanner scanner = table.getScanner(s);
         for (Result result : scanner) {
             List<KeyValue> entries = new LinkedList<>();
