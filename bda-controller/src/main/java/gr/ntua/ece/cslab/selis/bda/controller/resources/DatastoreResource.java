@@ -9,6 +9,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.*;
+import com.google.common.base.Splitter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -79,10 +80,12 @@ public class DatastoreResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getTable(
             @QueryParam("tableName") String tableName,
-            @QueryParam("filters") HashMap<String, String> filters
+            @QueryParam("filters") String filters
     ) {
         try {
-            return Entrypoint.myBackend.select(tableName, filters);
+            Map<String,String> map= Splitter.on('&').withKeyValueSeparator("=").split(filters);
+            HashMap<String, String> mapfilters = new HashMap<String, String>(map);
+            return Entrypoint.myBackend.select(tableName, mapfilters);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -140,10 +143,12 @@ public class DatastoreResource {
     @Path("select")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getSelectedEntries(
-            @QueryParam("filters") HashMap<String, String> filters
+            @QueryParam("filters") String filters
     ) {
         try {
-            return Entrypoint.myBackend.select(filters);
+            Map<String,String> map= Splitter.on('&').withKeyValueSeparator("=").split(filters);
+            HashMap<String, String> mapfilters = new HashMap<String, String>(map);
+            return Entrypoint.myBackend.select(mapfilters);
         } catch (Exception e) {
             e.printStackTrace();
         }

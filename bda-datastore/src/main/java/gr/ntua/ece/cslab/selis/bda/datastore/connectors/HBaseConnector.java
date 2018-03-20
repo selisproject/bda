@@ -135,15 +135,15 @@ public class HBaseConnector implements Connector {
         s.addFamily(Bytes.toBytes("messages"));
         FilterList filterList = new FilterList();
         for (Map.Entry<String,String> f: filters.entrySet()) {
-            Filter filter = new SingleColumnValueFilter(
+            SingleColumnValueFilter filter = new SingleColumnValueFilter(
                     Bytes.toBytes("messages"),
                     Bytes.toBytes(f.getKey()),
                     CompareFilter.CompareOp.EQUAL,
-                    new org.apache.hadoop.hbase.filter.SubstringComparator(f.getValue()));
+                    new SubstringComparator(f.getValue()));
+            filter.setFilterIfMissing(true);
             filterList.addFilter(filter);
         }
         s.setFilter(filterList);
-        s.setMaxResultsPerColumnFamily(1);
         ResultScanner scanner = table.getScanner(s);
         for (Result result : scanner) {
             List<KeyValue> entries = new LinkedList<>();
@@ -153,6 +153,7 @@ public class HBaseConnector implements Connector {
                 entries.add(new KeyValue(qualifier, v));
             }
             res.add(new Tuple(entries));
+            break;
         }
         scanner.close();
         return res;
