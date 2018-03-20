@@ -1,6 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+
+import java.util.HashMap;
 import java.util.List;
 
 public class HDFSConnector implements Connector {
@@ -29,7 +31,7 @@ public class HDFSConnector implements Connector {
         return null;
     }
 
-    public List<Tuple> get(String args, String args2, String args3){
+    public List<Tuple> get(String args,  HashMap<String,String> filters){
         System.out.println("get from HDFS " + FS);
         return null;
     }

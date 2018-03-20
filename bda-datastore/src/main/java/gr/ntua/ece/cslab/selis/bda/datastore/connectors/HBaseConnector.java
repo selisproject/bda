@@ -88,6 +88,7 @@ public class HBaseConnector implements Connector {
         s.setReversed(true);
         ResultScanner scanner = table.getScanner(s);
         Iterator<Result> it = scanner.iterator();
+        if (args==-1) args=1000;
         for ( int i=0; i<args && it.hasNext(); i++) {
             List<KeyValue> entries = new LinkedList<>();
             Result result = it.next();
