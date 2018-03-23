@@ -22,7 +22,7 @@ public class AnalyticsTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		
+
 	}
 
 	@AfterClass
@@ -45,7 +45,7 @@ public class AnalyticsTest {
 		KpiCatalog kpiCatalog = mySystem.getKpiCatalog();
 
 		String executables = executableCatalog.getAllExecutables();
-		assert(executables.equals("{}"));
+		assert (executables.equals("{}"));
 		System.out.println("KPI primitives: " + executables);
 		KpiFactory kpiFactory = mySystem.getKpiFactory();
 
@@ -53,17 +53,18 @@ public class AnalyticsTest {
 			executEngineCatalog.addNewExecutEngine("python3", "python3");
 			System.out.println(executEngineCatalog.getAllExecutEngines());
 			List<String> argtypes = Arrays.asList();
-			executableCatalog.addNewExecutable(argtypes, executEngineCatalog.getExecutEngine(0), "./bin/kpi_null.py", "This calculates 0");
+			executableCatalog.addNewExecutable(argtypes, executEngineCatalog.getExecutEngine(0), "./bin/kpi_null.py",
+					"This calculates 0");
 			executables = executableCatalog.getAllExecutables();
 
 			System.out.println("KPI binaries: " + executables);
-			assert(!executables.equals("{}"));
+			assert (!executables.equals("{}"));
 
 			// add new kpi
 			int newKpiID = mySystem.getKpiCatalog().getKpiCounter();
-			assert(newKpiID==0);
+			assert (newKpiID == 0);
 			int executableID = mySystem.getExecutableCatalog().getExecutableCounter();
-			assert(executableID==1);
+			assert (executableID == 1);
 
 			executableID = 0;
 			List<String> arguments = Arrays.asList("trucks", "amount of shit");
@@ -71,16 +72,26 @@ public class AnalyticsTest {
 			Kpi newKpi = kpiFactory.getKpiByExecutable(newKpiID, executableID, arguments, description);
 
 			String kpis = kpiCatalog.getAllKpis();
-			assert(kpis.equals("{}"));
+			assert (kpis.equals("{}"));
 
 			System.out.println("KPIs: " + kpis);
 			kpiCatalog.addNewKpi(arguments, description, newKpi.getKpiInfo().getExecutable());
 			kpis = kpiCatalog.getAllKpis();
-			assert(!kpis.equals("{}"));
-			Kpi kpi =kpiFactory.getKpiById(0);
+			assert (!kpis.equals("{}"));
+			Kpi kpi = kpiFactory.getKpiById(0);
 
 			System.out.println("KPIs: " + kpis);
-			System.out.println("Output: "+kpi.calculate());
+			// kpi.calculate();
+			(new Thread(kpi)).start();
+			try {
+				Thread.sleep(3000);
+				// System.out.println("Out");
+
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			// System.out.println("Output: "+kpi.calculate());
 
 			/*
 			 * ArrayList<ArrayList<Double>> dataset = new ArrayList<ArrayList<Double>>();
