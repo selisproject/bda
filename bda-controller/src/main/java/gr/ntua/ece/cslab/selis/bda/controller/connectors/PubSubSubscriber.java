@@ -75,13 +75,14 @@ public class PubSubSubscriber implements Runnable {
             ExecutableCatalog executableCatalog = mySystem.getExecutableCatalog();
             KpiCatalog kpiCatalog = mySystem.getKpiCatalog();
             KpiFactory kpiFactory = mySystem.getKpiFactory();
-            executEngineCatalog.addNewExecutEngine("python", "python");
+            executEngineCatalog.addNewExecutEngine("spark", "spark-submit --driver-class-path /home/hduser/postgresql-42.2.1.jar --jars /home/hduser/postgresql-42.2.1.jar ");
             List<String> argtypes = Arrays.asList();
-            executableCatalog.addNewExecutable(argtypes, executEngineCatalog.getExecutEngine(0), "/home/hduser/order_forecast_recipe/main.py",
+            executableCatalog.addNewExecutable(argtypes, executEngineCatalog.getExecutEngine(0), "/home/hduser/jdbc.py",
                     "This calculates 0");
             List<String> arguments = Arrays.asList("trucks", "amount of shit");
             String description = "This calculates shit done by blue trucks...";
             Kpi newKpi = kpiFactory.getKpiByExecutable(0, 0, arguments, description);
+            kpiCatalog.addNewKpi(arguments, description, newKpi.getKpiInfo().getExecutable());
             Kpi kpi = kpiFactory.getKpiById(0);
             (new Thread(kpi)).start();
             while (true) {

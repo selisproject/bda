@@ -3,7 +3,12 @@ package gr.ntua.ece.cslab.selis.bda.analytics.kpis;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.LinkedList;
+
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
+import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 
 public class Kpi implements Runnable {
 
@@ -46,6 +51,16 @@ public class Kpi implements Runnable {
 				result += inputLine;
 			}
 			in.close();
+
+            String fs_string = "jdbc:postgresql://147.102.4.108:5432/sonae";
+            String uname = "clms";
+            String passwd = "sonae@sEl1s";
+            KPIBackend kpiDB = new KPIBackend(fs_string, uname, passwd);
+            KPIDescription kpiA1 = new KPIDescription("sonaekpi",
+                    System.currentTimeMillis(),
+                    new LinkedList<KeyValue>());
+            kpiDB.insert(kpiA1);
+            kpiDB.stop();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
