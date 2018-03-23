@@ -1,9 +1,12 @@
 package gr.ntua.ece.cslab.selis.bda.datastore;
 
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.DimensionTableSchema;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.MasterData;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.Connector;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
+import org.apache.hadoop.mapreduce.jobhistory.TaskUpdatedEvent;
+
+import java.security.Key;
+import java.util.List;
 
 public class KPIBackend {
     private Connector KPIConnector;
@@ -16,16 +19,24 @@ public class KPIBackend {
         this.KPIConnector.put(masterData);
     }
 
-    public void insert() {
+    public void insert(KPIDescription kpi) throws Exception {
+        this.KPIConnector.put(kpi);
 
     }
 
-    public void fetch() {
-
+    public List<Tuple> fetch(String kpi_name, String type, Integer value) throws Exception {
+        if (type.equals("rows"))
+            return this.KPIConnector.getLastKPIs(kpi_name, value);
+        else
+            throw new Exception("type not found: " + type);
     }
 
-    public void select() {
+    public List<Tuple> select(String kpi_name, List<KeyValue> args) throws Exception {
+        return this.KPIConnector.getKPIs(kpi_name, args);
+    }
 
+    public DimensionTable getSchema(String table) throws Exception {
+        return this.KPIConnector.describe(table);
     }
 
     public void stop() {

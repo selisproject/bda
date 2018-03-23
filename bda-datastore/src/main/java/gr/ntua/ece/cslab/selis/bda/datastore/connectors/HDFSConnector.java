@@ -19,8 +19,23 @@ public class HDFSConnector implements Connector {
         System.out.println("put in HDFS " + FS);
     }
 
+    @Override
+    public void put(KPIDescription args) throws Exception {
+
+    }
+
     public List<Tuple> getLast(Integer args){
         System.out.println("get from HDFS " + FS);
+        return null;
+    }
+
+    @Override
+    public List<Tuple> getLastKPIs(String kpi_name, Integer args) throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception {
         return null;
     }
 
