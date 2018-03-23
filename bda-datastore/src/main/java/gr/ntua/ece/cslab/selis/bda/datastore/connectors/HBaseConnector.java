@@ -79,6 +79,11 @@ public class HBaseConnector implements Connector {
         System.out.println("put in HBase ");
     }
 
+    @Override
+    public void put(KPIDescription args) throws Exception {
+
+    }
+
     public List<Tuple> getLast(Integer args) throws IOException {
         List<Tuple> res = new LinkedList<>();
         TableName tableName = TableName.valueOf("Events");
@@ -101,6 +106,16 @@ public class HBaseConnector implements Connector {
         }
         scanner.close();
         return res;
+    }
+
+    @Override
+    public List<Tuple> getLastKPIs(String kpi_name, Integer args) throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception {
+        return null;
     }
 
     public List<Tuple> getFrom(Integer args) throws IOException {

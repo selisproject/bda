@@ -170,6 +170,56 @@ public class PostgresqlConnector implements Connector {
                 connection.commit();
             }
         } catch (SQLException e) {
+            System.out.println("Failed creation");
+            e.printStackTrace();
+            connection.rollback();
+        }
+    }
+
+    @Override
+    public void put(KPIDescription args) throws Exception {
+        System.out.println("Starting insertion");
+        try {
+            if (args.getEntries().size()>0) {
+                String values = "";
+                String insertTableSQL = "INSERT INTO " + args.getKpi_name() + " (";
+                insertTableSQL +=  "computation_timestamp,";
+                values += "?,";
+                for (KeyValue element : args.getEntries()) {
+                    insertTableSQL += element.getKey() + ",";
+                    values += "?,";
+                }
+                insertTableSQL = insertTableSQL.substring(0, insertTableSQL.length() - 1) + ") VALUES (" + values.substring(0, values.length() - 1) + ");";
+                PreparedStatement prepst = connection.prepareStatement(insertTableSQL);
+                prepst.setLong(1, args.getTimestamp());
+                List<KeyValue> types = this.describe(args.getKpi_name()).getSchema().getColumnTypes();
+                int i = 2;
+                for (KeyValue element : args.getEntries()) {
+                    for (KeyValue field : types) {
+                        if (field.getKey().equals(element.getKey())) {
+                            if (field.getValue().contains("integer"))
+                                if (element.getValue().equalsIgnoreCase("null"))
+                                    prepst.setNull(i,Types.INTEGER);
+                                else
+                                    prepst.setInt(i, Integer.valueOf(element.getValue()));
+                            else if (field.getValue().contains("timestamp"))
+                                prepst.setTimestamp(i, Timestamp.valueOf(element.getValue()));
+                            else if (field.getValue().contains("bytea"))
+                                prepst.setBytes(i, element.getValue().getBytes());
+                            else if (field.getValue().contains("boolean"))
+                                prepst.setBoolean(i, Boolean.parseBoolean(element.getValue()));
+                            else
+                                prepst.setString(i, element.getValue());
+                        }
+                    }
+                    i++;
+                }
+                prepst.executeUpdate();
+            }
+            System.out.println("Insert complete");
+            connection.commit();
+        } catch (SQLException e) {
+            System.out.println("Insert failed");
             e.printStackTrace();
             connection.rollback();
         }
@@ -183,6 +233,65 @@ public class PostgresqlConnector implements Connector {
             // Turn use of the cursor on.
             st.setFetchSize(1000);
             ResultSet rs = st.executeQuery("SELECT * FROM Events order by timestamp desc limit "+num+";");
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            while (rs.next()) {
+                List<KeyValue> entries = new LinkedList<>();
+                for (int i = 1; i <= columnsNumber; i++) {
+                    String columnValue = rs.getString(i);
+                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
+                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
+                }
+                res.add(new Tuple(entries));
+            }
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            connection.rollback();
+        }
+        return res;
+    }
+
+    @Override
+    public List<Tuple> getLastKPIs(String kpi_name, Integer args) throws Exception {
+        List<Tuple> res = new LinkedList<>();
+        try {
+            Statement st = connection.createStatement();
+            // Turn use of the cursor on.
+            st.setFetchSize(1000);
+            ResultSet rs = st.executeQuery("SELECT * FROM " + kpi_name + " order by computation_timestamp desc limit "+args+";");
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            while (rs.next()) {
+                List<KeyValue> entries = new LinkedList<>();
+                for (int i = 1; i <= columnsNumber; i++) {
+                    String columnValue = rs.getString(i);
+                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
+                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
+                }
+                res.add(new Tuple(entries));
+            }
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            connection.rollback();
+        }
+        return res;
+    }
+
+    @Override
+    public List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception {
+        List<Tuple> res = new LinkedList<>();
+        try {
+            Statement st = connection.createStatement();
+            // Turn use of the cursor on.
+            st.setFetchSize(1000);
+            String sqlQuery = "SELECT * FROM "+ kpi_name +" WHERE";
+            for (KeyValue filter : args) {
+                sqlQuery += " cast("+ filter.getKey() + " as text) ='" + filter.getValue() + "' and";
+            }
+            sqlQuery = sqlQuery.substring(0, sqlQuery.length() - 3) + ";";
+            ResultSet rs = st.executeQuery(sqlQuery);
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             while (rs.next()) {

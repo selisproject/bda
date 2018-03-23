@@ -81,6 +81,11 @@ public class LocalFSConnector implements Connector {
         }
     }
 
+    @Override
+    public void put(KPIDescription args) throws Exception {
+
+    }
+
     // get last num rows from EventLog
     public List<Tuple> getLast(Integer num) throws IOException {
         List<Tuple> res = new LinkedList<>();
@@ -113,6 +118,16 @@ public class LocalFSConnector implements Connector {
         }
         reader.close();
         return res;
+    }
+
+    @Override
+    public List<Tuple> getLastKPIs(String kpi_name, Integer args) throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception {
+        return null;
     }
 
     // Get rows for last num days from EventLog
