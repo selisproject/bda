@@ -76,21 +76,21 @@ public class Entrypoint {
         ServletContextHandler handler = new ServletContextHandler(server, "/api");
         handler.addServlet(servlet, "/*");
 
-        //Thread subscriber = new Thread(mySubscriber, "subscriber");
+        Thread subscriber = new Thread(mySubscriber, "subscriber");
         // run the server and the pubsub subscriber
         try {
             LOGGER.log(Level.INFO, "Starting server");
             server.start();
-            //subscriber.start();
+            subscriber.start();
             server.join();
-            //subscriber.join();
+            subscriber.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
             e.printStackTrace();
         } finally {
             LOGGER.log(Level.INFO,"Terminating server");
             server.destroy();
-            //subscriber.interrupt();
+            subscriber.interrupt();
         }
     }
 }
