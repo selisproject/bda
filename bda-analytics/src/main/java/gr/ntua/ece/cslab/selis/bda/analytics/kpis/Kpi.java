@@ -34,8 +34,8 @@ public class Kpi implements Runnable {
 			Process p;
 			// System.out.println("Inside");
 
-			// p = r.exec(command);
-			p = r.exec("echo \"hi\"");
+			p = r.exec(command);
+			//p = r.exec("echo \"hi\"");
 			p.waitFor();
 			// System.out.println("Dead");
 
