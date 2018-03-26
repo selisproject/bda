@@ -4,13 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-<<<<<<< HEAD
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.List;
-=======
-import java.util.LinkedList;
->>>>>>> origin/evie
+
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
@@ -37,7 +34,6 @@ public class Kpi implements Runnable {
 
 	
 	public void run() {
-<<<<<<< HEAD
         try {
 /*                      String result = "";
                 // System.out.println("Inside");
@@ -74,48 +70,20 @@ public class Kpi implements Runnable {
                 //assert pb.redirectOutput().file() == log;
                 //assert p.getInputStream().read() == -1;
                 p.waitFor();
+
+			/*String fs_string = "jdbc:postgresql://147.102.4.108:5432/sonae";
+			String uname = "clms";
+			String passwd = "sonae@sEl1s";
+			KPIBackend kpiDB = new KPIBackend(fs_string, uname, passwd);
+			KPIDescription kpiA1 = new KPIDescription("sonaekpi",
+					System.currentTimeMillis(),
+					new LinkedList<KeyValue>());
+			kpiDB.insert(kpiA1);
+			kpiDB.stop();*/
         } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
         }
-=======
-		try {
-			String result = "";
-			// System.out.println("Inside");
-			Runtime r = Runtime.getRuntime();
-			String command = kpiInfo.getExecutable().getExecutEngine().getExecutionPreamble() + " "
-					+ kpiInfo.getExecutable().getOsPath();
-			Process p;
-			// System.out.println("Inside");
-
-			p = r.exec(command);
-			//p = r.exec("echo \"hi\"");
-			p.waitFor();
-			// System.out.println("Dead");
-
-			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				System.out.println(inputLine);
-				result += inputLine;
-			}
-			in.close();
-
-            String fs_string = "jdbc:postgresql://147.102.4.108:5432/sonae";
-            String uname = "clms";
-            String passwd = "sonae@sEl1s";
-            KPIBackend kpiDB = new KPIBackend(fs_string, uname, passwd);
-            KPIDescription kpiA1 = new KPIDescription("sonaekpi",
-                    System.currentTimeMillis(),
-                    new LinkedList<KeyValue>());
-            kpiDB.insert(kpiA1);
-            kpiDB.stop();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
->>>>>>> origin/evie
-
 	}
 
 	public void store(int value) {
