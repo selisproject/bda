@@ -7,12 +7,11 @@ import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.List;
-
-
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
+import java.util.LinkedList;
 
 public class Kpi implements Runnable {
 
@@ -71,24 +70,31 @@ public class Kpi implements Runnable {
                 //assert p.getInputStream().read() == -1;
                 p.waitFor();
 
-			/*String fs_string = "jdbc:postgresql://147.102.4.108:5432/sonae";
-			String uname = "clms";
-			String passwd = "sonae@sEl1s";
-			KPIBackend kpiDB = new KPIBackend(fs_string, uname, passwd);
-			KPIDescription kpiA1 = new KPIDescription("sonaekpi",
-					System.currentTimeMillis(),
-					new LinkedList<KeyValue>());
-			kpiDB.insert(kpiA1);
-			kpiDB.stop();*/
         } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
         }
 	}
 
-	public void store(int value) {
-		// TODO Auto-generated method stub
+	public void store(int value) throws Exception {
+		String fs_string = "jdbc:postgresql://147.102.4.108:5432/sonae";
+		String uname = "clms";
+		String passwd = "sonae@sEl1s";
 
+		KPIBackend kpiDB = new KPIBackend(fs_string, uname, passwd);
+
+		List<KeyValue> data = new LinkedList<>();
+		/*data.add(new KeyValue("fromdate", Long.toString(fromdate)));
+		data.add(new KeyValue("todate", Long.toString(todate)));
+		data.add(new KeyValue("supplierid", Integer.toString(rn.nextInt(10) + 1)));
+		data.add(new KeyValue("warehouseid", Integer.toString(rn.nextInt(10) + 1)));
+		data.add(new KeyValue("output", "output string"));
+		*/
+		KPIDescription newkpi = new KPIDescription("sonaekpi_0", System.currentTimeMillis(), data);
+
+		kpiDB.insert(newkpi);
+
+		kpiDB.stop();
 	}
 
 }
