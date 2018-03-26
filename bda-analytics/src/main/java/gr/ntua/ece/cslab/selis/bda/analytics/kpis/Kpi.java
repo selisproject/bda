@@ -1,10 +1,14 @@
 package gr.ntua.ece.cslab.selis.bda.analytics.kpis;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
+import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 
 import java.io.File;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Kpi implements Runnable {
@@ -70,9 +74,25 @@ public class Kpi implements Runnable {
 
 	}
 
-	public void store(int value) {
-		// TODO Auto-generated method stub
+	public void store(int value) throws Exception {
+		String fs_string = "jdbc:postgresql://147.102.4.108:5432/sonae";
+		String uname = "clms";
+		String passwd = "sonae@sEl1s";
 
+		KPIBackend kpiDB = new KPIBackend(fs_string, uname, passwd);
+
+		List<KeyValue> data = new LinkedList<>();
+		/*data.add(new KeyValue("fromdate", Long.toString(fromdate)));
+		data.add(new KeyValue("todate", Long.toString(todate)));
+		data.add(new KeyValue("supplierid", Integer.toString(rn.nextInt(10) + 1)));
+		data.add(new KeyValue("warehouseid", Integer.toString(rn.nextInt(10) + 1)));
+		data.add(new KeyValue("output", "output string"));
+		*/
+		KPIDescription newkpi = new KPIDescription("sonaekpi_0", System.currentTimeMillis(), data);
+
+		kpiDB.insert(newkpi);
+
+		kpiDB.stop();
 	}
 
 }
