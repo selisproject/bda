@@ -13,9 +13,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class HBaseConnector implements Connector {
 
@@ -95,6 +93,7 @@ public class HBaseConnector implements Connector {
         s.setReversed(true);
         ResultScanner scanner = table.getScanner(s);
         Iterator<Result> it = scanner.iterator();
+        if (args==-1) args=1000;
         for ( int i=0; i<args && it.hasNext(); i++) {
             List<KeyValue> entries = new LinkedList<>();
             Result result = it.next();
@@ -140,20 +139,26 @@ public class HBaseConnector implements Connector {
         return res;
     }
 
-    public List<Tuple> get(String tablename, String column, String value) throws IOException {
+    public List<Tuple> get(String tablename, HashMap<String,String> filters) throws IOException {
         List<Tuple> res = new LinkedList<>();
         if (tablename=="")
             tablename = "Events";
         TableName tableName = TableName.valueOf(tablename);
         Table table = connection.getTable(tableName);
         Scan s = new Scan();
+        s.setReversed(true);
         s.addFamily(Bytes.toBytes("messages"));
-        Filter filter = new SingleColumnValueFilter(
-                Bytes.toBytes("messages"),
-                Bytes.toBytes(column),
-                CompareFilter.CompareOp.EQUAL,
-                new org.apache.hadoop.hbase.filter.SubstringComparator(value));
-        s.setFilter(filter);
+        FilterList filterList = new FilterList();
+        for (Map.Entry<String,String> f: filters.entrySet()) {
+            SingleColumnValueFilter filter = new SingleColumnValueFilter(
+                    Bytes.toBytes("messages"),
+                    Bytes.toBytes(f.getKey()),
+                    CompareFilter.CompareOp.EQUAL,
+                    new SubstringComparator(f.getValue()));
+            filter.setFilterIfMissing(true);
+            filterList.addFilter(filter);
+        }
+        s.setFilter(filterList);
         ResultScanner scanner = table.getScanner(s);
         for (Result result : scanner) {
             List<KeyValue> entries = new LinkedList<>();
@@ -163,6 +168,7 @@ public class HBaseConnector implements Connector {
                 entries.add(new KeyValue(qualifier, v));
             }
             res.add(new Tuple(entries));
+            break;
         }
         scanner.close();
         return res;

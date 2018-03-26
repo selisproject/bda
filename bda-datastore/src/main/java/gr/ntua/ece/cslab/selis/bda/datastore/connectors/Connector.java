@@ -1,6 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
@@ -14,7 +14,7 @@ public interface Connector {
     List<Tuple> getLastKPIs(String kpi_name, Integer args) throws Exception;
     List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception;
     List<Tuple> getFrom(Integer args) throws Exception;
-    List<Tuple> get(String args, String args2, String args3) throws Exception;
+    List<Tuple> get(String args, HashMap<String,String> args2) throws Exception;
     DimensionTable describe(String args) throws Exception;
     List<String> list();
     void close();

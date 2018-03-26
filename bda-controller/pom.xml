@@ -160,6 +160,11 @@
             <artifactId>client-library</artifactId>
             <version>0.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>gr.ntua.ece.cslab</groupId>
+            <artifactId>bda-analytics</artifactId>
+            <version>0.1.0</version>
+        </dependency>
     </dependencies>
 
 </project>

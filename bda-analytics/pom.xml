@@ -35,5 +35,10 @@
 			<artifactId>postgresql</artifactId>
 			<version>42.1.4</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>gr.ntua.ece.cslab</groupId>
+            <artifactId>bda-datastore</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+    </dependencies>
 </project>

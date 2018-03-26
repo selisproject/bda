@@ -87,16 +87,16 @@ public class StorageBackend {
     /** Select rows filtered in a specific column with a specific value from a dimension table.
      *  This method requires as input a string which is the dimension table name, the column name and the column value
      *  as strings. **/
-    public List<Tuple> select(String table, String column, String value) throws Exception {
-        return DTconnector.get(table, column, value);
+    public List<Tuple> select(String table, HashMap<String,String> filters) throws Exception {
+        return DTconnector.get(table, filters);
     }
 
     /** Select rows filtered in a specific column with a specific value from the eventLog table.
      *  This method requires as input the column name and the column value as strings. The eventLog can be filtered in
      *  a column that is a foreign key to a dimension table, not in the actual message and the last 1000 messages are
      *  searched.**/
-    public List<Tuple> select(String column, String value) throws Exception {
-        return ELconnector.get("", column, value);
+    public List<Tuple> select(HashMap<String,String> filters) throws Exception {
+        return ELconnector.get("", filters);
     }
 
     /** Get table schema.

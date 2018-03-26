@@ -137,22 +137,29 @@ public class LocalFSConnector implements Connector {
     }
 
     // Get rows matching a specific column filter from a table
-    public List<Tuple> get(String table, String column, String value) throws Exception {
+    public List<Tuple> get(String table, HashMap<String,String> filters) throws Exception {
         List<Tuple> res = new LinkedList<>();
         List<String> fields = describe(table).getSchema().getColumnNames();
-        Integer pos = fields.indexOf(column);
-        if (pos == -1)
-            throw new Exception("Column not found in the table.");
-
+        HashMap<Integer,String> positions = new HashMap<>();
+        for (Map.Entry<String,String> flt: filters.entrySet()) {
+            Integer pos = fields.indexOf(flt.getKey());
+            if (pos == -1)
+                throw new Exception("Column not found in the table.");
+            positions.put(pos,flt.getValue());
+        }
         String line;
         int counter = 0;
         if (table.matches(""))
             table = "EventLog";
         ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(FS + "/" + table + ".csv"));
         // Read the table line by line and filter the specified column. In the eventLog only the last 1000 rows are searched.
-        while((line = reader.readLine()) != null && (!table.equals("EventLog") || counter < 1000)){
+        while((line = reader.readLine()) != null && (!table.equals("EventLog") || counter < 1000)) {
             String[] values = line.split("\t");
-            if (values[pos].equals(value)) {
+            boolean selected = true;
+            for (Map.Entry<Integer, String> pos : positions.entrySet())
+                if (!values[pos.getKey()].equals(pos.getValue()))
+                    selected = false;
+            if (selected) {
                 List<KeyValue> entries = new LinkedList<>();
                 for (int i = 0; i < fields.size(); i++)
                     entries.add(new KeyValue(fields.get(i), values[i]));
