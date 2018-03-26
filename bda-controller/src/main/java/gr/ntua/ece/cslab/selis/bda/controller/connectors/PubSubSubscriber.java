@@ -75,11 +75,16 @@ public class PubSubSubscriber implements Runnable {
             ExecutableCatalog executableCatalog = mySystem.getExecutableCatalog();
             KpiCatalog kpiCatalog = mySystem.getKpiCatalog();
             KpiFactory kpiFactory = mySystem.getKpiFactory();
+<<<<<<< HEAD
             //executEngineCatalog.addNewExecutEngine("spark", "spark-submit --driver-class-path /home/hduser/postgresql-42.2.1.jar --jars /home/hduser/postgresql-42.2.1.jar ");
             executEngineCatalog.addNewExecutEngine("spark", "spark-submit");
             List<String> argtypes = Arrays.asList();
             //executableCatalog.addNewExecutable(argtypes, executEngineCatalog.getExecutEngine(0), "/home/hduser/jdbc.py > ~/out 2> ~/error",
             //        "This calculates 0");
+=======
+            executEngineCatalog.addNewExecutEngine("spark", "spark-submit --driver-class-path /home/hduser/postgresql-42.2.1.jar --jars /home/hduser/postgresql-42.2.1.jar ");
+            List<String> argtypes = Arrays.asList();
+>>>>>>> origin/evie
             executableCatalog.addNewExecutable(argtypes, executEngineCatalog.getExecutEngine(0), "/home/hduser/jdbc.py",
                     "This calculates 0");
             List<String> arguments = Arrays.asList("--driver-class-path", "/home/hduser/postgresql-42.2.1.jar", "--jars", "/home/hduser/postgresql-42.2.1.jar");
