@@ -183,7 +183,7 @@ public class PostgresqlConnector implements Connector {
             if (args.getEntries().size()>0) {
                 String values = "";
                 String insertTableSQL = "INSERT INTO " + args.getKpi_name() + " (";
-                insertTableSQL +=  "computation_timestamp,";
+                insertTableSQL +=  "timestamp,";
                 values += "?,";
                 for (KeyValue element : args.getEntries()) {
                     insertTableSQL += element.getKey() + ",";
@@ -202,6 +202,11 @@ public class PostgresqlConnector implements Connector {
                                     prepst.setNull(i,Types.INTEGER);
                                 else
                                     prepst.setInt(i, Integer.valueOf(element.getValue()));
+                            else if (field.getValue().contains("bigint"))
+                                if (element.getValue().equalsIgnoreCase("null"))
+                                    prepst.setNull(i,Types.BIGINT);
+                                else
+                                    prepst.setLong(i, Long.valueOf(element.getValue()));
                             else if (field.getValue().contains("timestamp"))
                                 prepst.setTimestamp(i, Timestamp.valueOf(element.getValue()));
                             else if (field.getValue().contains("bytea"))
@@ -210,6 +215,7 @@ public class PostgresqlConnector implements Connector {
                                 prepst.setBoolean(i, Boolean.parseBoolean(element.getValue()));
                             else
                                 prepst.setString(i, element.getValue());
+
                         }
                     }
                     i++;
@@ -259,7 +265,7 @@ public class PostgresqlConnector implements Connector {
             Statement st = connection.createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            ResultSet rs = st.executeQuery("SELECT * FROM " + kpi_name + " order by computation_timestamp desc limit "+args+";");
+            ResultSet rs = st.executeQuery("SELECT * FROM " + kpi_name + " order by timestamp desc limit "+args+";");
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             while (rs.next()) {
