@@ -82,11 +82,10 @@ public class Kpi implements Runnable {
 		KPIBackend kpiDB = new KPIBackend(fs_string, uname, passwd);
 
 		List<KeyValue> data = new LinkedList<>();
-		/*data.add(new KeyValue("fromdate", Long.toString(fromdate)));
-		data.add(new KeyValue("todate", Long.toString(todate)));
-		data.add(new KeyValue("supplierid", Integer.toString(rn.nextInt(10) + 1)));
-		data.add(new KeyValue("warehouseid", Integer.toString(rn.nextInt(10) + 1)));
-		data.add(new KeyValue("output", "output string"));
+		/*data.add(new KeyValue("salesforecast_id", Integer.toString(rn.nextInt(10) + 1)));
+        data.add(new KeyValue("supplier_id", Integer.toString(rn.nextInt(10) + 1)));
+        data.add(new KeyValue("warehouse_id", Integer.toString(rn.nextInt(10) + 1)));
+        data.add(new KeyValue("result", "output string"));
 		*/
 		KPIDescription newkpi = new KPIDescription("sonaekpi_0", System.currentTimeMillis(), data);
 

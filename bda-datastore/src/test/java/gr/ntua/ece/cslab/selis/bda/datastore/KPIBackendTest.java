@@ -59,33 +59,28 @@ public class KPIBackendTest {
 
     private KPIDescription getSonaekpiEntry() {
         List<KeyValue> data = new LinkedList<>();
-        long fromdate = getRandomTimeBetweenTwoDates();
-        long diff = (long) 60 * 24 * 3600;
-        long todate = fromdate + (long) (Math.random() * diff);
-        data.add(new KeyValue("fromdate", Long.toString(fromdate)));
-        data.add(new KeyValue("todate", Long.toString(todate)));
-        data.add(new KeyValue("supplierid", Integer.toString(rn.nextInt(10) + 1)));
-        data.add(new KeyValue("warehouseid", Integer.toString(rn.nextInt(10) + 1)));
-        data.add(new KeyValue("output", "output string"));
-        return new KPIDescription("sonaekpi_0", System.currentTimeMillis(), data);
+        data.add(new KeyValue("salesforecast_id", Integer.toString(rn.nextInt(10) + 1)));
+        data.add(new KeyValue("supplier_id", Integer.toString(rn.nextInt(10) + 1)));
+        data.add(new KeyValue("warehouse_id", Integer.toString(rn.nextInt(10) + 1)));
+        data.add(new KeyValue("result", "output string"));
+        return new KPIDescription("sonae_orderforecast", System.currentTimeMillis(), data);
     }
 
     private DimensionTable getSonaeDT() {
         List<String> sonaenames = new LinkedList<>();
         List<KeyValue> sonaetypes = new LinkedList<>();
+
         sonaenames.add("timestamp");
-        sonaenames.add("fromdate");
-        sonaenames.add("todate");
-        sonaenames.add("supplierid");
-        sonaenames.add("warehouseid");
-        sonaenames.add("output");
+        sonaenames.add("salesforecast_id");
+        sonaenames.add("supplier_id");
+        sonaenames.add("warehouse_id");
+        sonaenames.add("result");
 
         sonaetypes.add(new KeyValue("timestamp", "bigint"));
-        sonaetypes.add(new KeyValue("fromdate", "bigint"));
-        sonaetypes.add(new KeyValue("todate", "bigint"));
-        sonaetypes.add(new KeyValue("supplierid", "integer"));
-        sonaetypes.add(new KeyValue("warehouseid", "integer"));
-        sonaetypes.add(new KeyValue("output", "text"));
+        sonaetypes.add(new KeyValue("salesforecast_id", "integer"));
+        sonaetypes.add(new KeyValue("supplier_id", "integer"));
+        sonaetypes.add(new KeyValue("warehouse_id", "integer"));
+        sonaetypes.add(new KeyValue("result", "text"));
 
         DimensionTableSchema sonaeschema = new DimensionTableSchema(
                 sonaenames,
@@ -94,7 +89,7 @@ public class KPIBackendTest {
         );
 
         return new DimensionTable(
-                "sonaekpi_0",
+                "sonae_orderforecast",
                 sonaeschema,
                 new LinkedList<>()
         );
@@ -107,16 +102,17 @@ public class KPIBackendTest {
     /*
         Local db credentials
      */
-        //String fs_string = "jdbc:postgresql:selis_db";
-        //String uname = "selis_user";
-        //String passwd = "123";
+        String fs_string = "jdbc:postgresql:selis_db";
+        String uname = "selis_user";
+        String passwd = "123";
 
         /*
             Remote db credentials
          */
-        String fs_string = "jdbc:postgresql://147.102.4.108:5432/sonae";
-        String uname = "clms";
-        String passwd = "sonae@sEl1s";
+        //String fs_string = "jdbc:postgresql://147.102.4.108:5432/sonae";
+        //String fs_string = "jdbc:postgresql://10.0.1.4:5432/sonae";
+        //String uname = "clms";
+        //String passwd = "sonae@sEl1s";
         rn = new Random();
         DimensionTableSchema schema1 = new DimensionTableSchema(
                 createNames("kpia", 7),
@@ -138,7 +134,7 @@ public class KPIBackendTest {
         dTables.add(kpiB);
         dTables.add(getSonaeDT());
 
-        kpiDB = new KPIBackend(fs_string, uname, passwd);
+//        kpiDB = new KPIBackend(fs_string, uname, passwd);
         System.out.println("Connection with KPIDB established");
 
         //kpiDB.init(new MasterData(dTables));
@@ -148,7 +144,7 @@ public class KPIBackendTest {
 
     @After
     public void tearDown() throws Exception {
-        kpiDB.stop();
+  //      kpiDB.stop();
         System.out.println("Closing connection to KPIDB.");
     }
 
@@ -256,7 +252,7 @@ public class KPIBackendTest {
          */
         int i;
 
-        /*
+/*
         List<KPIDescription> sonaeresults = new LinkedList<>();
         for (i = 0; i < 45; i++) {
             sonaeresults.add(getSonaekpiEntry());
@@ -266,11 +262,12 @@ public class KPIBackendTest {
         for (KPIDescription res : sonaeresults) {
             kpiDB.insert(res);
         }
-        */
+*/
         /*
                 Check the select statements
          */
 
+        /*
         System.out.println("Fetch 2 last kpis result");
         List<Tuple> result = kpiDB.fetch("sonaekpi_0", "rows", 2);
         i = 1;
@@ -308,7 +305,7 @@ public class KPIBackendTest {
             }
             i++;
         }
-
+        */
 
     }
 
