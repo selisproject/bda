@@ -1,15 +1,17 @@
 package gr.ntua.ece.cslab.selis.bda.analytics.kpis;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.ProcessBuilder.Redirect;
+import java.util.ArrayList;
+import java.util.List;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
-
-import java.io.File;
-import java.lang.ProcessBuilder.Redirect;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 public class Kpi implements Runnable {
 
@@ -67,11 +69,11 @@ public class Kpi implements Runnable {
                 //assert pb.redirectOutput().file() == log;
                 //assert p.getInputStream().read() == -1;
                 p.waitFor();
+
         } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
         }
-
 	}
 
 	public void store(int value) throws Exception {
