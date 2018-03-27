@@ -22,6 +22,7 @@ public class AnalyticsTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+
 	}
 
 	@AfterClass
@@ -66,7 +67,7 @@ public class AnalyticsTest {
 			assert (executableID == 1);
 
 			executableID = 0;
-			List<String> arguments = Arrays.asList();
+			List<String> arguments = Arrays.asList("trucks", "amount of shit");
 			String description = "This calculates shit done by blue trucks...";
 			Kpi newKpi = kpiFactory.getKpiByExecutable(newKpiID, executableID, arguments, description);
 

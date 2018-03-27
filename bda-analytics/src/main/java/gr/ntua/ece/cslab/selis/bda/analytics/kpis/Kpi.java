@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.List;
+
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
@@ -74,6 +75,7 @@ public class Kpi implements Runnable {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
         }
+
 	}
 
 	public void store(int value) throws Exception {
