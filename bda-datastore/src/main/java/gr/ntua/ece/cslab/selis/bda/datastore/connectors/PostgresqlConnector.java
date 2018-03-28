@@ -287,16 +287,21 @@ public class PostgresqlConnector implements Connector {
 
     @Override
     public List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception {
+        System.out.println("Enter postgresconnector code");
         List<Tuple> res = new LinkedList<>();
         try {
             Statement st = connection.createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            String sqlQuery = "SELECT * FROM "+ kpi_name +" WHERE";
-            for (KeyValue filter : args) {
-                sqlQuery += " cast("+ filter.getKey() + " as text) ='" + filter.getValue() + "' and";
+            String sqlQuery = "SELECT * FROM "+ kpi_name;
+            if (args.size() > 0) {
+                sqlQuery += " WHERE";
+                for (KeyValue filter : args) {
+                    sqlQuery += " cast("+ filter.getKey() + " as text) ='" + filter.getValue() + "' and";
+                }
+                sqlQuery = sqlQuery.substring(0, sqlQuery.length() - 3);
             }
-            sqlQuery = sqlQuery.substring(0, sqlQuery.length() - 3) + ";";
+            sqlQuery += ";";
             ResultSet rs = st.executeQuery(sqlQuery);
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();

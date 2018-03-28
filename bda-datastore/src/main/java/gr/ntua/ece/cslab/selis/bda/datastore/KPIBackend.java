@@ -25,8 +25,10 @@ public class KPIBackend {
     }
 
     public List<Tuple> fetch(String kpi_name, String type, Integer value) throws Exception {
-        if (type.equals("rows"))
+        if (type.equals("rows")) {
+            System.out.println("Before calling kpiconnector");
             return this.KPIConnector.getLastKPIs(kpi_name, value);
+        }
         else
             throw new Exception("type not found: " + type);
     }

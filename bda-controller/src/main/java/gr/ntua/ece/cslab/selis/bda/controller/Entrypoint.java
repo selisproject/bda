@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
+import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 import org.eclipse.jetty.server.Server;
@@ -22,6 +23,7 @@ public class Entrypoint {
     public static PubSubSubscriber mySubscriber;
     public static PubSubPublisher myPublisher;
     public static StorageBackend myBackend;
+    public static KPIBackend kpiDB;
 
     private static void storageBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing storage backend...");
@@ -29,6 +31,14 @@ public class Entrypoint {
                 configuration.storageBackend.getDimensionTablesURL(),
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword());
+    }
+
+    private static void kpiBackendInitialization() {
+        LOGGER.log(Level.INFO, "Initializing kpi backend...");
+        String fs_string = "jdbc:postgresql:selis_db";
+        String uname = "selis_user";
+        String passwd = "123";
+        kpiDB = new KPIBackend(fs_string, uname, passwd);
     }
 
     private static void pubSubConnectorsInitialization() {
@@ -59,6 +69,9 @@ public class Entrypoint {
         // PubSub connectors initialization
         pubSubConnectorsInitialization();
 
+        // KPI DB initialization
+        kpiBackendInitialization();
+        
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             // TODO: stub method, add code for graceful shutdown here
