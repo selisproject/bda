@@ -79,7 +79,7 @@ public class Kpi implements Runnable {
 	}
 
 	public void store(int value) throws Exception {
-		String fs_string = "jdbc:postgresql://147.102.4.108:5432/sonae";
+		String fs_string = "jdbc:postgresql://10.0.1.4:5432/sonae";
 		String uname = "clms";
 		String passwd = "sonae@sEl1s";
 

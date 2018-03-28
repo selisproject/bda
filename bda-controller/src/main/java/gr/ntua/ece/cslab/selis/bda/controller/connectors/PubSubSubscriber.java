@@ -87,7 +87,7 @@ public class PubSubSubscriber implements Runnable {
             Kpi newKpi = kpiFactory.getKpiByExecutable(0, 0, arguments, description);
             kpiCatalog.addNewKpi(arguments, description, newKpi.getKpiInfo().getExecutable());
             Kpi kpi = kpiFactory.getKpiById(0);
-            (new Thread(kpi)).start();
+            //(new Thread(kpi)).start();
 
             while (true) {
                 try {
