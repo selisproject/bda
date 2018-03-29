@@ -13,13 +13,20 @@ import com.google.gson.Gson;
 public class KpiDescriptor {
 	private String description;
 	private Executable executable;
+	private List<String> eng_arguments;
 	private List<String> arguments;
 	
-	
-	public KpiDescriptor(String description, Executable executable, List<String> arguments) {
+	public KpiDescriptor(String description, Executable executable, List<String> eng_arguments, List<String> arguments) {
 		this.description = description;
 		this.executable = executable;
 		this.arguments = arguments;
+		this.eng_arguments = eng_arguments;
+
+	}
+
+
+	public List<String> getEng_arguments() {
+		return eng_arguments;
 	}
 
 

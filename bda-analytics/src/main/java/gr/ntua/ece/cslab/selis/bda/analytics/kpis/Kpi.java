@@ -8,6 +8,9 @@ import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -52,10 +55,12 @@ public class Kpi implements Runnable {
 			 * in.readLine()) != null) { System.out.println(inputLine); result += inputLine;
 			 * } in.close();
 			 */
-			List<String> cmd = new ArrayList<String>(getKpiInfo().getArguments());
+			List<String> cmd = new ArrayList<String>(getKpiInfo().getEng_arguments());
 			cmd.add(0, kpiInfo.getExecutable().getExecutEngine().getExecutionPreamble());
 			cmd.add(kpiInfo.getExecutable().getOsPath());
-			ProcessBuilder pb = new ProcessBuilder(cmd);
+			cmd.add(kpiInfo.getExecutable().getOsPath());
+			List<String> fcmd = Stream.concat(cmd.stream(), getKpiInfo().getArguments().stream()).collect(Collectors.toList());
+			ProcessBuilder pb = new ProcessBuilder(fcmd);
 			// pb.directory(new File("/home/hduser/nchalv/"));
 			// System.out.println(pb.directory());
 			// File err = new File("err");
