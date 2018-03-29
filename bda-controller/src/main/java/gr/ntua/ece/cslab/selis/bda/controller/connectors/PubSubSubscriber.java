@@ -32,22 +32,18 @@ public class PubSubSubscriber implements Runnable {
         this.portNumber = portNumber;
         this.rules = rules;
     }
-
+    @Override
     public void run() {
 
         try (PubSub c = new PubSub(this.hostname, this.portNumber)) {
-            //Subscription subscription = new Subscription(this.authHash);
+            Subscription subscription = new Subscription(this.authHash);
 
             //this line can throw exception if we provide value of invalid type. Check ValueType for allowed values
-            //for (String rule : this.rules){
-            //    subscription.add(new Rule("message_type", rule, RuleType.EQ));
-            //}
-            //subscription.add(new Rule("_type", "PKI", RuleType.EQ));
-            //subscription.add(new Rule("AvgPrice", price, RuleType.GE));
-            // subscription.add(new Rule("quality", quality, RuleType.GE)); //this line is equal to the below line:
-            // subscription.add(Rule.intRule("quality", quality, RuleType.GE));
+            for (String rule : this.rules){
+                subscription.add(new Rule("message_type", rule, RuleType.EQ));
+            }
 
-            /*c.subscribe(subscription, new Callback() {
+            c.subscribe(subscription, new Callback() {
                 @Override
                 public void onMessage(Message message) {
                     gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
@@ -61,16 +57,17 @@ public class PubSubSubscriber implements Runnable {
                         entries.add(new KeyValue(key,value));
                     }
                     bdamessage.setEntries(entries);
-                    try {
+                    /*try {
                         Entrypoint.myBackend.insert(bdamessage);
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                    }
+                    }*/
                     LOG.log(Level.INFO,"Subscriber["+authHash+"], Received "+ sb.toString());
+                    System.out.println(bdamessage.toString());
                 }
-            });*/
-            AnalyticsSystem mySystem = AnalyticsSystem.getInstance();
+            });
+            /*AnalyticsSystem mySystem = AnalyticsSystem.getInstance();
             ExecutEngineCatalog executEngineCatalog = ExecutEngineCatalog.getInstance();
             ExecutableCatalog executableCatalog = mySystem.getExecutableCatalog();
             KpiCatalog kpiCatalog = mySystem.getKpiCatalog();
@@ -86,7 +83,7 @@ public class PubSubSubscriber implements Runnable {
             String description = "This calculates shit done by blue trucks...";
             Kpi newKpi = kpiFactory.getKpiByExecutable(0, 0, arguments, description);
             kpiCatalog.addNewKpi(arguments, description, newKpi.getKpiInfo().getExecutable());
-            Kpi kpi = kpiFactory.getKpiById(0);
+            Kpi kpi = kpiFactory.getKpiById(0);*/
             //(new Thread(kpi)).start();
 
             while (true) {
