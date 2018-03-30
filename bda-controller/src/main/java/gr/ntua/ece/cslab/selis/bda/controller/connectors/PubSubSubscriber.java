@@ -79,7 +79,7 @@ public class PubSubSubscriber implements Runnable {
                             JsonObject payloadjson=new JsonParser().parse(value).getAsJsonObject();
                             Set<Map.Entry<String, JsonElement>> entrySet = payloadjson.entrySet();
                             for(Map.Entry<String,JsonElement> field : entrySet){
-                                if ((field.getKey().matches("sales_forecast")) || (field.getKey().matches("stock_levels"))) {
+                                if (field.getKey().matches("stock_levels")) {
                                     entries.add(new KeyValue("topic",field.getKey()));
                                     entries.add(new KeyValue("message","{\"" + field.getKey() + "\": " + field.getValue() + "}"));
                                 }
@@ -114,11 +114,26 @@ public class PubSubSubscriber implements Runnable {
                     for (Map.Entry<String, Object> entry : message.entrySet()) {
                         String key = entry.getKey() != null ? entry.getKey() : "";
                         String value = entry.getValue() != null ? entry.getValue().toString() : "";
-//                        sb.append(key).append("=").append(value).append(", ");
-                        entries.add(new KeyValue(key,value));
+                        if (key.matches("payload")) {
+                            value = value.replaceAll("=", "\":\"").replaceAll("\\s+", "").replaceAll(":\"\\[", ":[").replaceAll("\\{", "{\"").replaceAll(",", "\",\"").replaceAll("}", "\"}").replaceAll("}\",\"\\{", "},{").replaceAll("]\",", "],");
+                            JsonObject payloadjson=new JsonParser().parse(value).getAsJsonObject();
+                            Set<Map.Entry<String, JsonElement>> entrySet = payloadjson.entrySet();
+                            for(Map.Entry<String,JsonElement> field : entrySet){
+                                if (field.getKey().matches("sales_forecast")) {
+                                    entries.add(new KeyValue("topic",field.getKey()));
+                                    entries.add(new KeyValue("message","{\"" + field.getKey() + "\": " + field.getValue() + "}"));
+                                }
+                                else
+                                    entries.add(new KeyValue(field.getKey(),field.getValue().getAsString()));
+                            }
+                        }
+                        else
+//                            sb.append(key).append("=").append(value).append(", ");
+                            entries.add(new KeyValue(key,value));
                     }
                     bdamessage.setEntries(entries);
                     try {
+                        System.out.println(bdamessage.toString());
                         Entrypoint.myBackend.insert(bdamessage);
                     } catch (Exception e) {
                         e.printStackTrace();
