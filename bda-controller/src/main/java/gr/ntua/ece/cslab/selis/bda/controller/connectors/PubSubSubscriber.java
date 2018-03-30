@@ -83,11 +83,12 @@ public class PubSubSubscriber implements Runnable {
             executableCatalog.addNewExecutable(argtypes, executEngineCatalog.getExecutEngine(0), "/home/hduser/jdbc.py",
                     "This calculates 0");
             List<String> eng_arguments = Arrays.asList("--driver-class-path", "/home/hduser/postgresql-42.2.1.jar", "--jars", "/home/hduser/postgresql-42.2.1.jar");
-            List<String> arguments = Arrays.asList("insert argument here");
             String description = "This calculates shit done by blue trucks...";
-            Kpi newKpi = kpiFactory.getKpiByExecutable(0, 0, eng_arguments, arguments, description);
-            kpiCatalog.addNewKpi(arguments, description, newKpi.getKpiInfo().getExecutable());
+            Kpi newKpi = kpiFactory.getKpiByExecutable(0, 0, eng_arguments, description);
+            kpiCatalog.addNewKpi(eng_arguments, description, newKpi.getKpiInfo().getExecutable());
             Kpi kpi = kpiFactory.getKpiById(0);
+            List<String> arguments = Arrays.asList("insert argument here");
+            kpi.setArguments(arguments);
             (new Thread(kpi)).start();
 
             while (true) {

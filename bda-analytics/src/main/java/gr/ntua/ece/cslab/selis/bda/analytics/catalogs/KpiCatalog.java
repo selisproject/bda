@@ -39,8 +39,8 @@ public class KpiCatalog {
 		return kpiCounter;
 	}
 
-	public void addNewKpi(List<String> arguments, String description, Executable executable) {
-		KpiDescriptor newKpi = new KpiDescriptor(description, executable, arguments);
+	public void addNewKpi(List<String> eng_arguments, String description, Executable executable) {
+		KpiDescriptor newKpi = new KpiDescriptor(description, executable, eng_arguments);
 		kpis.put(kpiCounter, newKpi);
 		kpiCounter++;
 	}

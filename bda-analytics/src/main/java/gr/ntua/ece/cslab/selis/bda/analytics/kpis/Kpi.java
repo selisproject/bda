@@ -21,6 +21,11 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 import java.util.LinkedList;
 
 public class Kpi implements Runnable {
+	private List<String> arguments;
+
+	public void setArguments(List<String> arguments) {
+		this.arguments = arguments;
+	}
 
 	private KpiDescriptor kpiInfo;
 
@@ -59,7 +64,7 @@ public class Kpi implements Runnable {
 			cmd.add(0, kpiInfo.getExecutable().getExecutEngine().getExecutionPreamble());
 			cmd.add(kpiInfo.getExecutable().getOsPath());
 			cmd.add(kpiInfo.getExecutable().getOsPath());
-			List<String> fcmd = Stream.concat(cmd.stream(), getKpiInfo().getArguments().stream()).collect(Collectors.toList());
+			List<String> fcmd = Stream.concat(cmd.stream(), this.arguments.stream()).collect(Collectors.toList());
 			ProcessBuilder pb = new ProcessBuilder(fcmd);
 			// pb.directory(new File("/home/hduser/nchalv/"));
 			// System.out.println(pb.directory());
