@@ -13,13 +13,18 @@ import com.google.gson.Gson;
 public class KpiDescriptor {
 	private String description;
 	private Executable executable;
-	private List<String> arguments;
+	private List<String> eng_arguments;
 	
-	
-	public KpiDescriptor(String description, Executable executable, List<String> arguments) {
+	public KpiDescriptor(String description, Executable executable, List<String> eng_arguments) {
 		this.description = description;
 		this.executable = executable;
-		this.arguments = arguments;
+		this.eng_arguments = eng_arguments;
+
+	}
+
+
+	public List<String> getEng_arguments() {
+		return eng_arguments;
 	}
 
 
@@ -32,11 +37,6 @@ public class KpiDescriptor {
 		return executable;
 	}
 
-
-	public List<String> getArguments() {
-		return arguments;
-	}
-	
 	
 	public String toJson() {
 		return new Gson().toJson(this);

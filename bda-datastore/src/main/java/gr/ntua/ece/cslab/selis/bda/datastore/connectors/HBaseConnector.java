@@ -1,8 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.protobuf.ServiceException;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
@@ -63,25 +60,14 @@ public class HBaseConnector implements Connector {
             Table table = connection.getTable(tableName);
             Long timestamp = Timestamp.valueOf(LocalDateTime.now()).getTime();
             String topic="";
-            String payload="";
             for (KeyValue fields: row.getEntries()){
-                if (fields.getKey().matches("message_type"))
+                if (fields.getKey().matches("topic"))
                     topic = fields.getValue();
-                else if (fields.getKey().matches("payload"))
-                    payload = fields.getValue();
             }
             String rowkey = timestamp + "_"+topic;
             Put p = new Put(Bytes.toBytes(rowkey));
-            JsonObject payloadjson=new JsonParser().parse(payload.replaceAll("=","\":\"").replaceAll("\\s+","").replaceAll(":\"\\[",":[").replaceAll("\\{","{\"").replaceAll(",","\",\"").replaceAll("}","\"}").replaceAll("}\",\"\\{","},{").replaceAll("]\",","],")).getAsJsonObject();
-            Set<Map.Entry<String, JsonElement>> entrySet = payloadjson.entrySet();
-            for(Map.Entry<String,JsonElement> entry : entrySet){
-                if ((entry.getKey().matches("sales_forecast")) || (entry.getKey().matches("stock_levels"))){
-                    p.addColumn(Bytes.toBytes("messages"), Bytes.toBytes("topic"), Bytes.toBytes(entry.getKey()));
-                    p.addColumn(Bytes.toBytes("messages"), Bytes.toBytes("message"), Bytes.toBytes("{\""+entry.getKey()+"\": "+entry.getValue()+"}"));
-                }
-                else
-                    p.addColumn(Bytes.toBytes("messages"), Bytes.toBytes(entry.getKey()), Bytes.toBytes(entry.getValue().getAsString()));
-                }
+            for (KeyValue fields: row.getEntries())
+                p.addColumn(Bytes.toBytes("messages"), Bytes.toBytes(fields.getKey()), Bytes.toBytes(fields.getValue()));
             table.put(p);
         }
         admin.close();

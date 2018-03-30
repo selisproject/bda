@@ -24,10 +24,10 @@ public class KpiFactory {
 		KpiDescriptor kpi = AnalyticsSystem.getInstance().getKpiCatalog().getKpi(kpiID);
 		return new Kpi(kpiID, kpi);
 	}
-	public Kpi getKpiByExecutable(int kpiID, int kpiPrimitiveID, List<String> arguments, String description)throws Exception {
+	public Kpi getKpiByExecutable(int kpiID, int kpiPrimitiveID,List<String> eng_arguments, String description)throws Exception {
 		Executable kpiPrimitiveDescriptor = AnalyticsSystem.getInstance().getExecutableCatalog().getExecutable(kpiPrimitiveID);
 
-		return new Kpi(kpiID, new KpiDescriptor(description, kpiPrimitiveDescriptor, arguments));
+		return new Kpi(kpiID, new KpiDescriptor(description, kpiPrimitiveDescriptor, eng_arguments));
 	}
 
 }
