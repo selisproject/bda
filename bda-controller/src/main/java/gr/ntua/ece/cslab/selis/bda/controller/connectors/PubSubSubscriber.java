@@ -61,8 +61,8 @@ public class PubSubSubscriber implements Runnable {
             Subscription subscription2 = new Subscription(this.authHash);
             //this line can throw exception if we provide value of invalid type. Check ValueType for allowed values
             //for (String rule : this.rules){
-            subscription1.add(new Rule("message_type", "StockLevelUpdate", RuleType.EQ));
-            subscription2.add(new Rule("message_type", "SalesForeCast", RuleType.EQ));
+            subscription1.add(new Rule("message_type", "SonaeStockLevels", RuleType.EQ));
+            subscription2.add(new Rule("message_type", "SonaeSalesForecast", RuleType.EQ));
             //}
 
             c.subscribe(subscription1, new Callback() {
@@ -93,7 +93,6 @@ public class PubSubSubscriber implements Runnable {
                     }
                     bdamessage.setEntries(entries);
                     try {
-                        System.out.println(bdamessage.toString());
                         Entrypoint.myBackend.insert(bdamessage);
                         //List<String> arguments = Arrays.asList("insert argument here");
                         //kpi.setArguments(arguments);
@@ -133,7 +132,6 @@ public class PubSubSubscriber implements Runnable {
                     }
                     bdamessage.setEntries(entries);
                     try {
-                        System.out.println(bdamessage.toString());
                         Entrypoint.myBackend.insert(bdamessage);
                     } catch (Exception e) {
                         e.printStackTrace();
