@@ -122,7 +122,7 @@ public class KPIResource {
                         row.setResult(cell.getValue());
                     }
                 }
-                System.out.println(row.toString());
+                //System.out.println(row.toString());
                 result.add(row);
             }
             //System.out.println(result);
