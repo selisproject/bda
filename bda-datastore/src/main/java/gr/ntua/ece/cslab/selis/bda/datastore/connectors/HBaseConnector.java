@@ -27,6 +27,7 @@ public class HBaseConnector implements Connector {
         Configuration conf = HBaseConfiguration.create();
         conf.set("hbase.zookeeper.property.clientPort", port);
         conf.set("hbase.zookeeper.quorum", hostname);
+        conf.set("hbase.client.keyvalue.maxsize","0");
         try {
             HBaseAdmin.checkHBaseAvailable(conf);
         } catch (ServiceException e) {

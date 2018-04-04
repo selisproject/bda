@@ -55,7 +55,9 @@ public class PubSubSubscriber implements Runnable {
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
-            final Kpi kpi = kpiFactory.getKpiById(0);
+            Kpi kpi = kpiFactory.getKpiById(0);
+            List<String> arguments = Arrays.asList("");
+            kpi.setArguments(arguments);
 
             Subscription subscription1 = new Subscription(this.authHash);
             Subscription subscription2 = new Subscription(this.authHash);
@@ -94,9 +96,9 @@ public class PubSubSubscriber implements Runnable {
                     bdamessage.setEntries(entries);
                     try {
                         Entrypoint.myBackend.insert(bdamessage);
-                        //List<String> arguments = Arrays.asList("insert argument here");
-                        //kpi.setArguments(arguments);
-                        //(new Thread(kpi)).start();
+                        List<String> arguments = Arrays.asList(bdamessage.toString());
+                        kpi.setArguments(arguments);
+                        (new Thread(kpi)).start();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -144,6 +146,7 @@ public class PubSubSubscriber implements Runnable {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
+                    LOG.log(Level.WARNING,"Subscriber was interupted.");
                     break;
                 }
             }

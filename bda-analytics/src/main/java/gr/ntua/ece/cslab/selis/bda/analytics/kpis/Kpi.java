@@ -63,7 +63,6 @@ public class Kpi implements Runnable {
 			List<String> cmd = new ArrayList<String>(getKpiInfo().getEng_arguments());
 			cmd.add(0, kpiInfo.getExecutable().getExecutEngine().getExecutionPreamble());
 			cmd.add(kpiInfo.getExecutable().getOsPath());
-			cmd.add(kpiInfo.getExecutable().getOsPath());
 			List<String> fcmd = Stream.concat(cmd.stream(), this.arguments.stream()).collect(Collectors.toList());
 			ProcessBuilder pb = new ProcessBuilder(fcmd);
 			// pb.directory(new File("/home/hduser/nchalv/"));
@@ -73,22 +72,19 @@ public class Kpi implements Runnable {
 			// pb.redirectError(Redirect.appendTo(err));
 			// pb.redirectOutput(Redirect.appendTo(out));
 			Process p = pb.start();
-			// assert pb.redirectInput() == Redirect.PIPE;
-			// assert pb.redirectOutput().file() == log;
-			// assert p.getInputStream().read() == -1;
-			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			StringBuilder builder = new StringBuilder();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				if (line.startsWith("FINAL RESULT: ")) {
-					builder.append(line);
-					builder.append(System.getProperty("line.separator"));
-				}
-			}
-			String result = builder.toString();
+			//BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			//StringBuilder builder = new StringBuilder();
+			//String line = null;
+			//while ((line = reader.readLine()) != null) {
+			//	if (line.startsWith("FINAL RESULT: ")) {
+			//		builder.append(line);
+			//		builder.append(System.getProperty("line.separator"));
+			//	}
+			//}
+			//String result = builder.toString();
 			p.waitFor();
 			// System.out.println(result);
-			result = result.replaceAll("FINAL RESULT: ", "");
+			/*result = result.replaceAll("FINAL RESULT: ", "");
 			// System.out.println(result);
 			JSONParser parser = new JSONParser();
 			JSONObject jsonObj = (JSONObject) parser.parse(result);
@@ -105,7 +101,7 @@ public class Kpi implements Runnable {
 				// if (keyvalue instanceof JSONObject)
 				// printJsonObject((JSONObject)keyvalue);
 			}
-			this.store(hmap);
+			this.store(hmap);*/
 			//hmap.forEach((k, v) -> System.out.println("key: " + k + " value:" + v));
 			// System.out.println(hmap);
 		} catch (Exception e) {
