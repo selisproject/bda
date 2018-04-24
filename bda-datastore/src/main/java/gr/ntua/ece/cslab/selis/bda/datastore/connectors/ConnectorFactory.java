@@ -20,7 +20,7 @@ public class ConnectorFactory {
             connector = new HDFSConnector(FS);
         }
         else if (FS.contains("hbase")){
-            connector = new HBaseConnector(FS);
+            connector = new HBaseConnector(FS, Username, Password);
         }
         else if (FS.contains("jdbc:postgresql")) {
             connector = new PostgresqlConnector(FS, Username, Password);

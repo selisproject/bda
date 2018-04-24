@@ -35,6 +35,8 @@ public class Configuration {
         }
     }
     public class StorageBackend {
+        // TODO: Should add username/password for every StorageBackend.
+        //       Modify Constructor accordingly.
         private String eventLogURL, dimensionTablesURL, dbUsername, dbPassword;
 
         public StorageBackend() {
@@ -91,6 +93,8 @@ public class Configuration {
         }
 
         Configuration conf = new Configuration();
+
+        // Server Configuration.
         conf.server.address = properties.getProperty("server.address");
         try {
             conf.server.port = Integer.valueOf(properties.getProperty("server.port"));
@@ -98,10 +102,21 @@ public class Configuration {
             LOGGER.log(Level.SEVERE, e.getMessage());
             return null;
         }
-        conf.storageBackend.eventLogURL = properties.getProperty("backend.url.event.log");
-        conf.storageBackend.dimensionTablesURL = properties.getProperty("backend.url.dimension.tables");
-        conf.storageBackend.dbUsername = properties.getProperty("backend.db.username");
-        conf.storageBackend.dbPassword = properties.getProperty("backend.db.password");
+
+        // Dimension Tables Configuration.
+        conf.storageBackend.dbUsername = properties.getProperty("backend.db.dimension.username");
+        conf.storageBackend.dbPassword = properties.getProperty("backend.db.dimension.password");
+        conf.storageBackend.dimensionTablesURL = properties.getProperty("backend.db.dimension.url");
+
+        // Event Log Configuration.
+
+        // TODO: Should add username/password for every StorageBackend.
+        // conf.storageBackend.eventLogUsername = properties.getProperty("backend.db.event.username");
+        // conf.storageBackend.eventLogPassword = properties.getProperty("backend.db.event.password");
+
+        conf.storageBackend.eventLogURL = properties.getProperty("backend.db.event.url");
+
+        // Pub/Sub Configuration.
         conf.subscriber.hostname = properties.getProperty("pubsub.address");
         try {
             conf.subscriber.portNumber = Integer.valueOf(properties.getProperty("pubsub.port"));

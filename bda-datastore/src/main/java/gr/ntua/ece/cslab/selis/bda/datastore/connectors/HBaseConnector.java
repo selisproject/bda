@@ -21,13 +21,27 @@ public class HBaseConnector implements Connector {
     private String hostname;
     private Connection connection;
 
-    public HBaseConnector(String FS){
-        this.port = "2181";
-        this.hostname = "localhost";
+    private String getConnectionPort(String FS) {
+        String[] tokens = FS.split(":");
+
+        return tokens[1];
+    }
+
+    private String getConnectionURL(String FS) {
+        String[] tokens = FS.split(":");
+
+        return tokens[0];
+    }
+
+    public HBaseConnector(String FS, String username, String password) {
+        this.port = getConnectionPort(FS);
+        this.hostname = getConnectionURL(FS);
+
         Configuration conf = HBaseConfiguration.create();
         conf.set("hbase.zookeeper.property.clientPort", port);
         conf.set("hbase.zookeeper.quorum", hostname);
         conf.set("hbase.client.keyvalue.maxsize","0");
+
         try {
             HBaseAdmin.checkHBaseAvailable(conf);
         } catch (ServiceException e) {
