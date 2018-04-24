@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SELIS_SRC_DIR="$(dirname "$PWD")"
+SELIS_SRC_DIR="$(dirname "$PWD")"
 SELIS_NETWORK="selis-network"
 SELIS_POSTGRES_VOLUME="selis-postgres-volume"
 
@@ -8,8 +8,8 @@ SELIS_BDA_IMAGE="selis-bda-image:latest"
 SELIS_JDK_IMAGE="openjdk:latest"
 SELIS_POSTGRES_IMAGE="postgres:latest"
 
-SELIS_POSTGRES_CONTAINER="selis_postgres"
-SELIS_BDA_CONTAINER="selis_controller"
+SELIS_POSTGRES_CONTAINER="selis-postgres"
+SELIS_BDA_CONTAINER="selis-controller"
 
 SELIS_POSTGRES_DB=selisdb
 SELIS_POSTGRES_USER=selis
@@ -107,6 +107,9 @@ then
     if [ "$2" == "controller" ]
     then
         echo "Running selis controller container."
+
+        # src/main/scripts/selis-bda-server.sh
+
         docker run \
             --tty \
             --interactive \
@@ -114,6 +117,6 @@ then
             --volume "$SELIS_SRC_DIR":/code \
             --publish 127.0.0.1:9999:9999 \
             --name "$SELIS_BDA_CONTAINER" \
-            "$SELIS_BDA_CONTAINER"
+            "$SELIS_BDA_IMAGE"
     fi
 fi
