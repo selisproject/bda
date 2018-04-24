@@ -3,13 +3,16 @@
 SELIS_SRC_DIR="$(dirname "$PWD")"
 SELIS_NETWORK="selis-network"
 SELIS_POSTGRES_VOLUME="selis-postgres-volume"
+SELIS_HBASE_VOLUME="selis-hbase-volume"
 
 SELIS_BDA_IMAGE="selis-bda-image:latest"
 SELIS_JDK_IMAGE="openjdk:latest"
 SELIS_POSTGRES_IMAGE="postgres:latest"
+SELIS_HBASE_IMAGE="dajobe/hbase"
 
-SELIS_POSTGRES_CONTAINER="selis-postgres"
 SELIS_BDA_CONTAINER="selis-controller"
+SELIS_HBASE_CONTAINER="selis-hbase"
+SELIS_POSTGRES_CONTAINER="selis-postgres"
 
 SELIS_POSTGRES_DB=selisdb
 SELIS_POSTGRES_USER=selis
@@ -37,6 +40,15 @@ then
     docker pull "$SELIS_POSTGRES_IMAGE"
 fi
 
+SELIS_HBASE_IMAGE_ID="$(docker images --quiet "$SELIS_HBASE_IMAGE")"
+if [ "$SELIS_HBASE_IMAGE_ID" == "" ]
+then
+    echo "Pulling hbase image..."
+
+    docker pull "$SELIS_HBASE_IMAGE"
+fi
+
+
 ################################################################################
 # Create network, if it does not exist. ########################################
 ################################################################################
@@ -53,9 +65,10 @@ then
 fi
 
 ################################################################################
-# Create postgres volume, if it does not exist. ################################
+# Create hbase/postgres volumes, if they do not exist. #########################
 ################################################################################
 
+SELIS_HBASE_VOLUME_EXISTS=0
 SELIS_POSTGRES_VOLUME_EXISTS=0
 for i in $(docker volume list | awk '{ print $2 }')
 do
@@ -63,13 +76,25 @@ do
     then
         SELIS_POSTGRES_VOLUME_EXISTS=1
     fi
+
+    if [ "$i" == "$SELIS_HBASE_VOLUME" ]
+    then
+        SELIS_HBASE_VOLUME_EXISTS=1
+    fi
 done
 
 if [ "$SELIS_POSTGRES_VOLUME_EXISTS" -eq 0 ]
 then
-    echo "Creating selis volumes..."
+    echo "Creating postgres volume..."
 
     docker volume create "$SELIS_POSTGRES_VOLUME"
+fi
+
+if [ "$SELIS_HBASE_VOLUME_EXISTS" -eq 0 ]
+then
+    echo "Creating hbase volume..."
+
+    docker volume create "$SELIS_HBASE_VOLUME"
 fi
 
 ################################################################################
@@ -102,6 +127,18 @@ then
             --env POSTGRES_DB="$SELIS_POSTGRES_DB" \
             --name "$SELIS_POSTGRES_CONTAINER" \
             "$SELIS_POSTGRES_IMAGE"
+    fi
+
+    if [ "$2" == "hbase" ]
+    then
+        echo "Running selis hbase container..."
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --volume "$SELIS_HBASE_VOLUME":/data \
+            --name "$SELIS_HBASE_CONTAINER" \
+            "$SELIS_HBASE_IMAGE"
     fi
 
     if [ "$2" == "controller" ]
