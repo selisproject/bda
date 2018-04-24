@@ -1,0 +1,24 @@
+FROM openjdk:latest
+
+# Declare `localuser` as build argument.
+ARG localuser
+
+# Create local host user.
+RUN useradd -mU $localuser
+
+# Create code directory.
+RUN mkdir /code
+
+RUN chown -R $localuser:$localuser /code
+
+# Install packages.
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    maven \
+    tmux \
+    vim
+
+# Set working directory.
+WORKDIR /code
+
+CMD ["/bin/bash"]
