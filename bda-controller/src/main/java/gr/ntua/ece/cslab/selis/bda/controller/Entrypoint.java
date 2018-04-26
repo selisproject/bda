@@ -27,10 +27,11 @@ public class Entrypoint {
 
     private static void storageBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing storage backend...");
-        myBackend = new StorageBackend(configuration.storageBackend.getEventLogURL(),
-                configuration.storageBackend.getDimensionTablesURL(),
-                configuration.storageBackend.getDbUsername(),
-                configuration.storageBackend.getDbPassword());
+        myBackend = new StorageBackend(
+            configuration.storageBackend.getEventLogURL(),
+            configuration.storageBackend.getDimensionTablesURL(),
+            configuration.storageBackend.getDbUsername(),
+            configuration.storageBackend.getDbPassword());
     }
 
     private static void kpiBackendInitialization() {
