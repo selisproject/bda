@@ -5,47 +5,50 @@ SELIS_NETWORK="selis-network"
 SELIS_POSTGRES_VOLUME="selis-postgres-volume"
 SELIS_HBASE_VOLUME="selis-hbase-volume"
 
+SELIS_BDA_DOCKERFILE="Dockerfile.bda"
+SELIS_POSTGRES_DOCKERFILE="Dockerfile.postgres"
+SELIS_HBASE_DOCKERFILE="Dockerfile.hbase"
+
 SELIS_BDA_IMAGE="selis-bda-image:latest"
-SELIS_JDK_IMAGE="openjdk:latest"
-SELIS_POSTGRES_IMAGE="postgres:latest"
-SELIS_HBASE_IMAGE="dajobe/hbase"
+SELIS_POSTGRES_IMAGE="selis-postgres:latest"
+SELIS_HBASE_IMAGE="selis-hbase:latest"
+
+SELIS_JDK_PULL_IMAGE="openjdk:latest"
+SELIS_POSTGRES_PULL_IMAGE="postgres:latest"
+SELIS_HBASE_PULL_IMAGE="dajobe/hbase"
 
 SELIS_BDA_CONTAINER="selis-controller"
 SELIS_HBASE_CONTAINER="selis-hbase"
 SELIS_POSTGRES_CONTAINER="selis-postgres"
 
-SELIS_POSTGRES_DB=selisdb
-SELIS_POSTGRES_USER=selis
-SELIS_POSTGRES_PASSWORD=123456
-
 ################################################################################
 # Pull images, if they do not exist. ###########################################
 ################################################################################
 
-SELIS_JDK_IMAGE_ID="$(docker images --quiet "$SELIS_JDK_IMAGE")"
+SELIS_JDK_IMAGE_ID="$(docker images --quiet "$SELIS_JDK_PULL_IMAGE")"
 
 if [ "$SELIS_JDK_IMAGE_ID" == "" ]
 then
     echo "Pulling openjdk image..."
 
-    docker pull "$SELIS_JDK_IMAGE"
+    docker pull "$SELIS_JDK_PULL_IMAGE"
 fi
 
-SELIS_POSTGRES_IMAGE_ID="$(docker images --quiet "$SELIS_POSTGRES_IMAGE")"
+SELIS_POSTGRES_IMAGE_ID="$(docker images --quiet "$SELIS_POSTGRES_PULL_IMAGE")"
 
 if [ "$SELIS_POSTGRES_IMAGE_ID" == "" ]
 then
     echo "Pulling postgres image..."
 
-    docker pull "$SELIS_POSTGRES_IMAGE"
+    docker pull "$SELIS_POSTGRES_PULL_IMAGE"
 fi
 
-SELIS_HBASE_IMAGE_ID="$(docker images --quiet "$SELIS_HBASE_IMAGE")"
+SELIS_HBASE_IMAGE_ID="$(docker images --quiet "$SELIS_HBASE_PULL_IMAGE")"
 if [ "$SELIS_HBASE_IMAGE_ID" == "" ]
 then
     echo "Pulling hbase image..."
 
-    docker pull "$SELIS_HBASE_IMAGE"
+    docker pull "$SELIS_HBASE_PULL_IMAGE"
 fi
 
 
@@ -98,15 +101,45 @@ then
 fi
 
 ################################################################################
-# Build BDA containers. ########################################################
+# Build images. ################################################################
 ################################################################################
 
-echo "Building selis container..."
+SELIS_BDA_IMAGE_ID="$(docker images --quiet "$SELIS_BDA_IMAGE")"
 
-docker build \
-    --build-arg localuser="$(whoami)" \
-    --tag "$SELIS_BDA_IMAGE" \
-    .
+if [ "$SELIS_BDA_IMAGE_ID" == "" ]
+then
+    echo "Building selis image..."
+
+    docker build \
+        --file "$SELIS_BDA_DOCKERFILE" \
+        --build-arg localuser="$(whoami)" \
+        --tag "$SELIS_BDA_IMAGE" \
+        .
+fi
+
+SELIS_POSTGRES_IMAGE_ID="$(docker images --quiet "$SELIS_POSTGRES_IMAGE")"
+
+if [ "$SELIS_POSTGRES_IMAGE_ID" == "" ]
+then
+    echo "Building postgres image..."
+
+    docker build \
+        --file "$SELIS_POSTGRES_DOCKERFILE" \
+        --tag "$SELIS_POSTGRES_IMAGE" \
+        ../bda-bootstrap/
+fi
+
+SELIS_HBASE_IMAGE_ID="$(docker images --quiet "$SELIS_HBASE_IMAGE")"
+
+if [ "$SELIS_HBASE_IMAGE_ID" == "" ]
+then
+    echo "Building hbase image..."
+
+    docker build \
+        --file "$SELIS_HBASE_DOCKERFILE" \
+        --tag "$SELIS_HBASE_IMAGE" \
+        ../bda-bootstrap/
+fi
 
 ################################################################################
 # Run containers. ##############################################################
@@ -122,9 +155,6 @@ then
             --detach \
             --network "$SELIS_NETWORK" \
             --volume "$SELIS_POSTGRES_VOLUME":/var/lib/postgresql/data \
-            --env POSTGRES_USER="$SELIS_POSTGRES_USER" \
-            --env POSTGRES_PASSWORD="$SELIS_POSTGRES_PASSWORD" \
-            --env POSTGRES_DB="$SELIS_POSTGRES_DB" \
             --name "$SELIS_POSTGRES_CONTAINER" \
             "$SELIS_POSTGRES_IMAGE"
     fi
@@ -144,8 +174,6 @@ then
     if [ "$2" == "controller" ]
     then
         echo "Running selis controller container."
-
-        # src/main/scripts/selis-bda-server.sh
 
         docker run \
             --tty \

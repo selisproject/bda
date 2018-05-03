@@ -1,0 +1,5 @@
+FROM dajobe/hbase:latest
+
+ADD ./bootstrap-hbase.txt /
+
+# RUN hbase shell /bootstrap-hbase.txt
