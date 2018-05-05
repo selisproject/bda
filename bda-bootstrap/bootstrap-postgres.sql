@@ -7,7 +7,7 @@ CREATE DATABASE selis_lab_db WITH OWNER selis;
 \connect selis_bda_db
 
 CREATE TABLE message_type (
-    id          INTEGER PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     name        VARCHAR(64) NOT NULL UNIQUE,
     description VARCHAR(256),
     active      BOOLEAN DEFAULT(true),
