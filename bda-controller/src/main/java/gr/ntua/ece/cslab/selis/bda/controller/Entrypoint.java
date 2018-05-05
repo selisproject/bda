@@ -2,6 +2,8 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
+import gr.ntua.ece.cslab.selis.bda.datastore.connectors.PostgresqlPooledDataSource;
+
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -32,6 +34,14 @@ public class Entrypoint {
             configuration.storageBackend.getDimensionTablesURL(),
             configuration.storageBackend.getDbUsername(),
             configuration.storageBackend.getDbPassword());
+
+        LOGGER.log(Level.INFO, "Initializing Postgresql connection pool ...");
+        PostgresqlPooledDataSource.init(
+            configuration.storageBackend.getBdaDatabaseURL(),
+            configuration.storageBackend.getDimensionTablesURL(),
+            configuration.storageBackend.getDbUsername(),
+            configuration.storageBackend.getDbPassword()
+        );
     }
 
     private static void kpiBackendInitialization() {

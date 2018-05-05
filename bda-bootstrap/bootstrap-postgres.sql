@@ -13,3 +13,5 @@ CREATE TABLE message_type (
     active      BOOLEAN DEFAULT(true),
     format      VARCHAR
 );
+
+ALTER TABLE message_type OWNER TO selis;

@@ -37,7 +37,7 @@ public class Configuration {
     public class StorageBackend {
         // TODO: Should add username/password for every StorageBackend.
         //       Modify Constructor accordingly.
-        private String eventLogURL, dimensionTablesURL, dbUsername, dbPassword;
+        private String eventLogURL, dimensionTablesURL, bdaDatabaseURL, dbUsername, dbPassword;
 
         public StorageBackend() {
         }
@@ -48,6 +48,10 @@ public class Configuration {
 
         public String getDimensionTablesURL() {
             return dimensionTablesURL;
+        }
+
+        public String getBdaDatabaseURL() {
+            return bdaDatabaseURL;
         }
 
         public String getDbUsername() { return dbUsername; }
@@ -107,6 +111,14 @@ public class Configuration {
         conf.storageBackend.dbUsername = properties.getProperty("backend.db.dimension.username");
         conf.storageBackend.dbPassword = properties.getProperty("backend.db.dimension.password");
         conf.storageBackend.dimensionTablesURL = properties.getProperty("backend.db.dimension.url");
+
+        // BDA Database Configuration 
+
+        // TODO: Should add username/password for every StorageBackend.
+        // conf.storageBackend.bdaDatabaseUsername = properties.getProperty("backend.db.bda.username");
+        // conf.storageBackend.bdaDatabasePassword = properties.getProperty("backend.db.bda.password");
+
+        conf.storageBackend.bdaDatabaseURL = properties.getProperty("backend.db.bda.url");
 
         // Event Log Configuration.
 
