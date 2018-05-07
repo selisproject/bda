@@ -108,7 +108,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
-            <scope>test</scope>
         </dependency>
         <!-- Jetty dependencies -->
         <dependency>
@@ -148,27 +147,36 @@
             <artifactId>jersey-media-json-jackson</artifactId>
             <version>2.7</version>
         </dependency>
+
+        <!-- Keycloak dependencies -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-jetty94-adapter</artifactId>
+            <version>4.0.0.Beta2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-authz-client</artifactId>
+            <version>4.0.0.Beta2</version>
+        </dependency>
+
         <!-- Sibling SELIS dependencies -->
         <dependency>
             <groupId>gr.ntua.ece.cslab</groupId>
             <artifactId>bda-datastore</artifactId>
             <version>0.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>gr.ntua.ece.cslab</groupId>
+            <artifactId>bda-analytics</artifactId>
+            <version>0.1.0</version>
+        </dependency>
 
+        <!-- Cousin SELIS dependencies -->
         <dependency>
             <groupId>de.tu-dresden.selis.pubsub</groupId>
             <artifactId>client-library</artifactId>
             <version>0.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>gr.ntua.ece.cslab</groupId>
-            <artifactId>bda-analytics</artifactId>
-            <version>0.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>gr.ntua.ece.cslab</groupId>
-            <artifactId>bda-analytics</artifactId>
-            <version>0.1.0</version>
         </dependency>
     </dependencies>
 
