@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SELIS_SRC_DIR="$(dirname "$PWD")"
+
 SELIS_NETWORK="selis-network"
 SELIS_POSTGRES_VOLUME="selis-postgres-volume"
 SELIS_HBASE_VOLUME="selis-hbase-volume"
@@ -20,6 +21,30 @@ SELIS_HBASE_PULL_IMAGE="dajobe/hbase"
 SELIS_BDA_CONTAINER="selis-controller"
 SELIS_HBASE_CONTAINER="selis-hbase"
 SELIS_POSTGRES_CONTAINER="selis-postgres"
+
+################################################################################
+# Clean all. ###################################################################
+################################################################################
+
+if [ "$1" == "clean" ]
+then
+    echo "Running clean all process..."
+
+    docker rm "$SELIS_BDA_CONTAINER"
+    docker rm "$SELIS_HBASE_CONTAINER"
+    docker rm "$SELIS_POSTGRES_CONTAINER"
+
+    docker rmi "$SELIS_BDA_IMAGE"
+    docker rmi "$SELIS_POSTGRES_IMAGE"
+    docker rmi "$SELIS_HBASE_IMAGE"
+
+    docker volume rm "$SELIS_POSTGRES_VOLUME"
+    docker volume rm "$SELIS_HBASE_VOLUME"
+
+    docker network rm "$SELIS_NETWORK"
+
+    exit
+fi
 
 ################################################################################
 # Pull images, if they do not exist. ###########################################
