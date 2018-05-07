@@ -17,10 +17,12 @@ SELIS_HBASE_IMAGE="selis-hbase:latest"
 SELIS_JDK_PULL_IMAGE="openjdk:latest"
 SELIS_POSTGRES_PULL_IMAGE="postgres:latest"
 SELIS_HBASE_PULL_IMAGE="dajobe/hbase"
+SELIS_KEYCLOAK_PULL_IMAGE="jboss/keycloak"
 
 SELIS_BDA_CONTAINER="selis-controller"
 SELIS_HBASE_CONTAINER="selis-hbase"
 SELIS_POSTGRES_CONTAINER="selis-postgres"
+SELIS_KEYCLOAK_CONTAINER="selis-keycloak"
 
 ################################################################################
 # Clean all. ###################################################################
@@ -33,6 +35,7 @@ then
     docker rm "$SELIS_BDA_CONTAINER"
     docker rm "$SELIS_HBASE_CONTAINER"
     docker rm "$SELIS_POSTGRES_CONTAINER"
+    docker rm "$SELIS_KEYCLOAK_CONTAINER"
 
     docker rmi "$SELIS_BDA_IMAGE"
     docker rmi "$SELIS_POSTGRES_IMAGE"
@@ -76,6 +79,13 @@ then
     docker pull "$SELIS_HBASE_PULL_IMAGE"
 fi
 
+SELIS_KEYCLOAK_IMAGE_ID="$(docker images --quiet "$SELIS_KEYCLOAK_PULL_IMAGE")"
+if [ "$SELIS_KEYCLOAK_IMAGE_ID" == "" ]
+then
+    echo "Pulling keycloak image..."
+
+    docker pull "$SELIS_KEYCLOAK_PULL_IMAGE"
+fi
 
 ################################################################################
 # Create network, if it does not exist. ########################################
@@ -208,5 +218,20 @@ then
             --publish 127.0.0.1:9999:9999 \
             --name "$SELIS_BDA_CONTAINER" \
             "$SELIS_BDA_IMAGE"
+    fi
+
+    if [ "$2" == "keycloak" ]
+    then
+        echo "Running selis keycloak container."
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --publish 127.0.0.1:8989:8080 \
+            --env DB_VENDOR=H2 \
+            --env KEYCLOAK_USER=selis-admin \
+            --env KEYCLOAK_PASSWORD=123456 \
+            --name "$SELIS_KEYCLOAK_CONTAINER" \
+            "$SELIS_KEYCLOAK_PULL_IMAGE"
     fi
 fi
