@@ -16,5 +16,6 @@
         <module>bda-controller</module>
         <module>bda-datastore</module>
         <module>bda-ml</module>
+        <module>kpi-db</module>
     </modules>
 </project>
