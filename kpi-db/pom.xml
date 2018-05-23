@@ -11,5 +11,10 @@
 
     <artifactId>kpi-db</artifactId>
 
-
+    <groupId>gr.ntua.ece.cslab</groupId>
+    <version>0.1.0</version>
+    <name>SELIS Big Data Analytics - KPI DB Submodule</name>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 </project>
