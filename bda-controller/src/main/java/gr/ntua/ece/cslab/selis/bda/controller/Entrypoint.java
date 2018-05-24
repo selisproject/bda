@@ -36,9 +36,12 @@ public class Entrypoint {
 
     private static void kpiBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing kpi backend...");
-        kpiDB = new KPIBackend(configuration.storageBackend.getDimensionTablesURL(),
-                configuration.storageBackend.getDbUsername(),
-                configuration.storageBackend.getDbPassword());
+        String fs_string = "jdbc:postgresql:selis_db";
+        String uname = "selis_user";
+        String passwd = "123";
+        kpiDB = new KPIBackend(fs_string,
+                uname,
+                passwd);
     }
 
     private static void pubSubConnectorsInitialization() {
