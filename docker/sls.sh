@@ -182,7 +182,7 @@ fi
 
 if [ "$1" == "run" ]
 then
-    if [ "$2" == "postgres" ]
+    if [ "$2" == "postgres" ] || [ "$2" == "all" ]
     then
         echo "Running selis postgres container..."
 
@@ -194,7 +194,7 @@ then
             "$SELIS_POSTGRES_IMAGE"
     fi
 
-    if [ "$2" == "hbase" ]
+    if [ "$2" == "hbase" ] || [ "$2" == "all" ]
     then
         echo "Running selis hbase container..."
 
@@ -204,23 +204,15 @@ then
             --volume "$SELIS_HBASE_VOLUME":/data \
             --name "$SELIS_HBASE_CONTAINER" \
             "$SELIS_HBASE_IMAGE"
+
+        echo "Creating 'Events' table, if it does not exist..."
+
+        docker exec \
+            selis-hbase \
+            /bootstrap-hbase.d/bootstrap-hbase.sh
     fi
 
-    if [ "$2" == "controller" ]
-    then
-        echo "Running selis controller container."
-
-        docker run \
-            --tty \
-            --interactive \
-            --network "$SELIS_NETWORK" \
-            --volume "$SELIS_SRC_DIR":/code \
-            --publish 127.0.0.1:9999:9999 \
-            --name "$SELIS_BDA_CONTAINER" \
-            "$SELIS_BDA_IMAGE"
-    fi
-
-    if [ "$2" == "keycloak" ]
+   if [ "$2" == "keycloak" ] || [ "$2" == "all" ]
     then
         echo "Running selis keycloak container."
 
@@ -233,5 +225,19 @@ then
             --env KEYCLOAK_PASSWORD=123456 \
             --name "$SELIS_KEYCLOAK_CONTAINER" \
             "$SELIS_KEYCLOAK_PULL_IMAGE"
+    fi
+
+    if [ "$2" == "controller" ] || [ "$2" == "all" ]
+    then
+        echo "Running selis controller container."
+
+        docker run \
+            --tty \
+            --interactive \
+            --network "$SELIS_NETWORK" \
+            --volume "$SELIS_SRC_DIR":/code \
+            --publish 127.0.0.1:9999:9999 \
+            --name "$SELIS_BDA_CONTAINER" \
+            "$SELIS_BDA_IMAGE"
     fi
 fi
