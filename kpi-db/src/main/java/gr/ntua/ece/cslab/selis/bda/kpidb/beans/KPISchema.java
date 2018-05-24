@@ -37,4 +37,11 @@ public class KPISchema {
     public void setColumnTypes(List<KeyValue> columnTypes) {
         this.columnTypes = columnTypes;
     }
+
+    @Override
+    public String toString() {
+        return "KPISchema{" +
+                this.columnTypes.stream().map(a -> "["+a.getKey() + "," + a.getValue()+"]").reduce((a, b) -> a + "," + b).get() +
+                '}';
+    }
 }

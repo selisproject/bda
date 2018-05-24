@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.kpidb;
 
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPISchema;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPITable;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
@@ -7,9 +8,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.System.out;
+import static java.lang.Thread.sleep;
 import static org.junit.Assert.*;
 
 public class KPIBackendTest {
@@ -49,6 +53,33 @@ public class KPIBackendTest {
     }
 
     public void insert() {
+        for (int i = 0; i < 10; i++) {
+            int supplier;
+            int warehouse;
+            if (i < 5) {
+                supplier = 1;
+            }
+            else {
+                supplier = 2;
+            }
+            warehouse = i;
+            List<KeyValue> entries = new ArrayList<>();
+            entries.add(new KeyValue("supplier_id", String.valueOf(supplier)));
+            entries.add(new KeyValue("warehouse_id", String.valueOf(warehouse)));
+            entries.add(new KeyValue("blob", "This is a blob!"));
+            KPI kpi = new KPI("test_kpi", (new Timestamp(System.currentTimeMillis())).toString(), entries);
+            try {
+                this.kpiBackend.insert(kpi);
+                System.out.println("Insertion of a kpi completed successfully");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void fetch() {
@@ -57,15 +88,23 @@ public class KPIBackendTest {
     public void select() {
     }
 
-    public void getSchema() {
-    }
-
-    public void stop() {
+    public KPITable getSchema() {
+        KPITable table = null;
+        try {
+            table = this.kpiBackend.getSchema("test_kpi");
+            System.out.println("Fetch table schema completed successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return table;
     }
 
     @Test
     public void test() {
         create();
 
+        System.out.println(getSchema().toString());
+
+        insert();
     }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class KPI {
     String kpi_name;
-    long timestamp;
+    String timestamp;
     List<KeyValue> entries;
 
     /*
@@ -15,7 +15,7 @@ public class KPI {
         this.entries = new LinkedList<>();
     }
 
-    public KPI(String kpi_name, long timestamp, List<KeyValue> entries) {
+    public KPI(String kpi_name, String timestamp, List<KeyValue> entries) {
         this.kpi_name = kpi_name;
         this.timestamp = timestamp;
         this.entries = entries;
@@ -29,11 +29,11 @@ public class KPI {
         this.kpi_name = kpi_name;
     }
 
-    public long getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 

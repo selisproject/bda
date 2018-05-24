@@ -24,4 +24,12 @@ public class KPITable {
     public void setKpi_schema(KPISchema kpi_schema) {
         this.kpi_schema = kpi_schema;
     }
+
+    @Override
+    public String toString() {
+        return "KPITable{" +
+                "kpi_name='" + kpi_name + '\'' +
+                ", kpi_schema=" + kpi_schema.toString() +
+                '}';
+    }
 }

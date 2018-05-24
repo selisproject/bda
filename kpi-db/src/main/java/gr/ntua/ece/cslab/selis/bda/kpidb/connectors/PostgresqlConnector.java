@@ -52,7 +52,7 @@ public class PostgresqlConnector implements Connector{
         List<KeyValue> columns = kpi_table.getKpi_schema().getColumnTypes();
         st.addBatch("DROP TABLE IF EXISTS "+kpi_table.getKpi_name()+";");
 
-        String q="CREATE TABLE " + kpi_table.getKpi_name() + " (id SERIAL PRIMARY KEY, timestamp bigint, ";
+        String q="CREATE TABLE " + kpi_table.getKpi_name() + " (id SERIAL PRIMARY KEY, timestamp timestamp, ";
         for (KeyValue element : columns){
             q+=element.getKey()+" "+element.getValue();
             q+=",";
@@ -67,7 +67,56 @@ public class PostgresqlConnector implements Connector{
 
     @Override
     public void put(KPI kpi) throws Exception {
+        try {
+            if (kpi.getEntries().size()>0) {
+                String values = "";
+                String insertTableSQL = "INSERT INTO " + kpi.getKpi_name() + " (";
+                insertTableSQL +=  "timestamp,";
+                values += "?,";
+                for (KeyValue element : kpi.getEntries()) {
+                    insertTableSQL += element.getKey() + ",";
+                    values += "?,";
+                }
+                insertTableSQL = insertTableSQL.substring(0, insertTableSQL.length() - 1) + ") VALUES (" + values.substring(0, values.length() - 1) + ");";
+                PreparedStatement prepst = connection.prepareStatement(insertTableSQL);
+                prepst.setTimestamp(1, Timestamp.valueOf(kpi.getTimestamp()));
+                List<KeyValue> types = this.describe(kpi.getKpi_name()).getKpi_schema().getColumnTypes();
+                int i = 2;
+                for (KeyValue element : kpi.getEntries()) {
+                    for (KeyValue field : types) {
+                        if (field.getKey().equals(element.getKey())) {
+                            if (field.getValue().contains("integer"))
+                                if (element.getValue().equalsIgnoreCase("null"))
+                                    prepst.setNull(i,Types.INTEGER);
+                                else
+                                    prepst.setInt(i, Integer.valueOf(element.getValue()));
+                            else if (field.getValue().contains("bigint"))
+                                if (element.getValue().equalsIgnoreCase("null"))
+                                    prepst.setNull(i,Types.BIGINT);
+                                else
+                                    prepst.setLong(i, Long.valueOf(element.getValue()));
+                            else if (field.getValue().contains("timestamp"))
+                                prepst.setTimestamp(i, Timestamp.valueOf(element.getValue()));
+                            else if (field.getValue().contains("bytea"))
+                                prepst.setBytes(i, element.getValue().getBytes());
+                            else if (field.getValue().contains("boolean"))
+                                prepst.setBoolean(i, Boolean.parseBoolean(element.getValue()));
+                            else
+                                prepst.setString(i, element.getValue());
 
+                        }
+                    }
+                    i++;
+                }
+                prepst.executeUpdate();
+            }
+            System.out.println("Insert complete");
+            connection.commit();
+        } catch (SQLException e) {
+            System.out.println("Insert failed");
+            e.printStackTrace();
+            connection.rollback();
+        }
     }
 
     @Override
