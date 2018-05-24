@@ -93,6 +93,48 @@ public class KPIBackendTest {
     }
 
     public void select() {
+        List<Tuple> tuples = null;
+        Tuple filters = null;
+        System.out.println("Test select *");
+        filters = new Tuple();
+        try {
+            tuples = this.kpiBackend.select("test_kpi", filters);
+            System.out.println("Successfully selected all rows");
+            for (Tuple t : tuples) {
+                System.out.println(t.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        System.out.println("Test select on 1 arg");
+        filters.getTuple().add(new KeyValue("supplier_id","1"));
+        try {
+            tuples = this.kpiBackend.select("test_kpi", filters);
+            System.out.println("Successfully selected " + tuples.size() + " rows");
+            for (Tuple t : tuples) {
+                System.out.println(t.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        System.out.println("Test select on 2 arg");
+        filters.getTuple().add(new KeyValue("warehouse_id","2"));
+        try {
+            tuples = this.kpiBackend.select("test_kpi", filters);
+            System.out.println("Successfully selected " + tuples.size() + " rows");
+            for (Tuple t : tuples) {
+                System.out.println(t.toString());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     public KPITable getSchema() {
@@ -115,5 +157,7 @@ public class KPIBackendTest {
         insert();
 
         fetch();
+
+        select();
     }
 }

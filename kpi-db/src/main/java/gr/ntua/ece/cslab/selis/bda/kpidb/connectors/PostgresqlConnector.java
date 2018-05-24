@@ -121,7 +121,39 @@ public class PostgresqlConnector implements Connector{
 
     @Override
     public List<Tuple> get(String kpi_name, Tuple filters) throws Exception {
-        return null;
+        System.out.println("Enter postgresconnector code");
+        List<Tuple> res = new LinkedList<>();
+        try {
+            Statement st = connection.createStatement();
+            // Turn use of the cursor on.
+            st.setFetchSize(1000);
+            String sqlQuery = "SELECT * FROM "+ kpi_name;
+            if (filters.getTuple().size() > 0) {
+                sqlQuery += " WHERE";
+                for (KeyValue filter : filters.getTuple()) {
+                    sqlQuery += " cast("+ filter.getKey() + " as text) ='" + filter.getValue() + "' and";
+                }
+                sqlQuery = sqlQuery.substring(0, sqlQuery.length() - 3);
+            }
+            sqlQuery += ";";
+            ResultSet rs = st.executeQuery(sqlQuery);
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            while (rs.next()) {
+                List<KeyValue> entries = new LinkedList<>();
+                for (int i = 1; i <= columnsNumber; i++) {
+                    String columnValue = rs.getString(i);
+                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
+                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
+                }
+                res.add(new Tuple(entries));
+            }
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            connection.rollback();
+        }
+        return res;
     }
 
     @Override
