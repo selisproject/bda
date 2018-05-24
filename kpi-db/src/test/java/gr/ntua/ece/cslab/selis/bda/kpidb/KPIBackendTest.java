@@ -38,7 +38,7 @@ public class KPIBackendTest {
         kpiSchema.getColumnNames().add("blob");
         kpiSchema.getColumnTypes().add(new KeyValue("supplier_id","integer"));
         kpiSchema.getColumnTypes().add(new KeyValue("warehouse_id","integer"));
-        kpiSchema.getColumnTypes().add(new KeyValue("blob","text"));
+        kpiSchema.getColumnTypes().add(new KeyValue("blob","jsonb"));
         try {
             this.kpiBackend.create(new KPITable("test_kpi", kpiSchema));
             System.out.println("Table creation completed successfully");
@@ -63,7 +63,11 @@ public class KPIBackendTest {
             List<KeyValue> entries = new ArrayList<>();
             entries.add(new KeyValue("supplier_id", String.valueOf(supplier)));
             entries.add(new KeyValue("warehouse_id", String.valueOf(warehouse)));
-            entries.add(new KeyValue("blob", "This is a blob!"));
+            entries.add(new KeyValue("blob",
+                    "[{\"id\":1, \"id2\" : 2, \"rest\" : " +
+                            "[{\"rest1\" : 1, \"rest2\" : 2}, {\"rest1\" : 3, \"rest2\" : 4}]}," +
+                            "{\"id\":1, \"id2\" : 2, \"rest\" : " +
+                            "[{\"rest1\" : 1, \"rest2\" : 2}, {\"rest1\" : 3, \"rest2\" : 4}]}]"));
             KPI kpi = new KPI("test_kpi", (new Timestamp(System.currentTimeMillis())).toString(), entries);
             try {
                 this.kpiBackend.insert(kpi);

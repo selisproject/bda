@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.kpidb.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.*;
+import org.json.JSONObject;
 
 import java.sql.*;
 import java.util.LinkedList;
@@ -73,14 +74,22 @@ public class PostgresqlConnector implements Connector{
                 String insertTableSQL = "INSERT INTO " + kpi.getKpi_name() + " (";
                 insertTableSQL +=  "timestamp,";
                 values += "?,";
+                List<KeyValue> types = this.describe(kpi.getKpi_name()).getKpi_schema().getColumnTypes();
                 for (KeyValue element : kpi.getEntries()) {
-                    insertTableSQL += element.getKey() + ",";
-                    values += "?,";
+                    for (KeyValue field : types) {
+                        if (field.getKey().equals(element.getKey())) {
+
+                            insertTableSQL += element.getKey() + ",";
+                            if (field.getValue().contains("json"))
+                                values += "?::json,";
+                            else
+                                values += "?,";
+                        }
+                    }
                 }
                 insertTableSQL = insertTableSQL.substring(0, insertTableSQL.length() - 1) + ") VALUES (" + values.substring(0, values.length() - 1) + ");";
                 PreparedStatement prepst = connection.prepareStatement(insertTableSQL);
                 prepst.setTimestamp(1, Timestamp.valueOf(kpi.getTimestamp()));
-                List<KeyValue> types = this.describe(kpi.getKpi_name()).getKpi_schema().getColumnTypes();
                 int i = 2;
                 for (KeyValue element : kpi.getEntries()) {
                     for (KeyValue field : types) {
