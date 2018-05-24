@@ -2,6 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.kpidb.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPISchema;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPITable;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.Tuple;
 
 import java.util.List;
@@ -11,7 +12,7 @@ public interface Connector {
         Method create will be used upon KPI initilization
         in order to create the corresponding table in the KPIDB
      */
-    void create(KPISchema kpi_schema) throws Exception;
+    void create(KPITable kpi_table) throws Exception;
 
     /*
         Method put will be used upo KPI computation
@@ -33,7 +34,7 @@ public interface Connector {
     /*
         Get the schema of a KPI table
      */
-    KPISchema describe(String kpi_name) throws Exception;
+    KPITable describe(String kpi_name) throws Exception;
 
     /*
         Get all the current KPIs
