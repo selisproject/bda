@@ -1,9 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.kpidb;
 
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPISchema;
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPITable;
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,6 +80,16 @@ public class KPIBackendTest {
     }
 
     public void fetch() {
+        try {
+            List<Tuple> tuples = this.kpiBackend.fetch("test_kpi", "rows", 3);
+            System.out.println("Successfully fetched last "+tuples.size()+" rows");
+            for (Tuple t : tuples) {
+                System.out.println(t.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     public void select() {
@@ -106,5 +113,7 @@ public class KPIBackendTest {
         System.out.println(getSchema().toString());
 
         insert();
+
+        fetch();
     }
 }

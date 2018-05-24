@@ -126,7 +126,29 @@ public class PostgresqlConnector implements Connector{
 
     @Override
     public List<Tuple> getLast(String kpi_name, Integer n) throws Exception {
-        return null;
+        List<Tuple> res = new LinkedList<>();
+        try {
+            Statement st = connection.createStatement();
+            // Turn use of the cursor on.
+            st.setFetchSize(1000);
+            ResultSet rs = st.executeQuery("SELECT * FROM " + kpi_name + " order by timestamp desc limit "+n+";");
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            while (rs.next()) {
+                List<KeyValue> entries = new LinkedList<>();
+                for (int i = 1; i <= columnsNumber; i++) {
+                    String columnValue = rs.getString(i);
+                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
+                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
+                }
+                res.add(new Tuple(entries));
+            }
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            connection.rollback();
+        }
+        return res;
     }
 
     @Override
