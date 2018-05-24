@@ -11,8 +11,6 @@ public interface Connector {
     void put(MasterData args) throws Exception;
     void put(KPIDescription args) throws Exception;
     List<Tuple> getLast(Integer args) throws Exception;
-    List<Tuple> getLastKPIs(String kpi_name, Integer args) throws Exception;
-    List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception;
     List<Tuple> getFrom(Integer args) throws Exception;
     List<Tuple> get(String args, HashMap<String,String> args2) throws Exception;
     DimensionTable describe(String args) throws Exception;

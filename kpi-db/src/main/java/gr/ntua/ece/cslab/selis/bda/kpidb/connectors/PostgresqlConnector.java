@@ -1,7 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.kpidb.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.*;
-import org.json.JSONObject;
 
 import java.sql.*;
 import java.util.LinkedList;

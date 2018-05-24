@@ -120,16 +120,6 @@ public class LocalFSConnector implements Connector {
         return res;
     }
 
-    @Override
-    public List<Tuple> getLastKPIs(String kpi_name, Integer args) throws Exception {
-        return null;
-    }
-
-    @Override
-    public List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception {
-        return null;
-    }
-
     // Get rows for last num days from EventLog
     public List<Tuple> getFrom(Integer num){
         System.out.println("get from " + FS);

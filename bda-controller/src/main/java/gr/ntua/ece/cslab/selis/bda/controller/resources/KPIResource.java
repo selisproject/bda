@@ -5,10 +5,11 @@ import com.google.gson.JsonObject;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.OrderForecast;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.SonaeKPI;
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
+
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.Tuple;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.Tuple;
 import org.apache.avro.Schema;
 import org.apache.htrace.fasterxml.jackson.core.type.TypeReference;
 import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +35,7 @@ import java.util.Map;
 public class KPIResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<KPIDescription> getKPIList() {
+    public List<KPI> getKPIList() {
         // TODO: implement the method
         return new LinkedList<>();
     }
@@ -110,7 +111,7 @@ public class KPIResource {
         }
         List<SonaeKPI> result = new LinkedList<>();
         try {
-            List<Tuple> results = Entrypoint.kpiDB.select(kpiname,args);
+            List<Tuple> results = Entrypoint.kpiDB.select(kpiname,new Tuple(args));
             for (Tuple tuple : results) {
                 SonaeKPI row = new SonaeKPI();
                 for (KeyValue cell : tuple.getTuple()) {
