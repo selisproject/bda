@@ -14,7 +14,7 @@ import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
-import gr.ntua.ece.cslab.selis.bda.controller.MessageType;
+import gr.ntua.ece.cslab.selis.bda.controller.models.MessageType;
 
 import de.tu_dresden.selis.pubsub.*;
 import de.tu_dresden.selis.pubsub.PubSubException;

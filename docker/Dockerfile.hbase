@@ -1,0 +1,5 @@
+FROM dajobe/hbase:latest
+
+RUN mkdir bootstrap-hbase.d/
+
+ADD ./bootstrap-hbase.sh /bootstrap-hbase.d/
