@@ -14,7 +14,7 @@ import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
-import gr.ntua.ece.cslab.selis.bda.controller.models.MessageType;
+import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
 
 import de.tu_dresden.selis.pubsub.*;
 import de.tu_dresden.selis.pubsub.PubSubException;
@@ -63,7 +63,7 @@ public class PubSubSubscriber implements Runnable {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
-                    LOG.log(Level.WARNING,"Subscriber was interupted.");
+                    LOG.log(Level.WARNING,"Subscriber was interrupted.");
                     break;
                 }
             }

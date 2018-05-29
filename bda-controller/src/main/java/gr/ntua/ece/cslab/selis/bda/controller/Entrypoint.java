@@ -114,9 +114,9 @@ public class Entrypoint {
         kpiBackendInitialization();
 
         // AuthClient backend initialization.
-        authClientBackendInitialization();
+        //authClientBackendInitialization();
 
-        testKeycloakAuthentication();
+        //testKeycloakAuthentication();
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

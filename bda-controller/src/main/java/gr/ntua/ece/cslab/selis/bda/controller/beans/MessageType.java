@@ -1,4 +1,4 @@
-package gr.ntua.ece.cslab.selis.bda.controller.models;
+package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
 import java.sql.*;
 import java.util.List;
