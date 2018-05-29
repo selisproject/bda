@@ -124,16 +124,6 @@ public class HBaseConnector implements Connector {
         return res;
     }
 
-    @Override
-    public List<Tuple> getLastKPIs(String kpi_name, Integer args) throws Exception {
-        return null;
-    }
-
-    @Override
-    public List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception {
-        return null;
-    }
-
     public List<Tuple> getFrom(Integer args) throws IOException {
         List<Tuple> res = new LinkedList<>();
         TableName tableName = TableName.valueOf("Events");

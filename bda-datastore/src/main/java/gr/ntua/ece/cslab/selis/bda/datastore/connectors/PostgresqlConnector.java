@@ -258,69 +258,6 @@ public class PostgresqlConnector implements Connector {
         return res;
     }
 
-    @Override
-    public List<Tuple> getLastKPIs(String kpi_name, Integer args) throws Exception {
-        List<Tuple> res = new LinkedList<>();
-        try {
-            Statement st = connection.createStatement();
-            // Turn use of the cursor on.
-            st.setFetchSize(1000);
-            ResultSet rs = st.executeQuery("SELECT * FROM " + kpi_name + " order by timestamp desc limit "+args+";");
-            ResultSetMetaData rsmd = rs.getMetaData();
-            int columnsNumber = rsmd.getColumnCount();
-            while (rs.next()) {
-                List<KeyValue> entries = new LinkedList<>();
-                for (int i = 1; i <= columnsNumber; i++) {
-                    String columnValue = rs.getString(i);
-                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
-                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
-                }
-                res.add(new Tuple(entries));
-            }
-            rs.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            connection.rollback();
-        }
-        return res;
-    }
-
-    @Override
-    public List<Tuple> getKPIs(String kpi_name, List<KeyValue> args) throws Exception {
-        System.out.println("Enter postgresconnector code");
-        List<Tuple> res = new LinkedList<>();
-        try {
-            Statement st = connection.createStatement();
-            // Turn use of the cursor on.
-            st.setFetchSize(1000);
-            String sqlQuery = "SELECT * FROM "+ kpi_name;
-            if (args.size() > 0) {
-                sqlQuery += " WHERE";
-                for (KeyValue filter : args) {
-                    sqlQuery += " cast("+ filter.getKey() + " as text) ='" + filter.getValue() + "' and";
-                }
-                sqlQuery = sqlQuery.substring(0, sqlQuery.length() - 3);
-            }
-            sqlQuery += ";";
-            ResultSet rs = st.executeQuery(sqlQuery);
-            ResultSetMetaData rsmd = rs.getMetaData();
-            int columnsNumber = rsmd.getColumnCount();
-            while (rs.next()) {
-                List<KeyValue> entries = new LinkedList<>();
-                for (int i = 1; i <= columnsNumber; i++) {
-                    String columnValue = rs.getString(i);
-                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
-                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
-                }
-                res.add(new Tuple(entries));
-            }
-            rs.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            connection.rollback();
-        }
-        return res;
-    }
 
     public List<Tuple> getFrom(Integer args){
         System.out.println("get from PostgreSQL " + jdbcURL);

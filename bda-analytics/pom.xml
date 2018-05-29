@@ -52,5 +52,10 @@
             <artifactId>bda-datastore</artifactId>
             <version>0.1.0</version>
         </dependency>
+		<dependency>
+			<groupId>gr.ntua.ece.cslab</groupId>
+			<artifactId>kpi-db</artifactId>
+			<version>0.1.0</version>
+		</dependency>
     </dependencies>
 </project>

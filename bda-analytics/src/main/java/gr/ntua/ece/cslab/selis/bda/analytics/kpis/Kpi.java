@@ -15,7 +15,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
-import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
+import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 import java.util.LinkedList;
@@ -116,7 +116,6 @@ public class Kpi implements Runnable {
 		String uname = "clms";
 		String passwd = "sonae@sEl1s";
 
-		KPIBackend kpiDB = new KPIBackend(fs_string, uname, passwd);
 		List<KeyValue> data = new LinkedList<KeyValue>();
 		hmap.forEach((k, v) -> data.add(new KeyValue(k, v)));
 //		for	(KeyValue element : data) {
@@ -125,9 +124,9 @@ public class Kpi implements Runnable {
 //		}
 		KPIDescription newkpi = new KPIDescription("sonae_orderforecast", System.currentTimeMillis(), data);
 
-		kpiDB.insert(newkpi);
+		//kpiDB.insert(newkpi);
 
-		kpiDB.stop();
+		//kpiDB.stop();
 	}
 
 }

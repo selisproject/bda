@@ -1,27 +1,20 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import com.google.common.base.Splitter;
-import com.google.gson.JsonObject;
-import gr.ntua.ece.cslab.selis.bda.analytics.kpis.OrderForecast;
-import gr.ntua.ece.cslab.selis.bda.analytics.kpis.SonaeKPI;
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
+
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.Tuple;
-import org.apache.avro.Schema;
-import org.apache.htrace.fasterxml.jackson.core.type.TypeReference;
-import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.mortbay.util.ajax.JSON;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPITable;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.Tuple;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.XML;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +27,7 @@ import java.util.Map;
 public class KPIResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<KPIDescription> getKPIList() {
+    public List<KPI> getKPIList() {
         // TODO: implement the method
         return new LinkedList<>();
     }
@@ -50,54 +43,65 @@ public class KPIResource {
     @GET
     @Path("{kpiname}/fetch")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<SonaeKPI> getLastKPIs(
+    public Response getLastKPIs(
             @PathParam("kpiname") String kpiname,
-            @QueryParam("n") Integer n
+            @QueryParam("n") Integer n,
+            @HeaderParam("Accept") String accepted
     ) {
+
         System.out.println("Entered fetch function");
         System.out.println(kpiname + "," + n);
-        List<SonaeKPI> result = new LinkedList<>();
+
         try {
             List<Tuple> results = Entrypoint.kpiDB.fetch(kpiname, "rows", n);
+            KPITable table = Entrypoint.kpiDB.getSchema(kpiname);
+            JSONArray returnResults = new JSONArray();
             for (Tuple tuple : results) {
-                SonaeKPI row = new SonaeKPI();
+                JSONObject row = new JSONObject();
                 for (KeyValue cell : tuple.getTuple()) {
-                    if (cell.getKey().contentEquals("timestamp")) {
-                        row.setTimestamp(cell.getValue());
-                    }
-                    if (cell.getKey().contentEquals("supplier_id")) {
-                        row.setSupplier_id(Integer.parseInt(cell.getValue()));
-                    }
-                    if (cell.getKey().contentEquals("warehouse_id")) {
-                        row.setWarehouse_id(Integer.parseInt(cell.getValue()));
-                    }
-                    if (cell.getKey().contentEquals("salesforecast_id")) {
-                        row.setSalesforecast_id(Integer.parseInt(cell.getValue()));
-                    }
-                    if (cell.getKey().contentEquals("result")) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        List<OrderForecast> forecast = mapper.readValue(cell.getValue(), new TypeReference<List<OrderForecast>>(){});
-                        row.setResult(forecast);
+                    for (KeyValue type : table.getKpi_schema().getColumnTypes()) {
+                        if (cell.getKey().equals(type.getKey())) {
+                            if (type.getValue().contains("integer"))
+                                row.put(cell.getKey(), Integer.valueOf(cell.getValue()));
+                            else if (type.getValue().contains("bigint"))
+                                row.put(cell.getKey(), Long.valueOf(cell.getValue()));
+                            else if (type.getValue().contains("json"))
+                                if (cell.getValue().startsWith("["))
+                                    row.put(cell.getKey(), new JSONArray(cell.getValue()));
+                                else
+                                    row.put(cell.getKey(), new JSONObject(cell.getValue()));
+                            else
+                                row.put(cell.getKey(), cell.getValue());
+                        }
                     }
                 }
-                //System.out.println(row.toString());
-                result.add(row);
+                returnResults.put(row);
             }
-            //System.out.println(result);
-
-            return result;
+            System.out.println(accepted);
+            System.out.println(MediaType.valueOf(accepted));
+            System.out.println(returnResults.toString());
+            if(accepted != null) {
+                MediaType mediaType = MediaType.valueOf(accepted);
+                if (mediaType.equals(MediaType.valueOf(MediaType.APPLICATION_XML)))
+                    return Response.ok().entity(XML.toString(returnResults)).type(mediaType).build();
+                else if (mediaType.equals(MediaType.valueOf(MediaType.APPLICATION_JSON)))
+                    return Response.ok().entity(returnResults.toString()).type(mediaType).build();
+            }
+            // service logic
+            return Response.ok().entity(XML.toString(returnResults)).type(MediaType.APPLICATION_XML).build();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new LinkedList<>();
+        return Response.noContent().build();
     }
 
     @GET
     @Path("{kpiname}/select")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<SonaeKPI> selectKPIs(
+    public Response selectKPIs(
             @PathParam("kpiname") String kpiname,
-            @QueryParam("filters") String filters
+            @QueryParam("filters") String filters,
+            @HeaderParam("Accept") String accepted
     ) {
         List<KeyValue> args = new LinkedList<>();
         if(filters != null && !filters.isEmpty()) {
@@ -108,39 +112,46 @@ public class KPIResource {
                 args.add(new KeyValue(entry.getKey().toString(), entry.getValue().toString()));
             }
         }
-        List<SonaeKPI> result = new LinkedList<>();
         try {
-            List<Tuple> results = Entrypoint.kpiDB.select(kpiname,args);
+            List<Tuple> results = Entrypoint.kpiDB.select(kpiname,new Tuple(args));
+            KPITable table = Entrypoint.kpiDB.getSchema(kpiname);
+            JSONArray returnResults = new JSONArray();
             for (Tuple tuple : results) {
-                SonaeKPI row = new SonaeKPI();
+                JSONObject row = new JSONObject();
                 for (KeyValue cell : tuple.getTuple()) {
-                    if (cell.getKey().contentEquals("timestamp")) {
-                        row.setTimestamp(cell.getValue());
-                    }
-                    if (cell.getKey().contentEquals("supplier_id")) {
-                        row.setSupplier_id(Integer.parseInt(cell.getValue()));
-                    }
-                    if (cell.getKey().contentEquals("warehouse_id")) {
-                        row.setWarehouse_id(Integer.parseInt(cell.getValue()));
-                    }
-                    if (cell.getKey().contentEquals("salesforecast_id")) {
-                        row.setSalesforecast_id(Integer.parseInt(cell.getValue()));
-                    }
-                    if (cell.getKey().contentEquals("result")) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        List<OrderForecast> forecast = mapper.readValue(cell.getValue(), new TypeReference<List<OrderForecast>>(){});
-                        row.setResult(forecast);
+                    for (KeyValue type : table.getKpi_schema().getColumnTypes()) {
+                        if (cell.getKey().equals(type.getKey())) {
+                            if (type.getValue().contains("integer"))
+                                row.put(cell.getKey(), Integer.valueOf(cell.getValue()));
+                            else if (type.getValue().contains("bigint"))
+                                row.put(cell.getKey(), Long.valueOf(cell.getValue()));
+                            else if (type.getValue().contains("json"))
+                                if (cell.getValue().startsWith("["))
+                                    row.put(cell.getKey(), new JSONArray(cell.getValue()));
+                                else
+                                    row.put(cell.getKey(), new JSONObject(cell.getValue()));
+                            else
+                                row.put(cell.getKey(), cell.getValue());
+                        }
                     }
                 }
-                //System.out.println(row.toString());
-                result.add(row);
+                returnResults.put(row);
             }
-            //System.out.println(result);
-
-            return result;
+            System.out.println(accepted);
+            System.out.println(MediaType.valueOf(accepted));
+            System.out.println(returnResults.toString());
+            if(accepted != null) {
+                MediaType mediaType = MediaType.valueOf(accepted);
+                if (mediaType.equals(MediaType.valueOf(MediaType.APPLICATION_XML)))
+                    return Response.ok().entity(XML.toString(returnResults)).type(mediaType).build();
+                else if (mediaType.equals(MediaType.valueOf(MediaType.APPLICATION_JSON)))
+                    return Response.ok().entity(returnResults.toString()).type(mediaType).build();
+            }
+            // service logic
+            return Response.ok().entity(XML.toString(returnResults)).type(MediaType.APPLICATION_XML).build();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new LinkedList();
+        return Response.noContent().build();
     }
 }

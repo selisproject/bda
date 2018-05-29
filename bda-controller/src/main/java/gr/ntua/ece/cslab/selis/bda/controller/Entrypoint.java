@@ -1,6 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
-import gr.ntua.ece.cslab.selis.bda.datastore.KPIBackend;
+import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.PostgresqlPooledDataSource;
 
@@ -50,9 +50,12 @@ public class Entrypoint {
 
     private static void kpiBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing kpi backend...");
-        kpiDB = new KPIBackend(configuration.storageBackend.getDimensionTablesURL(),
-                configuration.storageBackend.getDbUsername(),
-                configuration.storageBackend.getDbPassword());
+        String fs_string = "jdbc:postgresql:selis_db";
+        String uname = "selis_user";
+        String passwd = "123";
+        kpiDB = new KPIBackend(fs_string,
+                uname,
+                passwd);
     }
 
     private static void pubSubConnectorsInitialization() {
