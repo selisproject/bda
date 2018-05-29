@@ -3,14 +3,18 @@ package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutEngineCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutableCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.Kpi;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
-import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
+
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
+
+import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
+import gr.ntua.ece.cslab.selis.bda.controller.MessageType;
 
 import de.tu_dresden.selis.pubsub.*;
 import de.tu_dresden.selis.pubsub.PubSubException;
@@ -35,8 +39,51 @@ public class PubSubSubscriber implements Runnable {
 
     @Override
     public void run() {
-
         try (PubSub c = new PubSub(this.hostname, this.portNumber)) {
+            List<String> messageTypeNames = MessageType.getActiveMessageTypeNames();
+
+            for (String messageTypeName : messageTypeNames) {
+                Subscription subscription = new Subscription(this.authHash);
+
+                subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
+
+                c.subscribe(subscription, new Callback() {
+                    @Override
+                    public void onMessage(Message message) {
+                        try {
+                            handleMessage(message);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+
+            while (true) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    LOG.log(Level.WARNING,"Subscriber was interupted.");
+                    break;
+                }
+            }
+        } catch (PubSubException ex) {
+            LOG.log(Level.WARNING,"Could not subscribe, got error: {}", ex.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        LOG.log(Level.INFO,"Finishing");
+    }
+
+    private void handleMessage(Message message) throws Exception {
+        // TODO: This somehow should distiguish between different messages
+        //       and perform the corresponding actions.
+        //
+        //       Some tests about this wouldn't hurt us.
+
+        if (true) {
+            // Original code for message type: `SonaeStockLevels`.
             AnalyticsSystem mySystem = AnalyticsSystem.getInstance();
             ExecutEngineCatalog executEngineCatalog = ExecutEngineCatalog.getInstance();
             ExecutableCatalog executableCatalog = mySystem.getExecutableCatalog();
@@ -59,103 +106,70 @@ public class PubSubSubscriber implements Runnable {
             List<String> arguments = Arrays.asList("");
             kpi.setArguments(arguments);
 
-            Subscription subscription1 = new Subscription(this.authHash);
-            Subscription subscription2 = new Subscription(this.authHash);
-            //this line can throw exception if we provide value of invalid type. Check ValueType for allowed values
-            //for (String rule : this.rules){
-            subscription1.add(new Rule("message_type", "SonaeStockLevels", RuleType.EQ));
-            subscription2.add(new Rule("message_type", "SonaeSalesForecast", RuleType.EQ));
-            //}
 
-            c.subscribe(subscription1, new Callback() {
-                @Override
-                public void onMessage(Message message) {
-                    gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
-                    List<KeyValue> entries = new LinkedList<>();
-//                    StringBuilder sb = new StringBuilder();
-                    for (Map.Entry<String, Object> entry : message.entrySet()) {
-                        String key = entry.getKey() != null ? entry.getKey() : "";
-                        String value = entry.getValue() != null ? entry.getValue().toString() : "";
-                        if (key.matches("payload")) {
-                            value = value.replaceAll("=", "\":\"").replaceAll("\\s+", "").replaceAll(":\"\\[", ":[").replaceAll("\\{", "{\"").replaceAll(",", "\",\"").replaceAll("}", "\"}").replaceAll("}\",\"\\{", "},{").replaceAll("]\",", "],");
-                            JsonObject payloadjson=new JsonParser().parse(value).getAsJsonObject();
-                            Set<Map.Entry<String, JsonElement>> entrySet = payloadjson.entrySet();
-                            for(Map.Entry<String,JsonElement> field : entrySet){
-                                if (field.getKey().matches("stock_levels")) {
-                                    entries.add(new KeyValue("topic",field.getKey()));
-                                    entries.add(new KeyValue("message","{\"" + field.getKey() + "\": " + field.getValue() + "}"));
-                                }
-                                else
-                                    entries.add(new KeyValue(field.getKey(),field.getValue().getAsString()));
-                            }
+            gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
+            List<KeyValue> entries = new LinkedList<>();
+            for (Map.Entry<String, Object> entry : message.entrySet()) {
+                String key = entry.getKey() != null ? entry.getKey() : "";
+                String value = entry.getValue() != null ? entry.getValue().toString() : "";
+                if (key.matches("payload")) {
+                    value = value.replaceAll("=", "\":\"").replaceAll("\\s+", "").replaceAll(":\"\\[", ":[").replaceAll("\\{", "{\"").replaceAll(",", "\",\"").replaceAll("}", "\"}").replaceAll("}\",\"\\{", "},{").replaceAll("]\",", "],");
+                    JsonObject payloadjson=new JsonParser().parse(value).getAsJsonObject();
+                    Set<Map.Entry<String, JsonElement>> entrySet = payloadjson.entrySet();
+                    for(Map.Entry<String,JsonElement> field : entrySet){
+                        if (field.getKey().matches("stock_levels")) {
+                            entries.add(new KeyValue("topic",field.getKey()));
+                            entries.add(new KeyValue("message","{\"" + field.getKey() + "\": " + field.getValue() + "}"));
                         }
                         else
-//                            sb.append(key).append("=").append(value).append(", ");
-                            entries.add(new KeyValue(key,value));
+                            entries.add(new KeyValue(field.getKey(),field.getValue().getAsString()));
                     }
-                    bdamessage.setEntries(entries);
-                    try {
-                        Entrypoint.myBackend.insert(bdamessage);
-                        List<String> arguments = Arrays.asList(bdamessage.toString());
-                        kpi.setArguments(arguments);
-                        (new Thread(kpi)).start();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    LOG.log(Level.INFO,"Subscriber["+authHash+"], Received StockLevelUpdate message.");
                 }
-            });
-
-            c.subscribe(subscription2, new Callback() {
-                @Override
-                public void onMessage(Message message) {
-                    gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
-                    List<KeyValue> entries = new LinkedList<>();
-//                    StringBuilder sb = new StringBuilder();
-                    for (Map.Entry<String, Object> entry : message.entrySet()) {
-                        String key = entry.getKey() != null ? entry.getKey() : "";
-                        String value = entry.getValue() != null ? entry.getValue().toString() : "";
-                        if (key.matches("payload")) {
-                            value = value.replaceAll("=", "\":\"").replaceAll("\\s+", "").replaceAll(":\"\\[", ":[").replaceAll("\\{", "{\"").replaceAll(",", "\",\"").replaceAll("}", "\"}").replaceAll("}\",\"\\{", "},{").replaceAll("]\",", "],");
-                            JsonObject payloadjson=new JsonParser().parse(value).getAsJsonObject();
-                            Set<Map.Entry<String, JsonElement>> entrySet = payloadjson.entrySet();
-                            for(Map.Entry<String,JsonElement> field : entrySet){
-                                if (field.getKey().matches("sales_forecast")) {
-                                    entries.add(new KeyValue("topic",field.getKey()));
-                                    entries.add(new KeyValue("message","{\"" + field.getKey() + "\": " + field.getValue() + "}"));
-                                }
-                                else
-                                    entries.add(new KeyValue(field.getKey(),field.getValue().getAsString()));
-                            }
-                        }
-                        else
-//                            sb.append(key).append("=").append(value).append(", ");
-                            entries.add(new KeyValue(key,value));
-                    }
-                    bdamessage.setEntries(entries);
-                    try {
-                        Entrypoint.myBackend.insert(bdamessage);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    LOG.log(Level.INFO,"Subscriber["+authHash+"], Received SalesForeCast message.");
-                }
-            });
-
-            while (true) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    LOG.log(Level.WARNING,"Subscriber was interupted.");
-                    break;
-                }
+                else
+                    entries.add(new KeyValue(key,value));
             }
-        } catch (PubSubException ex) {
-            LOG.log(Level.WARNING,"Could not subscribe, got error: {}", ex.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            bdamessage.setEntries(entries);
+            try {
+                Entrypoint.myBackend.insert(bdamessage);
+                List<String> messageArguments = Arrays.asList(bdamessage.toString());
+                kpi.setArguments(messageArguments);
+                (new Thread(kpi)).start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received StockLevelUpdate message.");
+        } else {
+            // Original code for message type: `SonaeSalesForecast`.
 
-        LOG.log(Level.INFO,"Finishing");
+            gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
+            List<KeyValue> entries = new LinkedList<>();
+            for (Map.Entry<String, Object> entry : message.entrySet()) {
+                String key = entry.getKey() != null ? entry.getKey() : "";
+                String value = entry.getValue() != null ? entry.getValue().toString() : "";
+                if (key.matches("payload")) {
+                    value = value.replaceAll("=", "\":\"").replaceAll("\\s+", "").replaceAll(":\"\\[", ":[").replaceAll("\\{", "{\"").replaceAll(",", "\",\"").replaceAll("}", "\"}").replaceAll("}\",\"\\{", "},{").replaceAll("]\",", "],");
+                    JsonObject payloadjson=new JsonParser().parse(value).getAsJsonObject();
+                    Set<Map.Entry<String, JsonElement>> entrySet = payloadjson.entrySet();
+                    for(Map.Entry<String,JsonElement> field : entrySet){
+                        if (field.getKey().matches("sales_forecast")) {
+                            entries.add(new KeyValue("topic",field.getKey()));
+                            entries.add(new KeyValue("message","{\"" + field.getKey() + "\": " + field.getValue() + "}"));
+                        }
+                        else
+                            entries.add(new KeyValue(field.getKey(),field.getValue().getAsString()));
+                    }
+                }
+                else
+                    entries.add(new KeyValue(key,value));
+            }
+            bdamessage.setEntries(entries);
+            try {
+                Entrypoint.myBackend.insert(bdamessage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received SalesForeCast message.");
+        }
     }
 }

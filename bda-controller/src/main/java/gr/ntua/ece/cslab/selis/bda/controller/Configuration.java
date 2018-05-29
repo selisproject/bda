@@ -18,6 +18,7 @@ public class Configuration {
     public final Server server;
     public final StorageBackend storageBackend;
     public final PubSubSubscriber subscriber;
+    public final AuthClientBackend authClientBackend;
 
     public class Server {
         private String address;
@@ -37,7 +38,7 @@ public class Configuration {
     public class StorageBackend {
         // TODO: Should add username/password for every StorageBackend.
         //       Modify Constructor accordingly.
-        private String eventLogURL, dimensionTablesURL, dbUsername, dbPassword;
+        private String eventLogURL, dimensionTablesURL, bdaDatabaseURL, dbUsername, dbPassword;
 
         public StorageBackend() {
         }
@@ -48,6 +49,10 @@ public class Configuration {
 
         public String getDimensionTablesURL() {
             return dimensionTablesURL;
+        }
+
+        public String getBdaDatabaseURL() {
+            return bdaDatabaseURL;
         }
 
         public String getDbUsername() { return dbUsername; }
@@ -71,11 +76,25 @@ public class Configuration {
         public List<String> getRules() { return rules; }
 
     }
+    public class AuthClientBackend {
+        private String authServerUrl, realm, clientId, secret;
+
+        public AuthClientBackend() { }
+
+        public String getAuthServerUrl() { return authServerUrl; }
+
+        public String getRealm() { return realm; }
+
+        public String getClientId() { return clientId; }
+
+        public String getSecret() { return secret; }
+    }
 
     public Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
         this.subscriber = new PubSubSubscriber();
+        this.authClientBackend = new AuthClientBackend();
     }
 
     /**
@@ -108,6 +127,14 @@ public class Configuration {
         conf.storageBackend.dbPassword = properties.getProperty("backend.db.dimension.password");
         conf.storageBackend.dimensionTablesURL = properties.getProperty("backend.db.dimension.url");
 
+        // BDA Database Configuration.
+
+        // TODO: Should add username/password for every StorageBackend.
+        // conf.storageBackend.bdaDatabaseUsername = properties.getProperty("backend.db.bda.username");
+        // conf.storageBackend.bdaDatabasePassword = properties.getProperty("backend.db.bda.password");
+
+        conf.storageBackend.bdaDatabaseURL = properties.getProperty("backend.db.bda.url");
+
         // Event Log Configuration.
 
         // TODO: Should add username/password for every StorageBackend.
@@ -126,6 +153,13 @@ public class Configuration {
         }
         conf.subscriber.authHash = properties.getProperty("pubsub.authhash");
         conf.subscriber.rules = Arrays.asList(properties.getProperty("pubsub.rules.message.type").split(","));
+
+        // Keycloak Auth Configuration.
+        conf.authClientBackend.authServerUrl = properties.getProperty("keycloak.bda.url");
+        conf.authClientBackend.realm = properties.getProperty("keycloak.bda.realm");
+        conf.authClientBackend.clientId = properties.getProperty("keycloak.bda.clientid");
+        conf.authClientBackend.secret = properties.getProperty("keycloak.bda.secret");
+
         return conf;
     }
 }
