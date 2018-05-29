@@ -2,6 +2,8 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
+import gr.ntua.ece.cslab.selis.bda.datastore.connectors.PostgresqlPooledDataSource;
+
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -9,10 +11,14 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
+import org.keycloak.representations.idm.authorization.AuthorizationResponse;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.junit.Assert.*;
 
 /**
  * Created by Giannis Giannakopoulos on 8/31/17.
@@ -32,6 +38,14 @@ public class Entrypoint {
             configuration.storageBackend.getDimensionTablesURL(),
             configuration.storageBackend.getDbUsername(),
             configuration.storageBackend.getDbPassword());
+
+        LOGGER.log(Level.INFO, "Initializing Postgresql connection pool ...");
+        PostgresqlPooledDataSource.init(
+            configuration.storageBackend.getBdaDatabaseURL(),
+            configuration.storageBackend.getDimensionTablesURL(),
+            configuration.storageBackend.getDbUsername(),
+            configuration.storageBackend.getDbPassword()
+        );
     }
 
     private static void kpiBackendInitialization() {
@@ -55,6 +69,30 @@ public class Entrypoint {
                 configuration.subscriber.getPortNumber());
     }
 
+    private static void authClientBackendInitialization() {
+        LOGGER.log(Level.INFO, "Initializing AuthClient backend...");
+
+        AuthClientBackend.init(
+            configuration.authClientBackend.getAuthServerUrl(),
+            configuration.authClientBackend.getRealm(),
+            configuration.authClientBackend.getClientId(),
+            configuration.authClientBackend.getSecret()
+        );
+    }
+
+    private static void testKeycloakAuthentication() {
+        // TODO: This is just a proof of concept. Should be removed.
+        AuthClientBackend authClientBackend = AuthClientBackend.getInstance();
+
+        AuthorizationResponse response = authClientBackend.authzClient.authorization(
+            "selis-user", "123456"
+        ).authorize();
+
+        String tokenString = response.getToken();
+
+        assertNotNull(tokenString);
+    }
+
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
             System.err.println("Please provide a configuration file as a first argument");
@@ -74,7 +112,12 @@ public class Entrypoint {
 
         // KPI DB initialization
         kpiBackendInitialization();
-        
+
+        // AuthClient backend initialization.
+        authClientBackendInitialization();
+
+        testKeycloakAuthentication();
+
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             // TODO: stub method, add code for graceful shutdown here
