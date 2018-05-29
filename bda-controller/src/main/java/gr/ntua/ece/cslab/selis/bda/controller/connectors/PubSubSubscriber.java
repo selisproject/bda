@@ -84,7 +84,7 @@ public class PubSubSubscriber implements Runnable {
 
         if (true) {
             // Original code for message type: `SonaeStockLevels`.
-            AnalyticsSystem mySystem = AnalyticsSystem.getInstance();
+            /*AnalyticsSystem mySystem = AnalyticsSystem.getInstance();
             ExecutEngineCatalog executEngineCatalog = ExecutEngineCatalog.getInstance();
             ExecutableCatalog executableCatalog = mySystem.getExecutableCatalog();
             KpiCatalog kpiCatalog = mySystem.getKpiCatalog();
@@ -104,7 +104,7 @@ public class PubSubSubscriber implements Runnable {
             }
             Kpi kpi = kpiFactory.getKpiById(0);
             List<String> arguments = Arrays.asList("");
-            kpi.setArguments(arguments);
+            kpi.setArguments(arguments);*/
 
 
             gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
@@ -131,9 +131,9 @@ public class PubSubSubscriber implements Runnable {
             bdamessage.setEntries(entries);
             try {
                 Entrypoint.myBackend.insert(bdamessage);
-                List<String> messageArguments = Arrays.asList(bdamessage.toString());
+                /*List<String> messageArguments = Arrays.asList(bdamessage.toString());
                 kpi.setArguments(messageArguments);
-                (new Thread(kpi)).start();
+                (new Thread(kpi)).start();*/
             } catch (Exception e) {
                 e.printStackTrace();
             }
