@@ -16,7 +16,7 @@ public class DimensionTable {
     private DimensionTableSchema schema;
     private List<Tuple> data;
 
-    public DimensionTable(){ this.data = new LinkedList<>();};
+    public DimensionTable(){ this.data = new LinkedList<>();}
 
     public DimensionTable(String name, DimensionTableSchema schema, List<Tuple> data) {
         this.name = name;

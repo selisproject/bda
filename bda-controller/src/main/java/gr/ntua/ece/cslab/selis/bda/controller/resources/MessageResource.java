@@ -25,7 +25,7 @@ public class MessageResource {
     public RequestResponse insert(@Context HttpServletResponse response, MessageType m) {
         LOGGER.log(Level.INFO, m.toString());
         try {
-
+            m.save();
         } catch (Exception e) {
             e.printStackTrace();
         }
