@@ -7,6 +7,7 @@
 **/.settings
 **/.pydevproject
 **/target
+**/bin
 **/private
 **/*.swp
 conf/bda.properties
