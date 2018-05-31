@@ -9,3 +9,4 @@
 **/target
 **/private
 **/*.swp
+conf/bda.properties
