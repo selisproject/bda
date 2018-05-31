@@ -118,7 +118,7 @@ public class Entrypoint {
         pubSubConnectorsInitialization();
 
         // KPI DB initialization
-        kpiBackendInitialization();
+        //kpiBackendInitialization();
 
         // AuthClient backend initialization.
         //authClientBackendInitialization();
