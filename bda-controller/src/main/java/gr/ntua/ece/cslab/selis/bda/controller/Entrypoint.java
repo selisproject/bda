@@ -46,6 +46,13 @@ public class Entrypoint {
             configuration.storageBackend.getDbUsername(),
             configuration.storageBackend.getDbPassword()
         );
+
+        BDAdbConnector.init(
+            configuration.storageBackend.getBdaDatabaseURL(),
+            configuration.storageBackend.getDimensionTablesURL(),
+            configuration.storageBackend.getDbUsername(),
+            configuration.storageBackend.getDbPassword()
+        );
     }
 
     private static void kpiBackendInitialization() {
@@ -111,7 +118,7 @@ public class Entrypoint {
         pubSubConnectorsInitialization();
 
         // KPI DB initialization
-        kpiBackendInitialization();
+        //kpiBackendInitialization();
 
         // AuthClient backend initialization.
         //authClientBackendInitialization();

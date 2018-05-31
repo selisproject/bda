@@ -7,14 +7,12 @@ This repository contains the source code of the SELIS Big Data Analytics compone
 
 Installation
 ------------
-Compile and run with:
+Edit _bda.properties_ file. Compile and run with:
 
 ```
 mvn initialize
-
 mvn verify
-
-mvn package
+mvn package -DskipTests
 
 cd bda-controller 
 /bin/sh -c ./src/main/scripts/selis-bda-server.sh
