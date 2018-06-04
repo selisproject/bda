@@ -161,7 +161,7 @@ then
     docker build \
         --file "$SELIS_POSTGRES_DOCKERFILE" \
         --tag "$SELIS_POSTGRES_IMAGE" \
-        ../bda-bootstrap/
+        ./bootstrap/
 fi
 
 SELIS_HBASE_IMAGE_ID="$(docker images --quiet "$SELIS_HBASE_IMAGE")"
@@ -173,7 +173,7 @@ then
     docker build \
         --file "$SELIS_HBASE_DOCKERFILE" \
         --tag "$SELIS_HBASE_IMAGE" \
-        ../bda-bootstrap/
+        ./bootstrap/
 fi
 
 ################################################################################
@@ -240,4 +240,33 @@ then
             --name "$SELIS_BDA_CONTAINER" \
             "$SELIS_BDA_IMAGE"
     fi
+fi
+
+################################################################################
+# Start containers. ############################################################
+################################################################################
+
+if [ "$1" == "startall" ]
+then
+    echo "Starting all containers..."
+
+    docker start "$SELIS_HBASE_CONTAINER"
+    docker start "$SELIS_POSTGRES_CONTAINER"
+    docker start "$SELIS_KEYCLOAK_CONTAINER"
+    docker start "$SELIS_BDA_CONTAINER"
+fi
+
+
+################################################################################
+# Stop containers. #############################################################
+################################################################################
+
+if [ "$1" == "stopall" ]
+then
+    echo "Stopping all containers..."
+
+    docker stop "$SELIS_BDA_CONTAINER"
+    docker stop "$SELIS_HBASE_CONTAINER"
+    docker stop "$SELIS_POSTGRES_CONTAINER"
+    docker stop "$SELIS_KEYCLOAK_CONTAINER"
 fi

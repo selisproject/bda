@@ -57,12 +57,10 @@ public class Entrypoint {
 
     private static void kpiBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing kpi backend...");
-        String fs_string = "jdbc:postgresql:selis_db";
-        String uname = "selis_user";
-        String passwd = "123";
-        kpiDB = new KPIBackend(fs_string,
-                uname,
-                passwd);
+        kpiDB = new KPIBackend(
+            configuration.storageBackend.getBdaDatabaseURL(),
+            configuration.storageBackend.getDbUsername(),
+            configuration.storageBackend.getDbPassword());
     }
 
     private static void pubSubConnectorsInitialization() {
@@ -121,9 +119,9 @@ public class Entrypoint {
         //kpiBackendInitialization();
 
         // AuthClient backend initialization.
-        //authClientBackendInitialization();
+        authClientBackendInitialization();
 
-        //testKeycloakAuthentication();
+        // testKeycloakAuthentication();
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
