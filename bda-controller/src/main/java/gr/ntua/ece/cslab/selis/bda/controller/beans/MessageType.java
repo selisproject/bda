@@ -69,9 +69,9 @@ public class MessageType implements Serializable {
     }
 
     private static String ACTIVE_MESSAGE_NAMES_QUERY =
-            "SELECT name " +
-                    "FROM message_type " +
-                    "WHERE active = true";
+        "SELECT name " +
+        "FROM message_type " +
+        "WHERE active = true";
 
     public static List<String> getActiveMessageTypeNames() {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
@@ -93,7 +93,7 @@ public class MessageType implements Serializable {
     }
 
     private static String INSERT_MESSAGE_QUERY =
-            "INSERT INTO message_type (name,description,active,format) values (";
+        "INSERT INTO message_type (name,description,active,format) values (";
 
     public void save() {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
