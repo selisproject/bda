@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
+import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.BDAdbConnector;
 
 import java.io.Serializable;
@@ -97,12 +98,13 @@ public class MessageType implements Serializable {
 
     public void save() {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
-
         try {
             Statement statement = connection.createStatement();
             statement.executeUpdate(INSERT_MESSAGE_QUERY+this.name+","+this.description+","+this.active+","+this.format+");");
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        Entrypoint.subscriber.interrupt();
+        Entrypoint.subscriber.start();
     }
 }

@@ -28,19 +28,18 @@ public class PubSubSubscriber implements Runnable {
     private static String authHash;
     private static String hostname;
     private static int portNumber;
-    private static List<String> rules;
+    private List<String> messageTypeNames;
 
-    public PubSubSubscriber(String authHash, String hostname, int portNumber, List<String> rules) {
+    public PubSubSubscriber(String authHash, String hostname, int portNumber) {
         this.authHash = authHash;
         this.hostname = hostname;
         this.portNumber = portNumber;
-        this.rules = rules;
     }
 
     @Override
     public void run() {
         try (PubSub c = new PubSub(this.hostname, this.portNumber)) {
-            List<String> messageTypeNames = MessageType.getActiveMessageTypeNames();
+            messageTypeNames = MessageType.getActiveMessageTypeNames();
 
             for (String messageTypeName : messageTypeNames) {
                 Subscription subscription = new Subscription(this.authHash);
@@ -108,6 +107,7 @@ public class PubSubSubscriber implements Runnable {
 
 
             gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
+            String messageType="";
             List<KeyValue> entries = new LinkedList<>();
             for (Map.Entry<String, Object> entry : message.entrySet()) {
                 String key = entry.getKey() != null ? entry.getKey() : "";
@@ -117,27 +117,30 @@ public class PubSubSubscriber implements Runnable {
                     JsonObject payloadjson=new JsonParser().parse(value).getAsJsonObject();
                     Set<Map.Entry<String, JsonElement>> entrySet = payloadjson.entrySet();
                     for(Map.Entry<String,JsonElement> field : entrySet){
-                        if (field.getKey().matches("stock_levels")) {
+                        if (messageTypeNames.contains(field.getKey())) {
+                            messageType=field.getKey();
                             entries.add(new KeyValue("topic",field.getKey()));
                             entries.add(new KeyValue("message","{\"" + field.getKey() + "\": " + field.getValue() + "}"));
                         }
                         else
+                            // Is this needed?
                             entries.add(new KeyValue(field.getKey(),field.getValue().getAsString()));
                     }
                 }
                 else
+                    // Is this needed?
                     entries.add(new KeyValue(key,value));
             }
             bdamessage.setEntries(entries);
             try {
-                Entrypoint.myBackend.insert(bdamessage);
+                Entrypoint.datastore.insert(bdamessage);
                 /*List<String> messageArguments = Arrays.asList(bdamessage.toString());
                 kpi.setArguments(messageArguments);
                 (new Thread(kpi)).start();*/
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received StockLevelUpdate message.");
+            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received "+messageType+" message.");
         } else {
             // Original code for message type: `SonaeSalesForecast`.
 
@@ -164,7 +167,7 @@ public class PubSubSubscriber implements Runnable {
             }
             bdamessage.setEntries(entries);
             try {
-                Entrypoint.myBackend.insert(bdamessage);
+                Entrypoint.datastore.insert(bdamessage);
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -31,7 +31,7 @@ public class DatastoreResource {
     public RequestResponse insert(@Context HttpServletResponse response, Message m) {
         LOGGER.log(Level.INFO, m.toString());
         try {
-            Entrypoint.myBackend.insert(m);
+            Entrypoint.datastore.insert(m);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -56,7 +56,7 @@ public class DatastoreResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse bootstrap(@Context HttpServletResponse response, MasterData masterData) throws IOException {
         try {
-            Entrypoint.myBackend.init(masterData);
+            Entrypoint.datastore.init(masterData);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -85,7 +85,7 @@ public class DatastoreResource {
         try {
             Map<String,String> map= Splitter.on('&').withKeyValueSeparator("=").split(filters);
             HashMap<String, String> mapfilters = new HashMap<String, String>(map);
-            return Entrypoint.myBackend.select(tableName, mapfilters);
+            return Entrypoint.datastore.select(tableName, mapfilters);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -101,10 +101,10 @@ public class DatastoreResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<DimensionTable> getSchema() {
         try {
-            List<String> tables = Entrypoint.myBackend.listTables();
+            List<String> tables = Entrypoint.datastore.listTables();
             List res = new LinkedList<>();
             for (String table: tables){
-                DimensionTable schema = Entrypoint.myBackend.getSchema(table);
+                DimensionTable schema = Entrypoint.datastore.getSchema(table);
                 LOGGER.log(Level.INFO, "Table: " +table + ", Columns: "+ schema.getSchema().getColumnNames());
                 res.add(schema);
             }
@@ -127,7 +127,7 @@ public class DatastoreResource {
     public List<Tuple> getEntries(@QueryParam("type") String type,
                                     @QueryParam("n") Integer n) {
         try {
-            return Entrypoint.myBackend.fetch(type,n);
+            return Entrypoint.datastore.fetch(type,n);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -148,7 +148,7 @@ public class DatastoreResource {
         try {
             Map<String,String> map= Splitter.on('&').withKeyValueSeparator("=").split(filters);
             HashMap<String, String> mapfilters = new HashMap<String, String>(map);
-            return Entrypoint.myBackend.select(mapfilters);
+            return Entrypoint.datastore.select(mapfilters);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -21,7 +21,6 @@ backend.db.event.url      = selis-hbase:2181
 pubsub.address = selis-gw.cslab.ece.ntua.gr
 pubsub.port = 20000
 pubsub.authhash = myhash
-pubsub.rules.message.type = messagetype1,messagetype2
 
 # keycloak configuration parameters.
 keycloak.bda.realm    = selis-bda-realm

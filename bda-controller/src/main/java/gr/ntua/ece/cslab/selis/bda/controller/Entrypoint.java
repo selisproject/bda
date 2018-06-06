@@ -26,14 +26,14 @@ import static org.junit.Assert.*;
 public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
-    public static PubSubSubscriber mySubscriber;
-    public static PubSubPublisher myPublisher;
-    public static StorageBackend myBackend;
+    public static Thread subscriber;
+    public static PubSubPublisher publisher;
+    public static StorageBackend datastore;
     public static KPIBackend kpiDB;
 
     private static void storageBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing storage backend...");
-        myBackend = new StorageBackend(
+        datastore = new StorageBackend(
             configuration.storageBackend.getEventLogURL(),
             configuration.storageBackend.getDimensionTablesURL(),
             configuration.storageBackend.getDbUsername(),
@@ -65,12 +65,11 @@ public class Entrypoint {
 
     private static void pubSubConnectorsInitialization() {
         LOGGER.log(Level.INFO, "Initializing PubSub subscriber...");
-        mySubscriber = new PubSubSubscriber(configuration.subscriber.getAuthHash(),
+        subscriber = new Thread(new PubSubSubscriber(configuration.subscriber.getAuthHash(),
                 configuration.subscriber.getHostname(),
-                configuration.subscriber.getPortNumber(),
-                configuration.subscriber.getRules());
+                configuration.subscriber.getPortNumber()), "subscriber");
         LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
-        myPublisher = new PubSubPublisher(configuration.subscriber.getHostname(),
+        publisher = new PubSubPublisher(configuration.subscriber.getHostname(),
                 configuration.subscriber.getPortNumber());
     }
 
@@ -140,14 +139,13 @@ public class Entrypoint {
         ServletContextHandler handler = new ServletContextHandler(server, "/api");
         handler.addServlet(servlet, "/*");
 
-        Thread subscriber = new Thread(mySubscriber, "subscriber");
         // run the server and the pubsub subscriber
         try {
             LOGGER.log(Level.INFO, "Starting server");
             server.start();
             subscriber.start();
             server.join();
-            subscriber.join();
+            //subscriber.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
             e.printStackTrace();

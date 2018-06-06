@@ -62,7 +62,6 @@ public class Configuration {
     public class PubSubSubscriber {
         private String authHash, hostname;
         private int portNumber;
-        private List<String> rules;
 
         public PubSubSubscriber(){
         }
@@ -72,8 +71,6 @@ public class Configuration {
         public String getHostname() { return hostname; }
 
         public int getPortNumber() { return portNumber; }
-
-        public List<String> getRules() { return rules; }
 
     }
     public class AuthClientBackend {
@@ -152,7 +149,6 @@ public class Configuration {
             return null;
         }
         conf.subscriber.authHash = properties.getProperty("pubsub.authhash");
-        conf.subscriber.rules = Arrays.asList(properties.getProperty("pubsub.rules.message.type").split(","));
 
         // Keycloak Auth Configuration.
         conf.authClientBackend.authServerUrl = properties.getProperty("keycloak.bda.url");
