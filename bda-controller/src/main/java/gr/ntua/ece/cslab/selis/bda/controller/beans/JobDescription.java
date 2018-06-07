@@ -28,6 +28,11 @@ public class JobDescription implements Serializable {
         "FROM jobs " +
         "WHERE id = ?";
 
+    private final static String GET_JOB_BY_MESSAGE_ID_QUERY =
+            "SELECT id, name, description, active, message_type_id, recipe_id " +
+                    "FROM jobs " +
+                    "WHERE message_type_id = ?";
+
     private final static String INSERT_JOB_QUERY =
         "INSERT INTO jobs (name, description, active, message_type_id, recipe_id) " +
         "VALUES (?, ?, ?, ?, ?) " +
@@ -142,6 +147,36 @@ public class JobDescription implements Serializable {
                     resultSet.getBoolean("active"),
                     resultSet.getInt("message_type_id"),
                     resultSet.getInt("recipe_id")
+                );
+
+                job.id = resultSet.getInt("id");
+                job.exists = true;
+
+                return job;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new SQLException("JobDescription object not found.");
+    }
+
+    public static JobDescription getJobByMessageId(int id) throws SQLException {
+        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_JOB_BY_MESSAGE_ID_QUERY);
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                JobDescription job = new JobDescription(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("active"),
+                        resultSet.getInt("message_type_id"),
+                        resultSet.getInt("recipe_id")
                 );
 
                 job.id = resultSet.getInt("id");

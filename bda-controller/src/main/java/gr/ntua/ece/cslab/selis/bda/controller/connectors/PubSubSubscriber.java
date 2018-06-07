@@ -11,6 +11,7 @@ import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.Kpi;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
 
+import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
@@ -19,6 +20,7 @@ import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
 import de.tu_dresden.selis.pubsub.*;
 import de.tu_dresden.selis.pubsub.PubSubException;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -134,13 +136,21 @@ public class PubSubSubscriber implements Runnable {
             bdamessage.setEntries(entries);
             try {
                 Entrypoint.datastore.insert(bdamessage);
-                /*List<String> messageArguments = Arrays.asList(bdamessage.toString());
-                kpi.setArguments(messageArguments);
-                (new Thread(kpi)).start();*/
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received "+messageType+" message.");
+            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received and persisted "+messageType+" message.");
+
+            MessageType msgInfo = MessageType.getMessageByName(messageType);
+            try {
+                JobDescription job = JobDescription.getJobByMessageId(msgInfo.getId());
+                LOG.log(Level.INFO,"Subscriber["+authHash+"], Launching "+job.getName()+" recipe.");
+                /*List<String> messageArguments = Arrays.asList(bdamessage.toString());
+                kpi.setArguments(messageArguments);
+                (new Thread(kpi)).start();*/
+            } catch (SQLException e) {
+                LOG.log(Level.INFO,"Subscriber["+authHash+"], No recipe found for message "+messageType+".");
+            }
         } else {
             // Original code for message type: `SonaeSalesForecast`.
 

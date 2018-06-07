@@ -15,6 +15,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "MessageType")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class MessageType implements Serializable {
+    private transient Integer id;
     private String name;
     private String description;
     private boolean active;
@@ -25,6 +26,10 @@ public class MessageType implements Serializable {
         this.description = description;
         this.active = active;
         this.format = format;
+    }
+
+    public Integer getId() {
+        return id;
     }
 
     public String getName() {
@@ -59,6 +64,10 @@ public class MessageType implements Serializable {
         this.format = format;
     }
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     @Override
     public String toString() {
         return "MessageType{" +
@@ -69,10 +78,19 @@ public class MessageType implements Serializable {
                 '}';
     }
 
-    private static String ACTIVE_MESSAGE_NAMES_QUERY =
+    private final static String ACTIVE_MESSAGE_NAMES_QUERY =
         "SELECT name " +
         "FROM message_type " +
         "WHERE active = true";
+
+    private final static String GET_MESSAGE_BY_NAME_QUERY =
+            "SELECT id, name, description, active, format " +
+                    "FROM message_type " +
+                    "WHERE name = ?";
+
+    private final static String INSERT_MESSAGE_QUERY =
+            "INSERT INTO message_type (name,description,active,format) " +
+                    "VALUES (?, ?, ?, ?)";
 
     public static List<String> getActiveMessageTypeNames() {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
@@ -93,17 +111,45 @@ public class MessageType implements Serializable {
         return messageTypeNames;
     }
 
-    private static String INSERT_MESSAGE_QUERY =
-        "INSERT INTO message_type (name,description,active,format) values (";
-
-    public void save() {
+    public static MessageType getMessageByName(String name) throws SQLException {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+
         try {
-            Statement statement = connection.createStatement();
-            statement.executeUpdate(INSERT_MESSAGE_QUERY+this.name+","+this.description+","+this.active+","+this.format+");");
+            PreparedStatement statement = connection.prepareStatement(GET_MESSAGE_BY_NAME_QUERY);
+            statement.setString(1, name);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                MessageType msg = new MessageType(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("active"),
+                        resultSet.getString("format")
+                );
+
+                msg.setId(resultSet.getInt("id"));
+                return msg;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        throw new SQLException("JobDescription object not found.");
+    }
+
+    public void save() throws SQLException {
+        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE_QUERY);
+
+        statement.setString(1, this.name);
+        statement.setString(2, this.description);
+        statement.setBoolean(3, this.active);
+        statement.setString(4, this.format);
+
+        statement.executeUpdate();
+        connection.commit();
+
         Entrypoint.subscriber.interrupt();
         Entrypoint.subscriber.start();
     }
