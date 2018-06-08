@@ -1,12 +1,13 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
-import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.BDAdbConnector;
 
 import java.io.Serializable;
 import java.sql.*;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -15,11 +16,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "MessageType")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class MessageType implements Serializable {
+    private final static Logger LOGGER = Logger.getLogger(MessageType.class.getCanonicalName());
+
     private transient Integer id;
     private String name;
     private String description;
     private boolean active;
     private String format;
+
+    public MessageType() { }
 
     public MessageType(String name, String description, boolean active, String format) {
         this.name = name;
@@ -64,10 +69,6 @@ public class MessageType implements Serializable {
         this.format = format;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     @Override
     public String toString() {
         return "MessageType{" +
@@ -84,13 +85,13 @@ public class MessageType implements Serializable {
         "WHERE active = true";
 
     private final static String GET_MESSAGE_BY_NAME_QUERY =
-            "SELECT id, name, description, active, format " +
-                    "FROM message_type " +
-                    "WHERE name = ?";
+        "SELECT id, name, description, active, format " +
+        "FROM message_type " +
+        "WHERE name = ?";
 
     private final static String INSERT_MESSAGE_QUERY =
-            "INSERT INTO message_type (name,description,active,format) " +
-                    "VALUES (?, ?, ?, ?)";
+        "INSERT INTO message_type (name,description,active,format) " +
+        "VALUES (?, ?, ?, ?)";
 
     public static List<String> getActiveMessageTypeNames() {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
@@ -128,7 +129,8 @@ public class MessageType implements Serializable {
                         resultSet.getString("format")
                 );
 
-                msg.setId(resultSet.getInt("id"));
+                msg.id = resultSet.getInt("id");
+
                 return msg;
             }
         } catch (SQLException e) {
@@ -148,9 +150,10 @@ public class MessageType implements Serializable {
         statement.setString(4, this.format);
 
         statement.executeUpdate();
-        connection.commit();
 
-        Entrypoint.subscriber.interrupt();
-        Entrypoint.subscriber.start();
+        LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type");
+
+        // TODO: Verify if we want autocommit. Set it explicitely.
+        // connection.commit();
     }
 }

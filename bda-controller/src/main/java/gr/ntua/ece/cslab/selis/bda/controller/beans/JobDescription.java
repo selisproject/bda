@@ -29,9 +29,9 @@ public class JobDescription implements Serializable {
         "WHERE id = ?";
 
     private final static String GET_JOB_BY_MESSAGE_ID_QUERY =
-            "SELECT id, name, description, active, message_type_id, recipe_id " +
-                    "FROM jobs " +
-                    "WHERE message_type_id = ?";
+        "SELECT id, name, description, active, message_type_id, recipe_id " +
+        "FROM jobs " +
+        "WHERE message_type_id = ?";
 
     private final static String INSERT_JOB_QUERY =
         "INSERT INTO jobs (name, description, active, message_type_id, recipe_id) " +
