@@ -145,7 +145,7 @@ public class Entrypoint {
             server.start();
             subscriber.start();
             server.join();
-            //subscriber.join();
+            subscriber.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
             e.printStackTrace();
