@@ -26,11 +26,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PubSubSubscriber implements Runnable {
-    private final static Logger LOG = Logger.getLogger(PubSubSubscriber.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
+    private final static Logger LOGGER = Logger.getLogger(PubSubSubscriber.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
+
     private static String authHash;
     private static String hostname;
     private static int portNumber;
     private List<String> messageTypeNames;
+
+    private static volatile boolean reloadMessageTypesFlag = true;
 
     public PubSubSubscriber(String authHash, String hostname, int portNumber) {
         this.authHash = authHash;
@@ -38,43 +41,61 @@ public class PubSubSubscriber implements Runnable {
         this.portNumber = portNumber;
     }
 
+    public static void reloadMessageTypes() {
+        reloadMessageTypesFlag = true;
+    }
+
     @Override
     public void run() {
-        try (PubSub c = new PubSub(this.hostname, this.portNumber)) {
-            messageTypeNames = MessageType.getActiveMessageTypeNames();
+        while (reloadMessageTypesFlag) {
+            reloadMessageTypesFlag = false;
 
-            for (String messageTypeName : messageTypeNames) {
-                Subscription subscription = new Subscription(this.authHash);
+            try (PubSub c = new PubSub(this.hostname, this.portNumber)) {
+                messageTypeNames = MessageType.getActiveMessageTypeNames();
 
-                subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
+                for (String messageTypeName : messageTypeNames) {
+                    Subscription subscription = new Subscription(this.authHash);
 
-                c.subscribe(subscription, new Callback() {
-                    @Override
-                    public void onMessage(Message message) {
-                        try {
-                            handleMessage(message);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                    subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
+
+                    c.subscribe(subscription, new Callback() {
+                        @Override
+                        public void onMessage(Message message) {
+                            try {
+                                handleMessage(message);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-                    }
-                });
+                    });
+                }
+
+                LOGGER.log(Level.INFO, 
+                           "SUCCESS: Subscribed to {0} message types", 
+                           messageTypeNames.size());
+            } catch (PubSubException ex) {
+                LOGGER.log(Level.WARNING, 
+                           "Could not subscribe, got error: {0}", 
+                           ex.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
             while (true) {
                 try {
                     Thread.sleep(100);
+
+                    if (reloadMessageTypesFlag) {
+                        break;
+                    }
                 } catch (InterruptedException e) {
-                    LOG.log(Level.WARNING,"Subscriber was interrupted.");
+                    LOGGER.log(Level.WARNING,"Subscriber was interrupted.");
                     break;
                 }
             }
-        } catch (PubSubException ex) {
-            LOG.log(Level.WARNING,"Could not subscribe, got error: {}", ex.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
-        LOG.log(Level.INFO,"Finishing");
+        LOGGER.log(Level.INFO,"Finishing");
     }
 
     private void handleMessage(Message message) throws Exception {
@@ -139,17 +160,17 @@ public class PubSubSubscriber implements Runnable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received and persisted "+messageType+" message.");
+            LOGGER.log(Level.INFO,"Subscriber["+authHash+"], Received and persisted "+messageType+" message.");
 
             MessageType msgInfo = MessageType.getMessageByName(messageType);
             try {
                 JobDescription job = JobDescription.getJobByMessageId(msgInfo.getId());
-                LOG.log(Level.INFO,"Subscriber["+authHash+"], Launching "+job.getName()+" recipe.");
+                LOGGER.log(Level.INFO,"Subscriber["+authHash+"], Launching "+job.getName()+" recipe.");
                 /*List<String> messageArguments = Arrays.asList(bdamessage.toString());
                 kpi.setArguments(messageArguments);
                 (new Thread(kpi)).start();*/
             } catch (SQLException e) {
-                LOG.log(Level.INFO,"Subscriber["+authHash+"], No recipe found for message "+messageType+".");
+                LOGGER.log(Level.INFO,"Subscriber["+authHash+"], No recipe found for message "+messageType+".");
             }
         } else {
             // Original code for message type: `SonaeSalesForecast`.
@@ -182,7 +203,7 @@ public class PubSubSubscriber implements Runnable {
                 e.printStackTrace();
             }
 
-            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received SalesForeCast message.");
+            LOGGER.log(Level.INFO,"Subscriber["+authHash+"], Received SalesForeCast message.");
         }
     }
 }
