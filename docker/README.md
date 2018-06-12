@@ -14,7 +14,7 @@ Getting Started
 Assuming that we have a running `docker` installation and access to the 
 internet we can setup the SELIS BDA locally by executing 
 
-```
+```bash
 ./sls.sh run all
 ```
 
@@ -23,7 +23,7 @@ network and launch containers for the BDA's components.
 
 Other useful subcommands are:
 
-```
+```bash
 # Start all containers:
 ./sls.sh startall
 
