@@ -151,8 +151,16 @@ public class PostgresqlConnector implements Connector {
                                             prepst.setNull(i,Types.INTEGER);
                                         else
                                             prepst.setInt(i, Integer.valueOf(element.getValue()));
+                                    else if (field.getValue().contains("numeric"))
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.FLOAT);
+                                        else
+                                            prepst.setFloat(i, Float.valueOf(element.getValue()));
                                     else if (field.getValue().contains("timestamp"))
-                                        prepst.setTimestamp(i, Timestamp.valueOf(element.getValue()));
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.TIMESTAMP);
+                                        else
+                                            prepst.setTimestamp(i, Timestamp.valueOf(element.getValue()));
                                     else if (field.getValue().contains("bytea"))
                                         prepst.setBytes(i, element.getValue().getBytes());
                                     else if (field.getValue().contains("boolean"))

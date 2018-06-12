@@ -24,8 +24,8 @@ public class MessageResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse insert(@Context HttpServletResponse response, MessageType m) {
-        String requestResponseStatus = "OK";
-        String requestResponseDetails = "";
+        String status = "OK";
+        String details = "";
 
         try {
             m.save();
@@ -36,7 +36,7 @@ public class MessageResource {
         } catch (Exception e) {
             e.printStackTrace();
 
-            requestResponseStatus = "ERROR";
+            status = "ERROR";
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
 
@@ -46,6 +46,6 @@ public class MessageResource {
             e.printStackTrace();
         }
 
-        return new RequestResponse(requestResponseStatus, requestResponseDetails);
+        return new RequestResponse(status, details);
     }
 }
