@@ -23,18 +23,26 @@ public class JobResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse insert(@Context HttpServletResponse response, JobDescription m) {
-        LOGGER.log(Level.INFO, m.toString());
+        String status = "OK";
+        String details = "";
+
         try {
             m.save();
+
+            response.setStatus(HttpServletResponse.SC_CREATED);
         } catch (Exception e) {
             e.printStackTrace();
+
+            status = "ERROR";
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-        response.setStatus(HttpServletResponse.SC_CREATED);
+
         try {
             response.flushBuffer();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new RequestResponse("OK", "");
+
+        return new RequestResponse(status, details);
     }
 }

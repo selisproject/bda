@@ -11,10 +11,12 @@ import java.lang.UnsupportedOperationException;
 public class JobDescription implements Serializable {
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
+    private transient int id;
+
     private String name;
     private String description;
     private boolean active;
-    private int id, messageTypeId, recipeId;
+    private int messageTypeId, recipeId;
 
     private boolean exists = false;
 
@@ -37,6 +39,8 @@ public class JobDescription implements Serializable {
         "INSERT INTO jobs (name, description, active, message_type_id, recipe_id) " +
         "VALUES (?, ?, ?, ?, ?) " +
         "RETURNING id";
+
+    public JobDescription() { }
 
     public JobDescription(String name, String description, boolean active,
                           int messageTypeId, int recipeId) {
@@ -206,7 +210,8 @@ public class JobDescription implements Serializable {
 
             ResultSet resultSet = statement.executeQuery();
 
-            connection.commit();
+            // TODO: Verify if we want autocommit. Set it explicitely.
+            // connection.commit();
 
             if (resultSet.next()) {
                 this.id = resultSet.getInt("id");
