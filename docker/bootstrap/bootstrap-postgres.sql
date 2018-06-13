@@ -48,7 +48,7 @@ CREATE TABLE execution_engines (
 ALTER TABLE jobs                OWNER TO selis;
 ALTER TABLE recipes             OWNER TO selis;
 ALTER TABLE message_type        OWNER TO selis;
-ALTER TABLE execution_engines   OWNER TO selis;
+ALTER TABLE execution_engines    OWNER TO selis;
 
 INSERT INTO execution_engines (name, engine_path, local_engine)
     VALUES
