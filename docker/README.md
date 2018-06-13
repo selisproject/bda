@@ -11,15 +11,18 @@ reasonable defaults are provided. This setup is not for production usage.
 
 Getting Started
 ---------------
-Assuming that we have a running `docker` installation and access to the 
-internet we can setup the SELIS BDA locally by executing 
+Assuming that we have a running `docker` installation locally and a Pub-Sub 
+existing installation remotely (we fill the connection details in the 
+properties file), we can setup the SELIS BDA locally by executing 
 
 ```bash
 ./sls.sh run all
 ```
 
 This subcommand will pull, build required images, create volumes, create a
-network and launch containers for the BDA's components.
+network and launch containers for the BDA's components. When it finishes it 
+connects to the 'selis-controller' container where the BDA code that existed
+locally has been copied to be tested.
 
 Other useful subcommands are:
 
