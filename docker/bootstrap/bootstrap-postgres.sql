@@ -19,9 +19,13 @@ CREATE TABLE message_type (
 );
 
 CREATE TABLE recipes (
-    id          SERIAL PRIMARY KEY,
-    name        VARCHAR(64) NOT NULL UNIQUE,
-    description VARCHAR(256)
+    id                  SERIAL PRIMARY KEY,
+    name                VARCHAR(64) NOT NULL UNIQUE,
+    description         VARCHAR(256),
+    executable_path     VARCHAR(512) NOT NULL UNIQUE,
+    structure           JSONB,
+    engine_args         JSONB,
+    executable_args     JSONB
 );
 
 CREATE TABLE jobs (
@@ -30,9 +34,22 @@ CREATE TABLE jobs (
     description     VARCHAR(256),
     message_type_id INTEGER REFERENCES message_type(id),
     recipe_id       INTEGER REFERENCES recipes(id),
+    job_type        VARCHAR(20),
     active          BOOLEAN DEFAULT(true)
 );
 
-ALTER TABLE jobs         OWNER TO selis;
-ALTER TABLE recipes      OWNER TO selis;
-ALTER TABLE message_type OWNER TO selis;
+CREATE TABLE execution_engines (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(64) NOT NULL UNIQUE,
+    engine_path     TEXT,
+    local_engine    BOOLEAN DEFAULT(true)
+);
+
+ALTER TABLE jobs                OWNER TO selis;
+ALTER TABLE recipes             OWNER TO selis;
+ALTER TABLE message_type        OWNER TO selis;
+ALTER TABLE execution_engines   OWNER TO selis;
+
+INSERT INTO execution_engines (name, engine_path, local_engine)
+    VALUES
+        ("python3", "/usr/bin/python3", true);
