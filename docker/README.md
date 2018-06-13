@@ -14,13 +14,28 @@ Getting Started
 Assuming that we have a running `docker` installation and access to the 
 internet we can setup the SELIS BDA locally by executing 
 
-```
+```bash
 ./sls.sh run all
 ```
 
-This command will pull, build required images, create volumes, create a network
-and launch containers for the BDA's components.
+This subcommand will pull, build required images, create volumes, create a
+network and launch containers for the BDA's components.
 
+Other useful subcommands are:
+
+```bash
+# Start all containers:
+./sls.sh startall
+
+# Stop all containers:
+./sls.sh stopall
+
+# Run specified container:
+./sls.sh run <postgres/hbase/keycloak/controller>
+
+# Remove all containers/images/networks/volumes:
+./sls.sh clean
+```
 A certain convention is used for naming things, for more details look 
 at `./sls.sh`.
 

@@ -11,6 +11,7 @@ import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.Kpi;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
 
+import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
@@ -19,61 +20,82 @@ import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
 import de.tu_dresden.selis.pubsub.*;
 import de.tu_dresden.selis.pubsub.PubSubException;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PubSubSubscriber implements Runnable {
-    private final static Logger LOG = Logger.getLogger(PubSubSubscriber.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
+    private final static Logger LOGGER = Logger.getLogger(PubSubSubscriber.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
+
     private static String authHash;
     private static String hostname;
     private static int portNumber;
-    private static List<String> rules;
+    private List<String> messageTypeNames;
 
-    public PubSubSubscriber(String authHash, String hostname, int portNumber, List<String> rules) {
+    private static volatile boolean reloadMessageTypesFlag = true;
+
+    public PubSubSubscriber(String authHash, String hostname, int portNumber) {
         this.authHash = authHash;
         this.hostname = hostname;
         this.portNumber = portNumber;
-        this.rules = rules;
+    }
+
+    public static void reloadMessageTypes() {
+        reloadMessageTypesFlag = true;
     }
 
     @Override
     public void run() {
-        try (PubSub c = new PubSub(this.hostname, this.portNumber)) {
-            List<String> messageTypeNames = MessageType.getActiveMessageTypeNames();
+        while (reloadMessageTypesFlag) {
+            reloadMessageTypesFlag = false;
 
-            for (String messageTypeName : messageTypeNames) {
-                Subscription subscription = new Subscription(this.authHash);
+            try (PubSub c = new PubSub(this.hostname, this.portNumber)) {
+                messageTypeNames = MessageType.getActiveMessageTypeNames();
 
-                subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
+                for (String messageTypeName : messageTypeNames) {
+                    Subscription subscription = new Subscription(this.authHash);
 
-                c.subscribe(subscription, new Callback() {
-                    @Override
-                    public void onMessage(Message message) {
-                        try {
-                            handleMessage(message);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                    subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
+
+                    c.subscribe(subscription, new Callback() {
+                        @Override
+                        public void onMessage(Message message) {
+                            try {
+                                handleMessage(message);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-                    }
-                });
+                    });
+                }
+
+                LOGGER.log(Level.INFO, 
+                           "SUCCESS: Subscribed to {0} message types", 
+                           messageTypeNames.size());
+            } catch (PubSubException ex) {
+                LOGGER.log(Level.WARNING, 
+                           "Could not subscribe, got error: {0}", 
+                           ex.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
             while (true) {
                 try {
                     Thread.sleep(100);
+
+                    if (reloadMessageTypesFlag) {
+                        break;
+                    }
                 } catch (InterruptedException e) {
-                    LOG.log(Level.WARNING,"Subscriber was interrupted.");
+                    LOGGER.log(Level.WARNING,"Subscriber was interrupted.");
                     break;
                 }
             }
-        } catch (PubSubException ex) {
-            LOG.log(Level.WARNING,"Could not subscribe, got error: {}", ex.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
-        LOG.log(Level.INFO,"Finishing");
+        LOGGER.log(Level.INFO,"Finishing");
     }
 
     private void handleMessage(Message message) throws Exception {
@@ -108,6 +130,7 @@ public class PubSubSubscriber implements Runnable {
 
 
             gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
+            String messageType="";
             List<KeyValue> entries = new LinkedList<>();
             for (Map.Entry<String, Object> entry : message.entrySet()) {
                 String key = entry.getKey() != null ? entry.getKey() : "";
@@ -117,27 +140,38 @@ public class PubSubSubscriber implements Runnable {
                     JsonObject payloadjson=new JsonParser().parse(value).getAsJsonObject();
                     Set<Map.Entry<String, JsonElement>> entrySet = payloadjson.entrySet();
                     for(Map.Entry<String,JsonElement> field : entrySet){
-                        if (field.getKey().matches("stock_levels")) {
+                        if (messageTypeNames.contains(field.getKey())) {
+                            messageType=field.getKey();
                             entries.add(new KeyValue("topic",field.getKey()));
                             entries.add(new KeyValue("message","{\"" + field.getKey() + "\": " + field.getValue() + "}"));
                         }
                         else
+                            // Is this needed?
                             entries.add(new KeyValue(field.getKey(),field.getValue().getAsString()));
                     }
                 }
                 else
+                    // Is this needed?
                     entries.add(new KeyValue(key,value));
             }
             bdamessage.setEntries(entries);
             try {
-                Entrypoint.myBackend.insert(bdamessage);
-                /*List<String> messageArguments = Arrays.asList(bdamessage.toString());
-                kpi.setArguments(messageArguments);
-                (new Thread(kpi)).start();*/
+                Entrypoint.datastore.insert(bdamessage);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received StockLevelUpdate message.");
+            LOGGER.log(Level.INFO,"Subscriber["+authHash+"], Received and persisted "+messageType+" message.");
+
+            MessageType msgInfo = MessageType.getMessageByName(messageType);
+            try {
+                JobDescription job = JobDescription.getJobByMessageId(msgInfo.getId());
+                LOGGER.log(Level.INFO,"Subscriber["+authHash+"], Launching "+job.getName()+" recipe.");
+                /*List<String> messageArguments = Arrays.asList(bdamessage.toString());
+                kpi.setArguments(messageArguments);
+                (new Thread(kpi)).start();*/
+            } catch (SQLException e) {
+                LOGGER.log(Level.INFO,"Subscriber["+authHash+"], No recipe found for message "+messageType+".");
+            }
         } else {
             // Original code for message type: `SonaeSalesForecast`.
 
@@ -164,12 +198,12 @@ public class PubSubSubscriber implements Runnable {
             }
             bdamessage.setEntries(entries);
             try {
-                Entrypoint.myBackend.insert(bdamessage);
+                Entrypoint.datastore.insert(bdamessage);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            LOG.log(Level.INFO,"Subscriber["+authHash+"], Received SalesForeCast message.");
+            LOGGER.log(Level.INFO,"Subscriber["+authHash+"], Received SalesForeCast message.");
         }
     }
 }
