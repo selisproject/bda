@@ -4,6 +4,8 @@ CREATE DATABASE selis_bda_db WITH OWNER selis;
 
 CREATE DATABASE selis_lab_db WITH OWNER selis;
 
+CREATE DATABASE selis_kpi_db WITH OWNER selis;
+
 CREATE DATABASE selis_test_db WITH OWNER selis;
 
 \connect selis_bda_db

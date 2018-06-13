@@ -58,9 +58,9 @@ public class Entrypoint {
     private static void kpiBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing kpi backend...");
         kpiDB = new KPIBackend(
-            configuration.storageBackend.getBdaDatabaseURL(),
-            configuration.storageBackend.getDbUsername(),
-            configuration.storageBackend.getDbPassword());
+            configuration.kpiBackend.getDbUrl(),
+            configuration.kpiBackend.getDbUsername(),
+            configuration.kpiBackend.getDbPassword());
     }
 
     private static void pubSubConnectorsInitialization() {
@@ -115,7 +115,7 @@ public class Entrypoint {
         pubSubConnectorsInitialization();
 
         // KPI DB initialization
-        //kpiBackendInitialization();
+        kpiBackendInitialization();
 
         // AuthClient backend initialization.
         authClientBackendInitialization();
