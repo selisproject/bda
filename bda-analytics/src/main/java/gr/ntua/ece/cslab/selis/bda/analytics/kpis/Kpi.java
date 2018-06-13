@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,9 +16,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
-import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.KPIDescription;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
 import java.util.LinkedList;
 
 public class Kpi implements Runnable {
@@ -122,7 +122,7 @@ public class Kpi implements Runnable {
 //			System.out.println(element.getKey());
 //			System.out.println(element.getValue());
 //		}
-		KPIDescription newkpi = new KPIDescription("sonae_orderforecast", System.currentTimeMillis(), data);
+		KPI newkpi = new KPI("sonae_orderforecast", (new Timestamp(System.currentTimeMillis())).toString(), data);
 
 		//kpiDB.insert(newkpi);
 

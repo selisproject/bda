@@ -95,11 +95,6 @@ public class HBaseConnector implements Connector {
         System.out.println("put in HBase ");
     }
 
-    @Override
-    public void put(KPIDescription args) throws Exception {
-
-    }
-
     public List<Tuple> getLast(Integer args) throws IOException {
         List<Tuple> res = new LinkedList<>();
         TableName tableName = TableName.valueOf("Events");

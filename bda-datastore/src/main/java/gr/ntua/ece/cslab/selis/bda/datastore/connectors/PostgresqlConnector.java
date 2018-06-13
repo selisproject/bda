@@ -184,61 +184,6 @@ public class PostgresqlConnector implements Connector {
         }
     }
 
-    @Override
-    public void put(KPIDescription args) throws Exception {
-        System.out.println("Starting insertion");
-        try {
-            if (args.getEntries().size()>0) {
-                String values = "";
-                String insertTableSQL = "INSERT INTO " + args.getKpi_name() + " (";
-                insertTableSQL +=  "timestamp,";
-                values += "?,";
-                for (KeyValue element : args.getEntries()) {
-                    insertTableSQL += element.getKey() + ",";
-                    values += "?,";
-                }
-                insertTableSQL = insertTableSQL.substring(0, insertTableSQL.length() - 1) + ") VALUES (" + values.substring(0, values.length() - 1) + ");";
-                PreparedStatement prepst = connection.prepareStatement(insertTableSQL);
-                prepst.setLong(1, args.getTimestamp());
-                List<KeyValue> types = this.describe(args.getKpi_name()).getSchema().getColumnTypes();
-                int i = 2;
-                for (KeyValue element : args.getEntries()) {
-                    for (KeyValue field : types) {
-                        if (field.getKey().equals(element.getKey())) {
-                            if (field.getValue().contains("integer"))
-                                if (element.getValue().equalsIgnoreCase("null"))
-                                    prepst.setNull(i,Types.INTEGER);
-                                else
-                                    prepst.setInt(i, Integer.valueOf(element.getValue()));
-                            else if (field.getValue().contains("bigint"))
-                                if (element.getValue().equalsIgnoreCase("null"))
-                                    prepst.setNull(i,Types.BIGINT);
-                                else
-                                    prepst.setLong(i, Long.valueOf(element.getValue()));
-                            else if (field.getValue().contains("timestamp"))
-                                prepst.setTimestamp(i, Timestamp.valueOf(element.getValue()));
-                            else if (field.getValue().contains("bytea"))
-                                prepst.setBytes(i, element.getValue().getBytes());
-                            else if (field.getValue().contains("boolean"))
-                                prepst.setBoolean(i, Boolean.parseBoolean(element.getValue()));
-                            else
-                                prepst.setString(i, element.getValue());
-
-                        }
-                    }
-                    i++;
-                }
-                prepst.executeUpdate();
-            }
-            System.out.println("Insert complete");
-            connection.commit();
-        } catch (SQLException e) {
-            System.out.println("Insert failed");
-            e.printStackTrace();
-            connection.rollback();
-        }
-    }
-
     // get last num rows from EventLog
     public List<Tuple> getLast(Integer num) throws Exception {
         List<Tuple> res = new LinkedList<>();
