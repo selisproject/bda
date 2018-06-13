@@ -161,7 +161,7 @@ then
     docker build \
         --file "$SELIS_POSTGRES_DOCKERFILE" \
         --tag "$SELIS_POSTGRES_IMAGE" \
-        ./bootstrap/
+        .
 fi
 
 SELIS_HBASE_IMAGE_ID="$(docker images --quiet "$SELIS_HBASE_IMAGE")"
@@ -173,7 +173,7 @@ then
     docker build \
         --file "$SELIS_HBASE_DOCKERFILE" \
         --tag "$SELIS_HBASE_IMAGE" \
-        ./bootstrap/
+        .
 fi
 
 ################################################################################
