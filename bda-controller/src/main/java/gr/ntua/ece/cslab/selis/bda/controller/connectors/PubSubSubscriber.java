@@ -50,13 +50,16 @@ public class PubSubSubscriber implements Runnable {
 
     @Override
     public void run() {
+        PubSub pubsub;
         Vector<Subscription> subscriptions = new Vector<Subscription>(DEFAULT_VECTOR_SIZE);
 
         while (reloadMessageTypesFlag) {
             reloadMessageTypesFlag = false;
             subscriptions.clear();
 
-            try (PubSub c = new PubSub(this.hostname, this.portNumber)) {
+            try {
+                pubsub = new PubSub(this.hostname, this.portNumber);
+
                 messageTypeNames = MessageType.getActiveMessageTypeNames();
 
                 for (String messageTypeName : messageTypeNames) {
@@ -64,7 +67,7 @@ public class PubSubSubscriber implements Runnable {
 
                     subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
 
-                    c.subscribe(subscription, new Callback() {
+                    pubsub.subscribe(subscription, new Callback() {
                         @Override
                         public void onMessage(Message message) {
                             LOGGER.log(Level.INFO,
@@ -85,24 +88,25 @@ public class PubSubSubscriber implements Runnable {
                            "SUCCESS: Subscribed to {0} message types", 
                            messageTypeNames.size());
 
-                while (true) {
-                    try {
-                        Thread.sleep(300);
-
-                        if (reloadMessageTypesFlag) {
-                            break;
-                        }
-                    } catch (InterruptedException e) {
-                        LOGGER.log(Level.WARNING,"Subscriber was interrupted.");
-                        break;
-                    }
-                }
             } catch (PubSubException ex) {
                 LOGGER.log(Level.WARNING, 
                            "Could not subscribe, got error: {0}", 
                            ex.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+
+            while (true) {
+                try {
+                    Thread.sleep(300);
+
+                    if (reloadMessageTypesFlag) {
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                    LOGGER.log(Level.WARNING,"Subscriber was interrupted.");
+                    break;
+                }
             }
         }
 
