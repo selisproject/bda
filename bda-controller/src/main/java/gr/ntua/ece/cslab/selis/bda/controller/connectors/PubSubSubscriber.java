@@ -22,11 +22,14 @@ import de.tu_dresden.selis.pubsub.PubSubException;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PubSubSubscriber implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(PubSubSubscriber.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
+
+    private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private static String authHash;
     private static String hostname;
@@ -47,8 +50,11 @@ public class PubSubSubscriber implements Runnable {
 
     @Override
     public void run() {
+        Vector<Subscription> subscriptions = new Vector<Subscription>(DEFAULT_VECTOR_SIZE);
+
         while (reloadMessageTypesFlag) {
             reloadMessageTypesFlag = false;
+            subscriptions.clear();
 
             try (PubSub c = new PubSub(this.hostname, this.portNumber)) {
                 messageTypeNames = MessageType.getActiveMessageTypeNames();
@@ -61,6 +67,9 @@ public class PubSubSubscriber implements Runnable {
                     c.subscribe(subscription, new Callback() {
                         @Override
                         public void onMessage(Message message) {
+                            LOGGER.log(Level.INFO,
+                                       "Received Message: {0}",
+                                       message.toString());
                             try {
                                 handleMessage(message);
                             } catch (Exception e) {
@@ -68,30 +77,32 @@ public class PubSubSubscriber implements Runnable {
                             }
                         }
                     });
+
+                    subscriptions.addElement(subscription);
                 }
 
                 LOGGER.log(Level.INFO, 
                            "SUCCESS: Subscribed to {0} message types", 
                            messageTypeNames.size());
+
+                while (true) {
+                    try {
+                        Thread.sleep(300);
+
+                        if (reloadMessageTypesFlag) {
+                            break;
+                        }
+                    } catch (InterruptedException e) {
+                        LOGGER.log(Level.WARNING,"Subscriber was interrupted.");
+                        break;
+                    }
+                }
             } catch (PubSubException ex) {
                 LOGGER.log(Level.WARNING, 
                            "Could not subscribe, got error: {0}", 
                            ex.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
-            }
-
-            while (true) {
-                try {
-                    Thread.sleep(100);
-
-                    if (reloadMessageTypesFlag) {
-                        break;
-                    }
-                } catch (InterruptedException e) {
-                    LOGGER.log(Level.WARNING,"Subscriber was interrupted.");
-                    break;
-                }
             }
         }
 
