@@ -1,34 +1,53 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.BDAdbConnector;
+import org.json.JSONObject;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.sql.*;
 import java.util.List;
 import java.util.Vector;
 import java.lang.UnsupportedOperationException;
 
+@XmlRootElement(name = "Recipe")
+@XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class Recipe {
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private int id;
     private String name;
     private String description;
+    private String executable_path;
+    private int engine_id;
+    private JSONObject args;
 
     private boolean exists = false;
 
     private final static String ALL_RECIPES_QUERY = 
-        "SELECT id, name, description " +
-        "FROM jobs";
+        "SELECT * " +
+        "FROM recipes";
 
     private final static String INSERT_RECIPE_QUERY = 
-        "INSERT INTO recipes (name, description) " +
-        "VALUES (?, ?) " +
+        "INSERT INTO recipes (name, description, executable_path, engine_id, args) " +
+        "VALUES (?, ?, ?, ? ,?::json) " +
         "RETURNING id";
 
-
-    public Recipe(String name, String description) {
+    public Recipe(String name, String description, String executable_path, int engine_id, JSONObject args) {
         this.name = name;
         this.description = description;
+        this.executable_path = executable_path;
+        this.engine_id = engine_id;
+        this.args = args;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -47,6 +66,51 @@ public class Recipe {
         this.description = description;
     }
 
+    public String getExecutable_path() {
+        return executable_path;
+    }
+
+    public void setExecutable_path(String executable_path) {
+        this.executable_path = executable_path;
+    }
+
+    public int getEngine_id() {
+        return engine_id;
+    }
+
+    public void setEngine_id(int engine_id) {
+        this.engine_id = engine_id;
+    }
+
+    public JSONObject getArgs() {
+        return args;
+    }
+
+    public void setArgs(JSONObject args) {
+        this.args = args;
+    }
+
+    public boolean isExists() {
+        return exists;
+    }
+
+    public void setExists(boolean exists) {
+        this.exists = exists;
+    }
+
+    @Override
+    public String toString() {
+        return "Recipe{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", executable_path='" + executable_path + '\'' +
+                ", engine_id=" + engine_id +
+                ", args=" + args +
+                ", exists=" + exists +
+                '}';
+    }
+
     public static List<Recipe> getRecipes() {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
 
@@ -57,9 +121,14 @@ public class Recipe {
             ResultSet resultSet = statement.executeQuery(ALL_RECIPES_QUERY);
 
             while (resultSet.next()) {
-                Recipe recipe = new Recipe(
+
+                Recipe recipe;
+                recipe = new Recipe(
                     resultSet.getString("name"),
-                    resultSet.getString("description")
+                    resultSet.getString("description"),
+                    resultSet.getString("executable_path"),
+                    resultSet.getInt("engine_id"),
+                    new JSONObject(resultSet.getString("args"))
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -83,10 +152,14 @@ public class Recipe {
 
             statement.setString(1, this.name);
             statement.setString(2, this.description);
+            statement.setString(3, this.executable_path);
+            statement.setInt(4, Integer.valueOf(this.engine_id));
+            statement.setString(5, this.args.toString());
+
 
             ResultSet resultSet = statement.executeQuery();
 
-            connection.commit();
+            //connection.commit();
 
             if (resultSet.next()) {
                 this.id = resultSet.getInt("id");

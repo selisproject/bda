@@ -8,10 +8,12 @@ import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutableCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.Kpi;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
+import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 
 public class AnalyticsSystem implements AnalyticsInterface {
 
 	private static AnalyticsSystem system;
+	private static KPIBackend kpidb;
 
 	private AnalyticsSystem() {
 	}

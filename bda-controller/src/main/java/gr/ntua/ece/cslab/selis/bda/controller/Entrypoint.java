@@ -13,6 +13,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
@@ -84,6 +85,20 @@ public class Entrypoint {
         );
     }
 
+    public static void create_folders() {
+        LOGGER.log(Level.INFO, "Creating folders for uploaded recipes and recipe results");
+
+        File theDir = new File("/uploads/");
+        if (!theDir.exists()) {
+            theDir.mkdir();
+        }
+        theDir = new File("/results/");
+        if (!theDir.exists()) {
+            theDir.mkdir();
+        }
+
+    }
+
     private static void testKeycloakAuthentication() {
         // TODO: This is just a proof of concept. Should be removed.
         AuthClientBackend authClientBackend = AuthClientBackend.getInstance();
@@ -121,6 +136,9 @@ public class Entrypoint {
         authClientBackendInitialization();
 
         // testKeycloakAuthentication();
+
+        // Create folders for uploaded recipes and recipe results
+        create_folders();
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

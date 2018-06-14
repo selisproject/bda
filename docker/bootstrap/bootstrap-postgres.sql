@@ -8,6 +8,7 @@ CREATE DATABASE selis_kpi_db WITH OWNER selis;
 
 CREATE DATABASE selis_test_db WITH OWNER selis;
 
+
 \connect selis_bda_db
 
 CREATE TABLE message_type (
@@ -18,14 +19,21 @@ CREATE TABLE message_type (
     format      VARCHAR
 );
 
+CREATE TABLE execution_engines (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(64) NOT NULL UNIQUE,
+    engine_path     TEXT,
+    local_engine    BOOLEAN DEFAULT(true),
+    args            JSONB
+);
+
 CREATE TABLE recipes (
     id                  SERIAL PRIMARY KEY,
     name                VARCHAR(64) NOT NULL UNIQUE,
     description         VARCHAR(256),
     executable_path     VARCHAR(512) NOT NULL UNIQUE,
-    structure           JSONB,
-    engine_args         JSONB,
-    executable_args     JSONB
+    engine_id           INTEGER REFERENCES execution_engines(id),
+    args                JSONB
 );
 
 CREATE TABLE jobs (
@@ -38,18 +46,16 @@ CREATE TABLE jobs (
     active          BOOLEAN DEFAULT(true)
 );
 
-CREATE TABLE execution_engines (
-    id              SERIAL PRIMARY KEY,
-    name            VARCHAR(64) NOT NULL UNIQUE,
-    engine_path     TEXT,
-    local_engine    BOOLEAN DEFAULT(true)
-);
-
 ALTER TABLE jobs                OWNER TO selis;
 ALTER TABLE recipes             OWNER TO selis;
 ALTER TABLE message_type        OWNER TO selis;
 ALTER TABLE execution_engines    OWNER TO selis;
 
-INSERT INTO execution_engines (name, engine_path, local_engine)
-    VALUES
-        ("python3", "/usr/bin/python3", true);
+--grant all privileges on table message_type to selis;
+--grant all privileges on table jobs to selis;
+--grant all privileges on table recipes to selis;
+--grant all privileges on table execution_engines to selis;
+
+
+INSERT INTO execution_engines (name, engine_path, local_engine, args)
+    VALUES ('python3', '/usr/bin/python3', true, '{}'::json);
