@@ -2,8 +2,6 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
-import gr.ntua.ece.cslab.selis.bda.datastore.connectors.Connector;
-import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.PostgresqlPooledDataSource;
 
@@ -11,7 +9,7 @@ import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
+
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
