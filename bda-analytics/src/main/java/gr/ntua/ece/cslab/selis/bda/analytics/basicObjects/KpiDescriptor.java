@@ -11,35 +11,40 @@ import com.google.gson.Gson;
 
 
 public class KpiDescriptor {
+	private String name;
 	private String description;
 	private Executable executable;
-	private List<String> eng_arguments;
-	
-	public KpiDescriptor(String description, Executable executable, List<String> eng_arguments) {
+
+	public KpiDescriptor() {
+	}
+
+	public KpiDescriptor(String name, String description, Executable executable) {
+		this.name = name;
 		this.description = description;
 		this.executable = executable;
-		this.eng_arguments = eng_arguments;
-
 	}
 
-
-	public List<String> getEng_arguments() {
-		return eng_arguments;
+	public String getName() {
+		return name;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
 
 	public String getDescription() {
 		return description;
 	}
 
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
 	public Executable getExecutable() {
 		return executable;
 	}
 
-	
-	public String toJson() {
-		return new Gson().toJson(this);
+	public void setExecutable(Executable executable) {
+		this.executable = executable;
 	}
-
 }

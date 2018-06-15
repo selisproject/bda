@@ -11,38 +11,43 @@ package gr.ntua.ece.cslab.selis.bda.analytics.basicObjects;
 import java.util.List;
 
 import com.google.gson.Gson;
+import org.json.JSONObject;
 
 public class Executable {
-	private ExecutEngineDescriptor executEngine;
-	private List<String> argumentTypes;
-	private String description;
+	private int engineID;
+	private JSONObject args;
 	private String osPath;
-	
-	public Executable(ExecutEngineDescriptor executEngine, List<String> argumentTypes, String osPath, String description) {
-		this.executEngine = executEngine;
-		this.argumentTypes = argumentTypes;
+
+	public Executable() {
+	}
+
+	public Executable(int engineID, JSONObject args, String osPath) {
+		this.engineID = engineID;
+		this.args = args;
 		this.osPath = osPath;
-		this.description = description;
 	}
 
-	public ExecutEngineDescriptor getExecutEngine() {
-		return executEngine;
+	public int getEngineID() {
+		return engineID;
 	}
 
-	public List<String> getArgumentTypes() {
-		return argumentTypes;
+	public void setEngineID(int engineID) {
+		this.engineID = engineID;
+	}
+
+	public JSONObject getArgs() {
+		return args;
+	}
+
+	public void setArgs(JSONObject args) {
+		this.args = args;
 	}
 
 	public String getOsPath() {
 		return osPath;
 	}
-	
-	public String getDescription() {
-		return description;
-	}
 
-	public String toJson() {
-		return new Gson().toJson(this);
+	public void setOsPath(String osPath) {
+		this.osPath = osPath;
 	}
-
 }

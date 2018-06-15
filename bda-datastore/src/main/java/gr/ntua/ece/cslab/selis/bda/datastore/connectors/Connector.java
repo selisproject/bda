@@ -9,7 +9,6 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 public interface Connector {
     void put(Message args) throws Exception;
     void put(MasterData args) throws Exception;
-    void put(KPIDescription args) throws Exception;
     List<Tuple> getLast(Integer args) throws Exception;
     List<Tuple> getFrom(Integer args) throws Exception;
     List<Tuple> get(String args, HashMap<String,String> args2) throws Exception;

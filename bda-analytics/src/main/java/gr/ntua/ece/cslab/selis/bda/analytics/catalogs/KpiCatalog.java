@@ -7,21 +7,13 @@ import com.google.gson.Gson;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.Executable;
+import org.json.JSONObject;
 
 public class KpiCatalog {
-	private static HashMap<Integer, KpiDescriptor> kpis;
-	private static int kpiCounter;
-	private static KpiCatalog kpiCatalog;
+	private HashMap<Integer, KpiDescriptor> kpis;
 
-	private KpiCatalog() {
+	public KpiCatalog() {
 		kpis = new HashMap<Integer, KpiDescriptor>();
-		kpiCounter = 0;
-	}
-
-	public static KpiCatalog getInstance() {
-		if (kpiCatalog == null)
-			kpiCatalog = new KpiCatalog();
-		return kpiCatalog;
 	}
 
 	public KpiDescriptor getKpi(int kpiID) {
@@ -35,13 +27,10 @@ public class KpiCatalog {
 			return new Gson().toJson(kpis);
 	}
 
-	public int getKpiCounter() {
-		return kpiCounter;
-	}
-
-	public void addNewKpi(List<String> eng_arguments, String description, Executable executable) {
-		KpiDescriptor newKpi = new KpiDescriptor(description, executable, eng_arguments);
-		kpis.put(kpiCounter, newKpi);
-		kpiCounter++;
+	public void addNewKpi(int recipe_id, String name, String description, int engine_id,
+						  JSONObject args, String ospath) {
+		KpiDescriptor newKpi = new KpiDescriptor(name, description,
+				new Executable(engine_id, args, ospath));
+		kpis.put(recipe_id, newKpi);
 	}
 }

@@ -1,24 +1,16 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutEngineCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutableCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.kpis.Kpi;
-import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
-
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
-
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
 
 import de.tu_dresden.selis.pubsub.*;
 import de.tu_dresden.selis.pubsub.PubSubException;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -159,9 +151,8 @@ public class PubSubSubscriber implements Runnable {
         try {
             JobDescription job = JobDescription.getJobByMessageId(msgInfo.getId());
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], Launching " + job.getName() + " recipe.");
-            /*List<String> messageArguments = Arrays.asList(bdamessage.toString());
-            kpi.setArguments(messageArguments);
-            (new Thread(kpi)).start();*/
+            // TODO: check job.getJob_type()
+            Entrypoint.analyticsComponent.run(job.getRecipeId(), message.toString());
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], No recipe found for message " + messageType + ".");
         }

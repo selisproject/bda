@@ -1,26 +1,20 @@
 package gr.ntua.ece.cslab.selis.bda.analytics.catalogs;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
 import com.google.gson.Gson;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor;
+import org.json.JSONObject;
 
 public class ExecutEngineCatalog {
-	private static HashMap<Integer, ExecutEngineDescriptor> executEngines;
-	private static int executEnginesCounter;
-	private static ExecutEngineCatalog executEngineCatalog;
+	private HashMap<Integer, ExecutEngineDescriptor> executEngines;
 
-	private ExecutEngineCatalog() {
+	public ExecutEngineCatalog() {
 		executEngines = new HashMap<Integer, ExecutEngineDescriptor>();
-		executEnginesCounter = 0;
-	}
-
-	public static ExecutEngineCatalog getInstance() {
-		if (executEngineCatalog == null)
-			executEngineCatalog = new ExecutEngineCatalog();
-		return executEngineCatalog;
 	}
 
 	public ExecutEngineDescriptor getExecutEngine(int executEngineID) {
@@ -34,12 +28,33 @@ public class ExecutEngineCatalog {
 			return new Gson().toJson(executEngines);
 	}
 
-	public int getExecutEnginesCounter() {
-		return executEnginesCounter;
+	public void initialize(ResultSet engines) {
+		if (engines != null) {
+			try {
+				while (engines.next()) {
+					addNewExecutEngine(
+							engines.getInt("id"),
+							engines.getString("name"),
+							engines.getString("engine_path"),
+							engines.getBoolean("local_engine"),
+							new JSONObject(engines.getString("args"))
+					);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
-	public void addNewExecutEngine(String engineName, String executionPreamble) {
-		ExecutEngineDescriptor newExecutEngineDescriptor = new ExecutEngineDescriptor(engineName, executionPreamble);
-		executEngines.put(executEnginesCounter, newExecutEngineDescriptor);
-		executEnginesCounter++;}
+	public int getExecutEnginesCounter() {
+		return executEngines.size();
+	}
+
+	public void addNewExecutEngine(int engineId, String engineName, String executionPreamble,
+								   boolean local_engine, JSONObject args) {
+		ExecutEngineDescriptor newExecutEngineDescriptor = new ExecutEngineDescriptor(
+			engineName, executionPreamble, local_engine, args
+		);
+		executEngines.put(engineId, newExecutEngineDescriptor);
+	}
 }

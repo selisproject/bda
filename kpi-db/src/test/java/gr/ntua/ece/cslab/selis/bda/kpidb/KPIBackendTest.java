@@ -18,9 +18,9 @@ public class KPIBackendTest {
     public KPIBackend kpiBackend;
     @Before
     public void setUp() {
-        String fs_string = "jdbc:postgresql:selis_db";
-        String uname = "selis_user";
-        String passwd = "123";
+        String fs_string = "jdbc:postgresql://selis-postgres:5432/selis_test_db";
+        String uname = "selis";
+        String passwd = "123456";
         kpiBackend = new KPIBackend(fs_string, uname, passwd);
         System.out.println("Connection on kpidb successfully established");
     }
