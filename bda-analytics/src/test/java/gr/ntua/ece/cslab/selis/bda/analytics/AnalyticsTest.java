@@ -39,7 +39,7 @@ public class AnalyticsTest {
 
 	@Test
 	public void test() {
-		AnalyticsSystem mySystem = AnalyticsSystem.getInstance();
+		AnalyticsInternal mySystem = AnalyticsSystem.getInstance();
 		ExecutEngineCatalog executEngineCatalog = ExecutEngineCatalog.getInstance();
 		ExecutableCatalog executableCatalog = mySystem.getExecutableCatalog();
 		KpiCatalog kpiCatalog = mySystem.getKpiCatalog();

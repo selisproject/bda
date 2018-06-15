@@ -8,6 +8,7 @@ import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
@@ -166,6 +167,7 @@ public class Entrypoint {
             subscriber.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
+            System.out.println(e);
             e.printStackTrace();
         } finally {
             LOGGER.log(Level.INFO,"Terminating server");

@@ -6,14 +6,13 @@ import org.json.JSONObject;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 import java.sql.*;
 import java.util.List;
 import java.util.Vector;
 import java.lang.UnsupportedOperationException;
 
-@XmlRootElement(name = "Recipe")
-@XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
-public class Recipe {
+public class Recipe implements Serializable {
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private int id;
@@ -21,7 +20,7 @@ public class Recipe {
     private String description;
     private String executable_path;
     private int engine_id;
-    private JSONObject args;
+    private String args;
 
     private boolean exists = false;
 
@@ -34,7 +33,15 @@ public class Recipe {
         "VALUES (?, ?, ?, ? ,?::json) " +
         "RETURNING id";
 
-    public Recipe(String name, String description, String executable_path, int engine_id, JSONObject args) {
+    private final static String GET_RECIPE_BY_ID =
+            "SELECT * FROM recipes WHERE id = ?;";
+
+    private final static String SET_EXECUTABLE_PATH =
+            "UPDATE recipes SET executable_path = ? WHERE id = ?;";
+
+    public Recipe() {}
+
+    public Recipe(String name, String description, String executable_path, int engine_id, String args) {
         this.name = name;
         this.description = description;
         this.executable_path = executable_path;
@@ -82,11 +89,11 @@ public class Recipe {
         this.engine_id = engine_id;
     }
 
-    public JSONObject getArgs() {
+    public String getArgs() {
         return args;
     }
 
-    public void setArgs(JSONObject args) {
+    public void setArgs(String args) {
         this.args = args;
     }
 
@@ -128,7 +135,7 @@ public class Recipe {
                     resultSet.getString("description"),
                     resultSet.getString("executable_path"),
                     resultSet.getInt("engine_id"),
-                    new JSONObject(resultSet.getString("args"))
+                    resultSet.getString("args")
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -142,6 +149,49 @@ public class Recipe {
 
         return recipes;
      }
+
+    public static Recipe getRecipeById(int id) {
+        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_RECIPE_BY_ID);
+            statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+
+                Recipe recipe;
+                recipe = new Recipe(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getString("executable_path"),
+                        resultSet.getInt("engine_id"),
+                        resultSet.getString("args")
+                );
+
+                recipe.id = resultSet.getInt("id");
+                recipe.exists = true;
+
+                return recipe;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void updateBinaryPath() throws SQLException, UnsupportedOperationException {
+        // The object does not exist, it should be inserted.
+        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+
+        PreparedStatement statement = connection.prepareStatement(SET_EXECUTABLE_PATH);
+
+        statement.setString(1, this.executable_path);
+        statement.setInt(2, this.id);
+
+        statement.executeUpdate();
+
+    }
 
     public void save() throws SQLException, UnsupportedOperationException {
         if (!this.exists) {
@@ -163,6 +213,7 @@ public class Recipe {
 
             if (resultSet.next()) {
                 this.id = resultSet.getInt("id");
+                System.out.println(this.id);
             }
         } else {
             // The object exists, it should be updated.

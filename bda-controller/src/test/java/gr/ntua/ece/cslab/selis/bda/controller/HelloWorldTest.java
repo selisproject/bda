@@ -30,10 +30,10 @@ public class HelloWorldTest {
     public void test() throws Exception {
         Recipe recipe = new Recipe("dummy", "dummy",
                 "mypath", 1,
-                new JSONObject("{\"mpla1\" : 1, \"mpla2\" : \"mpla\"}"));
+                "{\"mpla1\" : 1, \"mpla2\" : \"mpla\"}");
         Recipe recipe2 = new Recipe("dummy2", "dummy2",
                 "mypath2", 1,
-                new JSONObject("{\"mpla1\" : 1, \"mpla2\" : \"mpla\"}"));
+                "{\"mpla1\" : 1, \"mpla2\" : \"mpla\"}");
         recipe.save();
         recipe2.save();
         List<Recipe> recipes = Recipe.getRecipes();
