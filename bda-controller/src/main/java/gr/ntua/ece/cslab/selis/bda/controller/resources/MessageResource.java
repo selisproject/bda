@@ -9,7 +9,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Path("message")
