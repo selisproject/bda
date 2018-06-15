@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 
+import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import org.apache.commons.io.IOUtils;
@@ -89,7 +90,9 @@ public class RecipeResource {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
+                r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
+                new JSONObject(r.getArgs()), r.getExecutable_path());
         return new RequestResponse(status, details);
     }
 

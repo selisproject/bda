@@ -1,7 +1,11 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
+import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
@@ -30,6 +34,9 @@ public class JobResource {
             m.save();
 
             response.setStatus(HttpServletResponse.SC_CREATED);
+
+            MessageType msg  =MessageType.getMessageById(m.getMessageTypeId());
+            msg.getFormat()
         } catch (Exception e) {
             e.printStackTrace();
 

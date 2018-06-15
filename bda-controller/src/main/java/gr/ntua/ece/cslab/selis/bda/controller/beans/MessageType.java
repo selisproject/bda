@@ -145,6 +145,34 @@ public class MessageType implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
+    public static MessageType getMessageById(int id) throws SQLException {
+        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_MESSAGE_BY_ID_QUERY);
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                MessageType msg = new MessageType(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("active"),
+                        resultSet.getString("format")
+                );
+
+                msg.id = resultSet.getInt("id");
+
+                return msg;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new SQLException("JobDescription object not found.");
+    }
+
     public void save() throws SQLException {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
         PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE_QUERY);
