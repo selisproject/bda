@@ -89,6 +89,11 @@ public class MessageType implements Serializable {
         "FROM message_type " +
         "WHERE name = ?";
 
+    private final static String GET_MESSAGE_BY_ID_QUERY =
+            "SELECT * " +
+            "FROM message_type " +
+            "WHERE id = ?";
+
     private final static String INSERT_MESSAGE_QUERY =
         "INSERT INTO message_type (name,description,active,format) " +
         "VALUES (?, ?, ?, ?)";

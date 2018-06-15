@@ -19,6 +19,7 @@ public class Configuration {
     public final StorageBackend storageBackend;
     public final PubSubSubscriber subscriber;
     public final AuthClientBackend authClientBackend;
+    public final KPIBackend kpiBackend;
 
     public class Server {
         private String address;
@@ -87,11 +88,23 @@ public class Configuration {
         public String getSecret() { return secret; }
     }
 
+    public class KPIBackend {
+        private String dbUrl, dbUsername, dbPassword;
+
+        public String getDbUrl() { return dbUrl; }
+
+        public String getDbUsername() { return dbUsername; }
+
+        public String getDbPassword() { return dbPassword; }
+
+    }
+
     public Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
         this.subscriber = new PubSubSubscriber();
         this.authClientBackend = new AuthClientBackend();
+        this.kpiBackend = new KPIBackend();
     }
 
     /**
@@ -156,6 +169,10 @@ public class Configuration {
         conf.authClientBackend.clientId = properties.getProperty("keycloak.bda.clientid");
         conf.authClientBackend.secret = properties.getProperty("keycloak.bda.secret");
 
+        // KPIDB configuration
+        conf.kpiBackend.dbUrl = properties.getProperty("kpi.db.url");
+        conf.kpiBackend.dbUsername = properties.getProperty("kpi.db.username");
+        conf.kpiBackend.dbPassword = properties.getProperty("kpi.db.password");
         return conf;
     }
 }

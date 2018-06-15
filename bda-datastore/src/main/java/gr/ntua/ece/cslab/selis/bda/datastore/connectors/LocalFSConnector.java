@@ -81,11 +81,6 @@ public class LocalFSConnector implements Connector {
         }
     }
 
-    @Override
-    public void put(KPIDescription args) throws Exception {
-
-    }
-
     // get last num rows from EventLog
     public List<Tuple> getLast(Integer num) throws IOException {
         List<Tuple> res = new LinkedList<>();

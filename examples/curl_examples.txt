@@ -6,3 +6,9 @@ curl -ik -X GET "http://localhost:9999/api/datastore?type=rows&n=-1" && echo
 curl -ik -X GET "http://localhost:9999/api/datastore/dtable?tableName=warehouses&filters='warehouse_id=1'" && echo
 curl -ik -X GET "http://localhost:9999/api/datastore/select?filters='warehouse_id=1&message_type=stocklevels'" && echo
 curl -ik -X GET http://localhost:9999/api/datastore/schema && echo
+
+// Add new recipe
+curl -ik -X PUT -H "Content-type:application/json" -d @recipe.json http://localhost:9999/api/recipe
+
+// Upload recipe executable
+curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @recipe.py http://localhost:9999/api/recipe/upload/215/recipe.py
