@@ -6,9 +6,7 @@ import com.google.gson.JsonParser;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutEngineCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutableCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.kpis.Kpi;
 import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
 
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;

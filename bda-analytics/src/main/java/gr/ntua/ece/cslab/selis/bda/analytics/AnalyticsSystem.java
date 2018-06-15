@@ -1,20 +1,20 @@
 package gr.ntua.ece.cslab.selis.bda.analytics;
 
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutableCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
+import java.sql.ResultSet;
 
 public class AnalyticsSystem {
 
-	private static AnalyticsInternal system;
+	private static AnalyticsInstance system;
 
-	private AnalyticsSystem() {
-
+	public static AnalyticsInstance getInstance(String kpidbURL, String username,
+												String password, ResultSet engines) {
+		if (system == null) {
+			system = new AnalyticsInstance(kpidbURL, username, password, engines);
+		}
+		return system;
 	}
 
-	public static AnalyticsInternal getInstance() {
-		if (system == null)
-			system = new AnalyticsInternal();
+	public static AnalyticsInstance getInstance() {
 		return system;
 	}
 

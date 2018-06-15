@@ -53,8 +53,8 @@ public class KPIResource {
         System.out.println(kpiname + "," + n);
 
         try {
-            List<Tuple> results = Entrypoint.kpiDB.fetch(kpiname, "rows", n);
-            KPITable table = Entrypoint.kpiDB.getSchema(kpiname);
+            List<Tuple> results = Entrypoint.analyticsComponent.getKpidb().fetch(kpiname, "rows", n);
+            KPITable table = Entrypoint.analyticsComponent.getKpidb().getSchema(kpiname);
             JSONArray returnResults = new JSONArray();
             for (Tuple tuple : results) {
                 JSONObject row = new JSONObject();
@@ -113,8 +113,8 @@ public class KPIResource {
             }
         }
         try {
-            List<Tuple> results = Entrypoint.kpiDB.select(kpiname,new Tuple(args));
-            KPITable table = Entrypoint.kpiDB.getSchema(kpiname);
+            List<Tuple> results = Entrypoint.analyticsComponent.getKpidb().select(kpiname,new Tuple(args));
+            KPITable table = Entrypoint.analyticsComponent.getKpidb().getSchema(kpiname);
             JSONArray returnResults = new JSONArray();
             for (Tuple tuple : results) {
                 JSONObject row = new JSONObject();

@@ -1,8 +1,9 @@
+import sys
 import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("--intarg", help="display a square of a given number", type=int)
-parser.add_argument("--strarg", help="display a square of a given number", type=str)
-args = parser.parse_args()
+mpla = sys.argv[1]
+intarg = 1
+strarg= "mpla"
+print(mpla)
 
-result = '{"intarg" : ' + str(args.intarg) + ', "strarg" : "' + args.strarg + '"}'
+result = '{"intarg" : ' + str(intarg) + ', "strarg" : "' + strarg + '"}'
 print(result)

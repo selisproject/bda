@@ -5,47 +5,46 @@ import static org.junit.Assert.*;
 import java.util.Arrays;
 import java.util.List;
 
+import org.json.JSONObject;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor;
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutEngineCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutableCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.kpis.Kpi;
-import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
 
 public class AnalyticsTest {
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
+	AnalyticsInstance instance;
 
 	@Before
 	public void setUp() throws Exception {
+		String fs_string = "jdbc:postgresql://selis-postgres:5432/selis_test_db";
+		String uname = "selis";
+		String passwd = "123456";
+		instance = AnalyticsSystem.getInstance(fs_string, uname, passwd, null);
+		instance.getEngineCatalog().addNewExecutEngine(1, "python3",
+				"/usr/bin/python3", true, new JSONObject());
+		instance.getKpiCatalog().addNewKpi(1, "recipe",
+				"recipe", 1,
+				 new JSONObject("{\"intarg\" : 1, \"strarg\" : \"str\"}"),
+				"/code/examples/recipe.py");
+
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
 
+
 	@Test
 	public void test() {
-		AnalyticsInternal mySystem = AnalyticsSystem.getInstance();
+		instance.run(1, "\"{\"ena\":1,\"duo\":2}\"");
+	}
+	//@Test
+	//public void test()
+	//{
+		/*AnalyticsInternal mySystem = AnalyticsSystem.getInstance();
 		ExecutEngineCatalog executEngineCatalog = ExecutEngineCatalog.getInstance();
-		ExecutableCatalog executableCatalog = mySystem.getExecutableCatalog();
 		KpiCatalog kpiCatalog = mySystem.getKpiCatalog();
 
-		String executables = executableCatalog.getAllExecutables();
-		assert (executables.equals("{}"));
 		System.out.println("KPI primitives: " + executables);
 		KpiFactory kpiFactory = mySystem.getKpiFactory();
 
@@ -111,9 +110,9 @@ public class AnalyticsTest {
 			 * dateFormat.format(MLSystem.getInstance().getModelCatalog().getModel(0).
 			 * getTimestamp()));
 			 */
-		} catch (Exception e) {
+		/*} catch (Exception e) {
 			e.printStackTrace();
-		}
-	}
+		}*/
+	//}
 
 }
