@@ -62,6 +62,7 @@ public class Entrypoint {
         );
     }
 
+
     private static ResultSet fetch_engines() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
         Connection conn = BDAdbConnector.getInstance().getBdaConnection();

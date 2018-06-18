@@ -5,6 +5,8 @@ import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPISchema;
+import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPITable;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletResponse;
@@ -31,20 +33,27 @@ public class JobResource {
 
         try {
             m.save();
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
-
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
             MessageType msg  =MessageType.getMessageById(m.getMessageTypeId());
-            msg.getFormat()
+            Recipe r = Recipe.getRecipeById(m.getRecipeId());
+            JSONObject msgFormat = new JSONObject(msg.getFormat());
+            Entrypoint.analyticsComponent.getKpidb().create(new KPITable(r.getName(),
+                    new KPISchema(msgFormat)));
         } catch (Exception e) {
             e.printStackTrace();
 
             status = "ERROR";
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
         }
 
         try {
-            response.flushBuffer();
+            if (response != null) {
+                response.flushBuffer();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

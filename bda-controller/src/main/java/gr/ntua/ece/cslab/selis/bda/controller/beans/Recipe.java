@@ -36,6 +36,9 @@ public class Recipe implements Serializable {
     private final static String GET_RECIPE_BY_ID =
             "SELECT * FROM recipes WHERE id = ?;";
 
+    private final static String GET_RECIPE_BY_NAME =
+            "SELECT * FROM recipes WHERE name = ?;";
+
     private final static String SET_EXECUTABLE_PATH =
             "UPDATE recipes SET executable_path = ? WHERE id = ?;";
 
@@ -179,6 +182,38 @@ public class Recipe implements Serializable {
         }
         return null;
     }
+
+
+    public static Recipe getRecipeByName(String name) {
+        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_RECIPE_BY_NAME);
+            statement.setString(1, name);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+
+                Recipe recipe;
+                recipe = new Recipe(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getString("executable_path"),
+                        resultSet.getInt("engine_id"),
+                        resultSet.getString("args")
+                );
+
+                recipe.id = resultSet.getInt("id");
+                recipe.exists = true;
+
+                return recipe;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     public void updateBinaryPath() throws SQLException, UnsupportedOperationException {
         // The object does not exist, it should be inserted.

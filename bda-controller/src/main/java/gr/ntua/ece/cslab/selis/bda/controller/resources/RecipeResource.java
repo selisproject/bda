@@ -48,18 +48,23 @@ public class RecipeResource {
 
         try {
             r.save();
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.toString());
 
             status = "ERROR";
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
         }
 
         try {
-            response.flushBuffer();
+            if (response != null) {
+                response.flushBuffer();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

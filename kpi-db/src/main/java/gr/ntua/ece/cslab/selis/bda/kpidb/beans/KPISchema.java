@@ -1,8 +1,12 @@
 package gr.ntua.ece.cslab.selis.bda.kpidb.beans;
 
+import org.json.JSONObject;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @XmlRootElement(name = "DimensionTableSchema")
@@ -19,6 +23,17 @@ public class KPISchema {
     public KPISchema(List<String> columnNames, List<KeyValue> columnTypes) {
         this.columnNames = columnNames;
         this.columnTypes = columnTypes;
+    }
+
+    public KPISchema(JSONObject msgFormat) {
+        this.columnNames = new ArrayList<>();
+        this.columnTypes = new ArrayList<>();
+        Iterator<String> columns = msgFormat.keys();
+        while (columns.hasNext()) {
+            String name = columns.next();
+            this.columnNames.add(name);
+            this.columnTypes.add(new KeyValue(name, msgFormat.get(name).toString()));
+        }
     }
 
     /* Getters and Setters */
