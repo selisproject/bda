@@ -47,7 +47,7 @@ public class HelloWorldTest {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
         PreparedStatement statement = connection.prepareStatement("DELETE FROM recipes WHERE name=\'dummy\' or name = \'dummy2\';");
         statement.executeUpdate();
-        
+
     }
 
 
