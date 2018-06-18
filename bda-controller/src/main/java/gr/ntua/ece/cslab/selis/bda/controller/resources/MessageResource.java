@@ -9,7 +9,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Path("message")
@@ -30,18 +29,23 @@ public class MessageResource {
         try {
             m.save();
 
-            response.setStatus(HttpServletResponse.SC_CREATED);
-
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
             PubSubSubscriber.reloadMessageTypes();
         } catch (Exception e) {
             e.printStackTrace();
 
             status = "ERROR";
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
         }
 
         try {
-            response.flushBuffer();
+            if (response != null) {
+                response.flushBuffer();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

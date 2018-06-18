@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
-import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
+import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
+import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.PostgresqlPooledDataSource;
 
@@ -8,6 +9,7 @@ import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
@@ -16,6 +18,10 @@ import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,7 +36,7 @@ public class Entrypoint {
     public static Thread subscriber;
     public static PubSubPublisher publisher;
     public static StorageBackend datastore;
-    public static KPIBackend kpiDB;
+    public static AnalyticsInstance analyticsComponent;
 
     private static void storageBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing storage backend...");
@@ -56,12 +62,33 @@ public class Entrypoint {
         );
     }
 
-    private static void kpiBackendInitialization() {
-        LOGGER.log(Level.INFO, "Initializing kpi backend...");
-        kpiDB = new KPIBackend(
+
+    private static ResultSet fetch_engines() {
+        LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
+        Connection conn = BDAdbConnector.getInstance().getBdaConnection();
+
+        Statement statement;
+        ResultSet engines = null;
+
+        try {
+            statement = conn.createStatement();
+
+            engines = statement.executeQuery("SELECT * FROM execution_engines;");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return engines;
+    }
+
+    private static void analyticsModuleInitialization() {
+        LOGGER.log(Level.INFO, "Initializing Analytics SubModule...");
+        analyticsComponent = AnalyticsSystem.getInstance(
             configuration.kpiBackend.getDbUrl(),
             configuration.kpiBackend.getDbUsername(),
-            configuration.kpiBackend.getDbPassword());
+            configuration.kpiBackend.getDbPassword(),
+            fetch_engines()
+        );
     }
 
     private static void pubSubConnectorsInitialization() {
@@ -130,7 +157,7 @@ public class Entrypoint {
         pubSubConnectorsInitialization();
 
         // KPI DB initialization
-        kpiBackendInitialization();
+        analyticsModuleInitialization();
 
         // AuthClient backend initialization.
         authClientBackendInitialization();
@@ -166,6 +193,7 @@ public class Entrypoint {
             subscriber.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
+            System.out.println(e);
             e.printStackTrace();
         } finally {
             LOGGER.log(Level.INFO,"Terminating server");
