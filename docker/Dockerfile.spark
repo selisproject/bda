@@ -1,0 +1,3 @@
+FROM p7hb/docker-spark:latest
+
+CMD [ "start-master.sh" ]

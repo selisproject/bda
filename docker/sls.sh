@@ -9,20 +9,24 @@ SELIS_HBASE_VOLUME="selis-hbase-volume"
 SELIS_BDA_DOCKERFILE="Dockerfile.bda"
 SELIS_POSTGRES_DOCKERFILE="Dockerfile.postgres"
 SELIS_HBASE_DOCKERFILE="Dockerfile.hbase"
+SELIS_SPARK_DOCKERFILE="Dockerfile.spark"
 
 SELIS_BDA_IMAGE="selis-bda-image:latest"
 SELIS_POSTGRES_IMAGE="selis-postgres:latest"
 SELIS_HBASE_IMAGE="selis-hbase:latest"
+SELIS_SPARK_IMAGE="selis-spark:latest"
 
 SELIS_JDK_PULL_IMAGE="openjdk:latest"
 SELIS_POSTGRES_PULL_IMAGE="postgres:latest"
-SELIS_HBASE_PULL_IMAGE="dajobe/hbase"
-SELIS_KEYCLOAK_PULL_IMAGE="jboss/keycloak"
+SELIS_HBASE_PULL_IMAGE="dajobe/hbase:latest"
+SELIS_KEYCLOAK_PULL_IMAGE="jboss/keycloak:latest"
+SELIS_SPARK_PULL_IMAGE="p7hb/docker-spark:latest"
 
 SELIS_BDA_CONTAINER="selis-controller"
 SELIS_HBASE_CONTAINER="selis-hbase"
 SELIS_POSTGRES_CONTAINER="selis-postgres"
 SELIS_KEYCLOAK_CONTAINER="selis-keycloak"
+SELIS_SPARK_CONTAINER="selis-spark"
 
 ################################################################################
 # Clean all. ###################################################################
@@ -36,10 +40,12 @@ then
     docker rm "$SELIS_HBASE_CONTAINER"
     docker rm "$SELIS_POSTGRES_CONTAINER"
     docker rm "$SELIS_KEYCLOAK_CONTAINER"
+    docker rm "$SELIS_SPARK_CONTAINER"
 
     docker rmi "$SELIS_BDA_IMAGE"
     docker rmi "$SELIS_POSTGRES_IMAGE"
     docker rmi "$SELIS_HBASE_IMAGE"
+    docker rmi "$SELIS_SPARK_IMAGE"
 
     docker volume rm "$SELIS_POSTGRES_VOLUME"
     docker volume rm "$SELIS_HBASE_VOLUME"
@@ -85,6 +91,14 @@ then
     echo "Pulling keycloak image..."
 
     docker pull "$SELIS_KEYCLOAK_PULL_IMAGE"
+fi
+
+SELIS_SPARK_IMAGE_ID="$(docker images --quiet "$SELIS_SPARK_PULL_IMAGE")"
+if [ "$SELIS_SPARK_IMAGE_ID" == "" ]
+then
+    echo "Pulling spark image..."
+
+    docker pull "$SELIS_SPARK_PULL_IMAGE"
 fi
 
 ################################################################################
@@ -176,6 +190,19 @@ then
         .
 fi
 
+SELIS_SPARK_IMAGE_ID="$(docker images --quiet "$SELIS_SPARK_IMAGE")"
+
+if [ "$SELIS_SPARK_IMAGE_ID" == "" ]
+then
+    echo "Building spark image..."
+
+    docker build \
+        --file "$SELIS_SPARK_DOCKERFILE" \
+        --tag "$SELIS_SPARK_IMAGE" \
+        .
+fi
+
+
 ################################################################################
 # Run containers. ##############################################################
 ################################################################################
@@ -213,7 +240,7 @@ then
     fi
 
    if [ "$2" == "keycloak" ] || [ "$2" == "all" ]
-    then
+   then
         echo "Running selis keycloak container."
 
         docker run \
@@ -225,6 +252,21 @@ then
             --env KEYCLOAK_PASSWORD=123456 \
             --name "$SELIS_KEYCLOAK_CONTAINER" \
             "$SELIS_KEYCLOAK_PULL_IMAGE"
+    fi
+
+    if [ "$2" == "spark" ] || [ "$2" == "all" ]
+    then
+        echo "Running selis spark container."
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --publish 127.0.0.1:4040:4040 \
+            --publish 127.0.0.1:8080:8080 \
+            --publish 127.0.0.1:8081:8081 \
+            --env SPARK_NO_DAEMONIZE=True \
+            --name "$SELIS_SPARK_CONTAINER" \
+            "$SELIS_SPARK_IMAGE"
     fi
 
     if [ "$2" == "controller" ] || [ "$2" == "all" ]
@@ -254,6 +296,7 @@ then
     docker start "$SELIS_POSTGRES_CONTAINER"
     docker start "$SELIS_KEYCLOAK_CONTAINER"
     docker start "$SELIS_BDA_CONTAINER"
+    docker start "$SELIS_SPARK_CONTAINER"
 fi
 
 
@@ -269,4 +312,5 @@ then
     docker stop "$SELIS_HBASE_CONTAINER"
     docker stop "$SELIS_POSTGRES_CONTAINER"
     docker stop "$SELIS_KEYCLOAK_CONTAINER"
+    docker stop "$SELIS_SPARK_CONTAINER"
 fi
