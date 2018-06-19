@@ -20,6 +20,7 @@ public class Configuration {
     public final PubSubSubscriber subscriber;
     public final AuthClientBackend authClientBackend;
     public final KPIBackend kpiBackend;
+    public final TestBackend testBackend;
 
     public class Server {
         private String address;
@@ -99,12 +100,23 @@ public class Configuration {
 
     }
 
+    public class TestBackend {
+        private String dbUrl, dbUsername, dbPassword;
+
+        public String getDbUrl() { return dbUrl; }
+
+        public String getDbUsername() { return dbUsername; }
+
+        public String getDbPassword() { return dbPassword; }
+    }
+
     public Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
         this.subscriber = new PubSubSubscriber();
         this.authClientBackend = new AuthClientBackend();
         this.kpiBackend = new KPIBackend();
+        this.testBackend = new TestBackend();
     }
 
     /**
@@ -173,6 +185,12 @@ public class Configuration {
         conf.kpiBackend.dbUrl = properties.getProperty("kpi.db.url");
         conf.kpiBackend.dbUsername = properties.getProperty("kpi.db.username");
         conf.kpiBackend.dbPassword = properties.getProperty("kpi.db.password");
+
+        // Test Backend configuration
+        conf.testBackend.dbUrl      = properties.getProperty("test.db.url");
+        conf.testBackend.dbUsername = properties.getProperty("test.db.username");
+        conf.testBackend.dbPassword = properties.getProperty("test.db.password");
+
         return conf;
     }
 }
