@@ -126,7 +126,7 @@ public class HelloWorldTest {
                 obj.getJSONObject("args").toString());
     }
 
-    private ResultSet fetch_engines() {
+    private void fetch_engines() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
         Connection conn = BDAdbConnector.getInstance().getBdaConnection();
 
@@ -137,11 +137,32 @@ public class HelloWorldTest {
             statement = conn.createStatement();
 
             engines = statement.executeQuery("SELECT * FROM execution_engines;");
+
+            if (engines != null) {
+                while (engines.next()) {
+                    Entrypoint.analyticsComponent.getEngineCatalog().addNewExecutEngine(
+                            engines.getInt("id"),
+                            engines.getString("name"),
+                            engines.getString("engine_path"),
+                            engines.getBoolean("local_engine"),
+                            new JSONObject(engines.getString("args"))
+                    );
+                }
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return engines;
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        LOGGER.log(Level.INFO, "Fetched engines : " + Entrypoint.analyticsComponent.
+                getEngineCatalog().getAllExecutEngines() + "\n");
+
     }
 
     private void initialize_components() {
@@ -158,9 +179,9 @@ public class HelloWorldTest {
         Entrypoint.analyticsComponent = AnalyticsSystem.getInstance(
                 Entrypoint.configuration.kpiBackend.getDbUrl(),
                 Entrypoint.configuration.kpiBackend.getDbUsername(),
-                Entrypoint.configuration.kpiBackend.getDbPassword(),
-                fetch_engines()
+                Entrypoint.configuration.kpiBackend.getDbPassword()
         );
+        fetch_engines();
 
         LOGGER.log(Level.INFO, "Creating folders for uploaded recipes and recipe results");
 

@@ -4,7 +4,7 @@ import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutEngineCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
-import gr.ntua.ece.cslab.selis.bda.analytics.kpis.KpiFactory;
+import gr.ntua.ece.cslab.selis.bda.analytics.runners.RunnerFactory;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 
 import java.sql.ResultSet;
@@ -16,11 +16,10 @@ public class AnalyticsInstance {
     private KpiCatalog kpiCatalog;
 
     AnalyticsInstance(String kpidbURL, String username,
-                      String password, ResultSet engines) {
+                      String password) {
         this.kpidb = new KPIBackend(kpidbURL, username, password);
         this.kpiCatalog = new KpiCatalog();
         this.engineCatalog = new ExecutEngineCatalog();
-        engineCatalog.initialize(engines);
     }
 
     public KPIBackend getKpidb() {
@@ -36,7 +35,10 @@ public class AnalyticsInstance {
         ExecutEngineDescriptor engine =  engineCatalog.getExecutEngine(
                 kpi.getExecutable().getEngineID()
         );
-        Runnable runner = KpiFactory.getInstance().getRunner(kpi, engine, message, this.kpidb);
+        System.out.println("Engine id : " + kpi.getExecutable().getEngineID());
+        System.out.println(kpi.toString());
+        System.out.println(engine);
+        Runnable runner = RunnerFactory.getInstance().getRunner(kpi, engine, message, this.kpidb);
 
 
         Thread t = new Thread(runner);

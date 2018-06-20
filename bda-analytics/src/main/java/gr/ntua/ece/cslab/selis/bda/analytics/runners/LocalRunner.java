@@ -1,4 +1,4 @@
-package gr.ntua.ece.cslab.selis.bda.analytics.kpis;
+package gr.ntua.ece.cslab.selis.bda.analytics.runners;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -12,13 +12,14 @@ import java.util.stream.Stream;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
+import gr.ntua.ece.cslab.selis.bda.analytics.runners.ArgumentParser;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
 import org.json.JSONObject;
 import org.mortbay.util.ajax.JSON;
 
-public class LocalKpi extends ArgumentParser implements Runnable {
+public class LocalRunner extends ArgumentParser implements Runnable {
 
     String engine_part;
     String recipe_part;
@@ -27,7 +28,7 @@ public class LocalKpi extends ArgumentParser implements Runnable {
     KPIBackend kpidb;
     String message;
 
-    public LocalKpi(KpiDescriptor kpi,
+    public LocalRunner(KpiDescriptor kpi,
                     ExecutEngineDescriptor engine,
                     String message,
                     KPIBackend kpidb) {

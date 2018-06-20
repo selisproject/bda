@@ -7,9 +7,9 @@ public class AnalyticsSystem {
 	private static AnalyticsInstance system;
 
 	public static AnalyticsInstance getInstance(String kpidbURL, String username,
-												String password, ResultSet engines) {
+												String password) {
 		if (system == null) {
-			system = new AnalyticsInstance(kpidbURL, username, password, engines);
+			system = new AnalyticsInstance(kpidbURL, username, password);
 		}
 		return system;
 	}
