@@ -16,11 +16,10 @@ public class AnalyticsInstance {
     private KpiCatalog kpiCatalog;
 
     AnalyticsInstance(String kpidbURL, String username,
-                      String password, ResultSet engines) {
+                      String password) {
         this.kpidb = new KPIBackend(kpidbURL, username, password);
         this.kpiCatalog = new KpiCatalog();
         this.engineCatalog = new ExecutEngineCatalog();
-        engineCatalog.initialize(engines);
     }
 
     public KPIBackend getKpidb() {
@@ -36,6 +35,9 @@ public class AnalyticsInstance {
         ExecutEngineDescriptor engine =  engineCatalog.getExecutEngine(
                 kpi.getExecutable().getEngineID()
         );
+        System.out.println("Engine id : " + kpi.getExecutable().getEngineID());
+        System.out.println(kpi.toString());
+        System.out.println(engine);
         Runnable runner = KpiFactory.getInstance().getRunner(kpi, engine, message, this.kpidb);
 
 
