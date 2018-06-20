@@ -9,12 +9,10 @@ SELIS_HBASE_VOLUME="selis-hbase-volume"
 SELIS_BDA_DOCKERFILE="Dockerfile.bda"
 SELIS_POSTGRES_DOCKERFILE="Dockerfile.postgres"
 SELIS_HBASE_DOCKERFILE="Dockerfile.hbase"
-SELIS_SPARK_DOCKERFILE="Dockerfile.spark"
 
 SELIS_BDA_IMAGE="selis-bda-image:latest"
 SELIS_POSTGRES_IMAGE="selis-postgres:latest"
 SELIS_HBASE_IMAGE="selis-hbase:latest"
-SELIS_SPARK_IMAGE="selis-spark:latest"
 
 SELIS_JDK_PULL_IMAGE="openjdk:latest"
 SELIS_POSTGRES_PULL_IMAGE="postgres:latest"
@@ -26,7 +24,8 @@ SELIS_BDA_CONTAINER="selis-controller"
 SELIS_HBASE_CONTAINER="selis-hbase"
 SELIS_POSTGRES_CONTAINER="selis-postgres"
 SELIS_KEYCLOAK_CONTAINER="selis-keycloak"
-SELIS_SPARK_CONTAINER="selis-spark"
+SELIS_SPARK_MASTER_CONTAINER="selis-spark-master"
+SELIS_SPARK_WORKER_CONTAINER="selis-spark-worker"
 
 ################################################################################
 # Clean all. ###################################################################
@@ -40,12 +39,12 @@ then
     docker rm "$SELIS_HBASE_CONTAINER"
     docker rm "$SELIS_POSTGRES_CONTAINER"
     docker rm "$SELIS_KEYCLOAK_CONTAINER"
-    docker rm "$SELIS_SPARK_CONTAINER"
+    docker rm "$SELIS_SPARK_MASTER_CONTAINER"
+    docker rm "$SELIS_SPARK_WORKER_CONTAINER"
 
     docker rmi "$SELIS_BDA_IMAGE"
     docker rmi "$SELIS_POSTGRES_IMAGE"
     docker rmi "$SELIS_HBASE_IMAGE"
-    docker rmi "$SELIS_SPARK_IMAGE"
 
     docker volume rm "$SELIS_POSTGRES_VOLUME"
     docker volume rm "$SELIS_HBASE_VOLUME"
@@ -190,19 +189,6 @@ then
         .
 fi
 
-SELIS_SPARK_IMAGE_ID="$(docker images --quiet "$SELIS_SPARK_IMAGE")"
-
-if [ "$SELIS_SPARK_IMAGE_ID" == "" ]
-then
-    echo "Building spark image..."
-
-    docker build \
-        --file "$SELIS_SPARK_DOCKERFILE" \
-        --tag "$SELIS_SPARK_IMAGE" \
-        .
-fi
-
-
 ################################################################################
 # Run containers. ##############################################################
 ################################################################################
@@ -217,7 +203,7 @@ then
             --detach \
             --network "$SELIS_NETWORK" \
             --volume "$SELIS_POSTGRES_VOLUME":/var/lib/postgresql/data \
-	    --hostname "$SELIS_POSTGRES_CONTAINER" \
+            --hostname "$SELIS_POSTGRES_CONTAINER" \
             --name "$SELIS_POSTGRES_CONTAINER" \
             "$SELIS_POSTGRES_IMAGE"
     fi
@@ -230,7 +216,7 @@ then
             --detach \
             --network "$SELIS_NETWORK" \
             --volume "$SELIS_HBASE_VOLUME":/data \
-	    --hostname "$SELIS_HBASE_CONTAINER" \
+            --hostname "$SELIS_HBASE_CONTAINER" \
             --name "$SELIS_HBASE_CONTAINER" \
             "$SELIS_HBASE_IMAGE"
 
@@ -252,33 +238,41 @@ then
             --env DB_VENDOR=H2 \
             --env KEYCLOAK_USER=selis-admin \
             --env KEYCLOAK_PASSWORD=123456 \
-	    --hostname "$SELIS_KEYCLOAK_CONTAINER" \
+            --hostname "$SELIS_KEYCLOAK_CONTAINER" \
             --name "$SELIS_KEYCLOAK_CONTAINER" \
             "$SELIS_KEYCLOAK_PULL_IMAGE"
     fi
 
     if [ "$2" == "spark" ] || [ "$2" == "all" ]
     then
-        echo "Running selis spark container."
+        echo "Running selis spark master container."
 
         docker run \
             --detach \
             --network "$SELIS_NETWORK" \
-	    --publish 127.0.0.1:7077:7077 \
-            --publish 127.0.0.1:4040:4040 \
             --publish 127.0.0.1:8080:8080 \
+            --env SPARK_NO_DAEMONIZE=True \
+            --hostname "$SELIS_SPARK_MASTER_CONTAINER" \
+            --name "$SELIS_SPARK_MASTER_CONTAINER" \
+            "$SELIS_SPARK_PULL_IMAGE" \
+            start-master.sh
+
+        echo "Running selis spark worker container."
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
             --publish 127.0.0.1:8081:8081 \
             --env SPARK_NO_DAEMONIZE=True \
-	    --hostname "$SELIS_SPARK_CONTAINER" \
-            --name "$SELIS_SPARK_CONTAINER" \
-            "$SELIS_SPARK_IMAGE" \
-	    /initialize-spark.d/initialize-spark.sh
+            --hostname "$SELIS_SPARK_WORKER_CONTAINER" \
+            --name "$SELIS_SPARK_WORKER_CONTAINER" \
+            "$SELIS_SPARK_PULL_IMAGE" \
+            start-slave.sh "spark://$SELIS_SPARK_MASTER_CONTAINER:7077"
     fi
 
     if [ "$2" == "controller" ] || [ "$2" == "all" ]
     then
         echo "Running selis controller container."
-	spark_master_ip=$(sudo docker exec -i -t selis-spark cat /etc/hosts|grep 'selis-spark'|sed -e "s/selis-spark//")
 
         docker run \
             --tty \
@@ -287,9 +281,9 @@ then
             --volume "$SELIS_SRC_DIR":/code \
             --publish 127.0.0.1:9999:9999 \
             --hostname "$SELIS_BDA_CONTAINER" \
-	    --name "$SELIS_BDA_CONTAINER" \
+            --name "$SELIS_BDA_CONTAINER" \
             "$SELIS_BDA_IMAGE"
-   fi
+    fi
 fi
 
 ################################################################################
@@ -303,8 +297,9 @@ then
     docker start "$SELIS_HBASE_CONTAINER"
     docker start "$SELIS_POSTGRES_CONTAINER"
     docker start "$SELIS_KEYCLOAK_CONTAINER"
+    docker start "$SELIS_SPARK_MASTER_CONTAINER"
+    docker start "$SELIS_SPARK_WORKER_CONTAINER"
     docker start "$SELIS_BDA_CONTAINER"
-    docker start "$SELIS_SPARK_CONTAINER"
 fi
 
 
@@ -320,5 +315,6 @@ then
     docker stop "$SELIS_HBASE_CONTAINER"
     docker stop "$SELIS_POSTGRES_CONTAINER"
     docker stop "$SELIS_KEYCLOAK_CONTAINER"
-    docker stop "$SELIS_SPARK_CONTAINER"
+    docker stop "$SELIS_SPARK_MASTER_CONTAINER"
+    docker stop "$SELIS_SPARK_WORKER_CONTAINER"
 fi
