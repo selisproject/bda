@@ -273,8 +273,6 @@ then
             --name "$SELIS_SPARK_CONTAINER" \
             "$SELIS_SPARK_IMAGE" \
 	    /initialize-spark.d/initialize-spark.sh
-	#need to pass information about the spark master running here into the selis controller container
-	#spark_master_ip=$(sudo docker exec -i -t selis-spark cat /etc/hosts|grep 'selis-spark'|sed -e "s/selis-spark//")
     fi
 
     if [ "$2" == "controller" ] || [ "$2" == "all" ]
