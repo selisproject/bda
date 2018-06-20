@@ -1,4 +1,4 @@
-package gr.ntua.ece.cslab.selis.bda.analytics.kpis;
+package gr.ntua.ece.cslab.selis.bda.analytics.runners;
 
 import java.util.List;
 
@@ -8,15 +8,15 @@ import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 
-public class KpiFactory {
-	public static KpiFactory kpiFactory;
+public class RunnerFactory {
+	public static RunnerFactory runnerFactory;
 
-	private KpiFactory() {}
+	private RunnerFactory() {}
 
-	public static KpiFactory getInstance() {
-		if (kpiFactory == null)
-			kpiFactory = new KpiFactory();
-		return kpiFactory;
+	public static RunnerFactory getInstance() {
+		if (runnerFactory == null)
+			runnerFactory = new RunnerFactory();
+		return runnerFactory;
 	}
 	public Runnable getRunner(KpiDescriptor kpi,
 							  ExecutEngineDescriptor engine,
@@ -24,7 +24,7 @@ public class KpiFactory {
                               KPIBackend kpidb
 	) {
 		if (engine.isLocal_engine())
-			return new LocalKpi(kpi, engine, message, kpidb);
+			return new LocalRunner(kpi, engine, message, kpidb);
 		return null;
 	};
 }
