@@ -44,4 +44,13 @@ public class KPI {
     public void setEntries(List<KeyValue> entries) {
         this.entries = entries;
     }
+
+    @Override
+    public String toString() {
+        return "KPI{" +
+                "kpi_name='" + kpi_name + '\'' +
+                ", timestamp='" + timestamp + '\'' +
+                ", entries=[" + entries +
+                "]";
+    }
 }

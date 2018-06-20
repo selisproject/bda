@@ -45,12 +45,13 @@ public class BDAdbConnector {
     public Connection getBdaConnection() {
         Connection connection = null;
 
-        try {
-            connection = this.bdaPooledDataSource.getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        while (connection == null) {
+            try {
+                connection = this.bdaPooledDataSource.getConnection();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
-
         return connection;
     }
 
