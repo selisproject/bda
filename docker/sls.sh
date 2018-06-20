@@ -217,6 +217,7 @@ then
             --detach \
             --network "$SELIS_NETWORK" \
             --volume "$SELIS_POSTGRES_VOLUME":/var/lib/postgresql/data \
+	    --hostname "$SELIS_POSTGRES_CONTAINER" \
             --name "$SELIS_POSTGRES_CONTAINER" \
             "$SELIS_POSTGRES_IMAGE"
     fi
@@ -229,6 +230,7 @@ then
             --detach \
             --network "$SELIS_NETWORK" \
             --volume "$SELIS_HBASE_VOLUME":/data \
+	    --hostname "$SELIS_HBASE_CONTAINER" \
             --name "$SELIS_HBASE_CONTAINER" \
             "$SELIS_HBASE_IMAGE"
 
@@ -250,6 +252,7 @@ then
             --env DB_VENDOR=H2 \
             --env KEYCLOAK_USER=selis-admin \
             --env KEYCLOAK_PASSWORD=123456 \
+	    --hostname "$SELIS_KEYCLOAK_CONTAINER" \
             --name "$SELIS_KEYCLOAK_CONTAINER" \
             "$SELIS_KEYCLOAK_PULL_IMAGE"
     fi
@@ -266,17 +269,18 @@ then
             --publish 127.0.0.1:8080:8080 \
             --publish 127.0.0.1:8081:8081 \
             --env SPARK_NO_DAEMONIZE=True \
-	    -h selis-spark \
+	    --hostname "$SELIS_SPARK_CONTAINER" \
             --name "$SELIS_SPARK_CONTAINER" \
             "$SELIS_SPARK_IMAGE" \
 	    /initialize-spark.d/initialize-spark.sh
 	#need to pass information about the spark master running here into the selis controller container
-	spark_master_ip=$(sudo docker exec -i -t selis-spark cat /etc/hosts|grep 'selis-spark'|sed -e "s/selis-spark//")
+	#spark_master_ip=$(sudo docker exec -i -t selis-spark cat /etc/hosts|grep 'selis-spark'|sed -e "s/selis-spark//")
     fi
 
     if [ "$2" == "controller" ] || [ "$2" == "all" ]
     then
         echo "Running selis controller container."
+	spark_master_ip=$(sudo docker exec -i -t selis-spark cat /etc/hosts|grep 'selis-spark'|sed -e "s/selis-spark//")
 
         docker run \
             --tty \
@@ -284,7 +288,7 @@ then
             --network "$SELIS_NETWORK" \
             --volume "$SELIS_SRC_DIR":/code \
             --publish 127.0.0.1:9999:9999 \
-	    --env SPARK_MASTER_IP="$spark_master_ip" \
+            --hostname "$SELIS_BDA_CONTAINER" \
 	    --name "$SELIS_BDA_CONTAINER" \
             "$SELIS_BDA_IMAGE"
    fi
