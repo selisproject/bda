@@ -110,17 +110,10 @@ public class MessageType implements Serializable {
             while (resultSet.next()) {
                 messageTypeNames.addElement(resultSet.getString("name"));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
             connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-
 
         return messageTypeNames;
     }

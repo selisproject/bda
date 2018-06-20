@@ -63,5 +63,11 @@
 			<artifactId>kpi-db</artifactId>
 			<version>0.1.0</version>
 		</dependency>
-    </dependencies>
+		<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-launcher -->
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-launcher_2.11</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+	</dependencies>
 </project>
