@@ -266,10 +266,12 @@ then
             --publish 127.0.0.1:8080:8080 \
             --publish 127.0.0.1:8081:8081 \
             --env SPARK_NO_DAEMONIZE=True \
+	    -h selis-spark \
             --name "$SELIS_SPARK_CONTAINER" \
-            "$SELIS_SPARK_IMAGE"
+            "$SELIS_SPARK_IMAGE" \
+	    /initialize-spark.d/initialize-spark.sh
 	#need to pass information about the spark master running here into the selis controller container
-	#i.e. spark_master_ip=$(sudo docker exec -i -t spark cat /etc/hosts|grep 'spark'|sed -e "s/spark//")
+	spark_master_ip=$(sudo docker exec -i -t selis-spark cat /etc/hosts|grep 'selis-spark'|sed -e "s/selis-spark//")
     fi
 
     if [ "$2" == "controller" ] || [ "$2" == "all" ]
@@ -282,11 +284,10 @@ then
             --network "$SELIS_NETWORK" \
             --volume "$SELIS_SRC_DIR":/code \
             --publish 127.0.0.1:9999:9999 \
-            --name "$SELIS_BDA_CONTAINER" \
+	    --env SPARK_MASTER_IP="$spark_master_ip" \
+	    --name "$SELIS_BDA_CONTAINER" \
             "$SELIS_BDA_IMAGE"
-	#need to pass information about the spark master running in the dedicated container here
-	#i.e. --env SPARK_MASTER="$spark_master_ip"
-    fi
+   fi
 fi
 
 ################################################################################
