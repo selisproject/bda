@@ -36,3 +36,6 @@ test.db.url      = jdbc:postgresql://selis-postgres:5432/selis_test_db
 kpi.db.username = selis
 kpi.db.password = 123456
 kpi.db.url      = jdbc:postgresql://selis-postgres:5432/selis_kpi_db
+
+# Spark configuration
+spark.master.url = spark://selis-spark:7077
