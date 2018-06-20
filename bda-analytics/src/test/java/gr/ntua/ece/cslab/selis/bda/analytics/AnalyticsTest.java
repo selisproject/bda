@@ -19,7 +19,7 @@ public class AnalyticsTest {
 		String fs_string = "jdbc:postgresql://selis-postgres:5432/selis_test_db";
 		String uname = "selis";
 		String passwd = "123456";
-		instance = AnalyticsSystem.getInstance(fs_string, uname, passwd, null);
+		instance = AnalyticsSystem.getInstance(fs_string, uname, passwd);
 		instance.getEngineCatalog().addNewExecutEngine(1, "python3",
 				"/usr/bin/python3", true, new JSONObject());
 		instance.getKpiCatalog().addNewKpi(1, "recipe",

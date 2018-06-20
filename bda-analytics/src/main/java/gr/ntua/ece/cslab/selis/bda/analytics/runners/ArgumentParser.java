@@ -1,4 +1,4 @@
-package gr.ntua.ece.cslab.selis.bda.analytics.kpis;
+package gr.ntua.ece.cslab.selis.bda.analytics.runners;
 
 import org.json.JSONObject;
 
