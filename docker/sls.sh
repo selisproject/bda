@@ -291,7 +291,6 @@ then
     if [ "$2" == "controller" ] || [ "$2" == "all" ]
     then
         echo "Running selis controller container."
-	spark_master_ip=$(sudo docker exec -i -t selis-spark cat /etc/hosts|grep 'selis-spark'|sed -e "s/selis-spark//")
 
         docker run \
             --tty \
