@@ -1,4 +1,4 @@
-FROM openjdk:latest
+FROM p7hb/docker-spark:latest
 
 # Declare `localuser` as build argument.
 ARG localuser

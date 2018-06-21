@@ -58,8 +58,9 @@ public class SparkRunner extends ArgumentParser implements Runnable {
         try {
             spark = new SparkLauncher()
                     .setMaster(engine_part)
+                    .setDeployMode("cluster")
                     .setAppResource(recipe_part)
-                    .redirectOutput(new File("/results/" + kpiDescriptor.getName() + ".out"))
+                    //.redirectOutput(new File("/results/" + kpiDescriptor.getName() + ".out"))
                     .addAppArgs(message).launch();
         } catch (IOException e) {
             e.printStackTrace();
@@ -71,11 +72,13 @@ public class SparkRunner extends ArgumentParser implements Runnable {
             e.printStackTrace();
             LOGGER.log(Level.WARNING,"Spark job execution was interrupted!");
         }
-        try {
+        /*try {
             store("/results/" + kpiDescriptor.getName() + ".out");
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
+        spark.destroy();
+        LOGGER.log(Level.INFO,"Spark job finished!");
     }
 
     private void store(String outputpath) throws Exception {
