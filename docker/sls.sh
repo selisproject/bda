@@ -300,6 +300,7 @@ then
             --network "$SELIS_NETWORK" \
             --volume "$SELIS_SRC_DIR":/code \
             --publish 127.0.0.1:9999:9999 \
+            --env PYSPARK_PYTHON=python3
             --hostname "$SELIS_BDA_CONTAINER" \
             --name "$SELIS_BDA_CONTAINER" \
             "$SELIS_BDA_IMAGE"

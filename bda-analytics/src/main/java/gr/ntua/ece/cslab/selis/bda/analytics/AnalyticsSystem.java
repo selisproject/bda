@@ -1,7 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.analytics;
 
-import java.sql.ResultSet;
-
 public class AnalyticsSystem {
 
 	private static AnalyticsInstance system;
