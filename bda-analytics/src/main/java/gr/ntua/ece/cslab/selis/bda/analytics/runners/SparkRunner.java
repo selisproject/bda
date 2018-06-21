@@ -47,7 +47,6 @@ public class SparkRunner extends ArgumentParser implements Runnable {
     public void run() {
         SparkAppHandle handle = null;
         try {
-            System.out.println(message);
             handle = new SparkLauncher()
                     .setMaster(engine_part)
                     .setDeployMode("client")
