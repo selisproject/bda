@@ -1,6 +1,4 @@
 FROM p7hb/docker-spark:latest
-ADD ./bootstrap/initialize-spark.sh /initialize-spark.d/
-#CMD [ "start-master.sh" ]
-#####################################################################################################################################
-#run with:
-#$ docker run -it -d -p 7077:7077 -p 4040:4040 -p 8080:8080 -p 8081:8081 -h spark --name=spark selis-spark /initialize-spark.d/initialize-spark.sh
+RUN apt-get update && apt-get install python3 python3-pip -y
+RUN pip3 install psycopg2 py-dateutil requests
+RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --directory-prefix=/resources/

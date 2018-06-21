@@ -269,9 +269,10 @@ then
             --network "$SELIS_NETWORK" \
             --publish 127.0.0.1:8080:8080 \
             --env SPARK_NO_DAEMONIZE=True \
+            --env PYSPARK_PYTHON=python3 \
             --hostname "$SELIS_SPARK_MASTER_CONTAINER" \
             --name "$SELIS_SPARK_MASTER_CONTAINER" \
-            "$SELIS_SPARK_PULL_IMAGE" \
+            "$SELIS_SPARK_IMAGE" \
             start-master.sh
 
         echo "Running selis spark worker container."
@@ -281,9 +282,10 @@ then
             --network "$SELIS_NETWORK" \
             --publish 127.0.0.1:8081:8081 \
             --env SPARK_NO_DAEMONIZE=True \
+            --env PYSPARK_PYTHON=python3 \
             --hostname "$SELIS_SPARK_WORKER_CONTAINER" \
             --name "$SELIS_SPARK_WORKER_CONTAINER" \
-            "$SELIS_SPARK_PULL_IMAGE" \
+            "$SELIS_SPARK_IMAGE" \
             start-slave.sh "spark://$SELIS_SPARK_MASTER_CONTAINER:7077"
 
     fi
