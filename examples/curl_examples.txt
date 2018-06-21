@@ -1,10 +1,23 @@
+// Bootstrap dimension tables
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @master_data.json http://localhost:9999/api/datastore/boot && echo
+
+// Store message in eventlog
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore && echo
+
+// Create message type to subscribe to
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msgtype.json http://localhost:9999/api/message && echo
+
+// Create a new job (message-triggered or cron)
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @job.json http://localhost:9999/api/job && echo
+
+// Get data from eventlog
 curl -ik -X GET "http://localhost:9999/api/datastore?type=rows&n=-1" && echo
-curl -ik -X GET "http://localhost:9999/api/datastore/dtable?tableName=warehouses&filters='warehouse_id=1'" && echo
 curl -ik -X GET "http://localhost:9999/api/datastore/select?filters='warehouse_id=1&message_type=stocklevels'" && echo
+
+// Get data from dimension tables
+curl -ik -X GET "http://localhost:9999/api/datastore/dtable?tableName=warehouses&filters='warehouse_id=1'" && echo
+
+// Print dimension tables schema
 curl -ik -X GET http://localhost:9999/api/datastore/schema && echo
 
 // Add new recipe

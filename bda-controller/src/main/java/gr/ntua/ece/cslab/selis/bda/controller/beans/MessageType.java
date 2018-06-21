@@ -82,21 +82,21 @@ public class MessageType implements Serializable {
     private final static String ACTIVE_MESSAGE_NAMES_QUERY =
         "SELECT name " +
         "FROM message_type " +
-        "WHERE active = true";
+        "WHERE active = true;";
 
     private final static String GET_MESSAGE_BY_NAME_QUERY =
         "SELECT id, name, description, active, format " +
         "FROM message_type " +
-        "WHERE name = ?";
+        "WHERE name = ?;";
 
     private final static String GET_MESSAGE_BY_ID_QUERY =
             "SELECT * " +
             "FROM message_type " +
-            "WHERE id = ?";
+            "WHERE id = ?;";
 
     private final static String INSERT_MESSAGE_QUERY =
         "INSERT INTO message_type (name,description,active,format) " +
-        "VALUES (?, ?, ?, ?)";
+        "VALUES (?, ?, ?, ?);";
 
     public static List<String> getActiveMessageTypeNames() {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
@@ -113,6 +113,14 @@ public class MessageType implements Serializable {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
 
         return messageTypeNames;
     }
@@ -136,12 +144,44 @@ public class MessageType implements Serializable {
 
                 msg.id = resultSet.getInt("id");
 
+                connection.close();
                 return msg;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        connection.close();
+        throw new SQLException("JobDescription object not found.");
+    }
+
+    public static MessageType getMessageById(int id) throws SQLException {
+        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_MESSAGE_BY_ID_QUERY);
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                MessageType msg = new MessageType(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("active"),
+                        resultSet.getString("format")
+                );
+
+                msg.id = resultSet.getInt("id");
+
+                connection.close();
+                return msg;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
@@ -158,6 +198,7 @@ public class MessageType implements Serializable {
 
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type");
 
+        connection.close();
         // TODO: Verify if we want autocommit. Set it explicitely.
         // connection.commit();
     }

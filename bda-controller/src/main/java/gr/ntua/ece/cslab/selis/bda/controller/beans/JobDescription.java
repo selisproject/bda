@@ -24,22 +24,22 @@ public class JobDescription implements Serializable {
     private final static String ACTIVE_JOBS_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
         "FROM jobs " +
-        "WHERE active = true";
+        "WHERE active = true;";
 
     private final static String GET_JOB_BY_ID_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
         "FROM jobs " +
-        "WHERE id = ?";
+        "WHERE id = ?;";
 
     private final static String GET_JOB_BY_MESSAGE_ID_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
         "FROM jobs " +
-        "WHERE message_type_id = ?";
+        "WHERE message_type_id = ?;";
 
     private final static String INSERT_JOB_QUERY =
         "INSERT INTO jobs (name, description, active, message_type_id, recipe_id, job_type) " +
         "VALUES (?, ?, ?, ?, ?, ?) " +
-        "RETURNING id";
+        "RETURNING id;";
 
     public JobDescription() { }
 
@@ -199,12 +199,14 @@ public class JobDescription implements Serializable {
                 job.id = resultSet.getInt("id");
                 job.exists = true;
 
+                connection.close();
                 return job;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
@@ -230,6 +232,8 @@ public class JobDescription implements Serializable {
             if (resultSet.next()) {
                 this.id = resultSet.getInt("id");
             }
+
+            connection.close();
         } else {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");

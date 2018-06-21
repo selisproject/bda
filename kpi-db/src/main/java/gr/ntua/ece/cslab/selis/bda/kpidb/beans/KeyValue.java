@@ -58,4 +58,11 @@ public class KeyValue implements Serializable {
         this.value = value;
     }
 
+    @Override
+    public String toString() {
+        return "KeyValue{" +
+                "key='" + key + '\'' +
+                ", value='" + value + '\'' +
+                "}\n";
+    }
 }

@@ -13,6 +13,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
+import org.json.JSONObject;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
 import java.io.File;
@@ -62,7 +63,8 @@ public class Entrypoint {
         );
     }
 
-    private static ResultSet fetch_engines() {
+
+    private static void fetch_engines() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
         Connection conn = BDAdbConnector.getInstance().getBdaConnection();
 
@@ -73,11 +75,73 @@ public class Entrypoint {
             statement = conn.createStatement();
 
             engines = statement.executeQuery("SELECT * FROM execution_engines;");
+
+            if (engines != null) {
+                while (engines.next()) {
+                    Entrypoint.analyticsComponent.getEngineCatalog().addNewExecutEngine(
+                            engines.getInt("id"),
+                            engines.getString("name"),
+                            engines.getString("engine_path"),
+                            engines.getBoolean("local_engine"),
+                            new JSONObject(engines.getString("args"))
+                    );
+                }
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return engines;
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        LOGGER.log(Level.INFO, "Fetched engines : " + Entrypoint.analyticsComponent.
+                getEngineCatalog().getAllExecutEngines() + "\n");
+
+    }
+
+    private static void fetch_recipes() {
+        LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
+        Connection conn = BDAdbConnector.getInstance().getBdaConnection();
+
+        Statement statement;
+        ResultSet recipes = null;
+
+        try {
+            statement = conn.createStatement();
+
+            recipes = statement.executeQuery("SELECT * FROM recipes;");
+
+            if (recipes != null) {
+                while (recipes.next()) {
+                    Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
+                            recipes.getInt("id"),
+                            recipes.getString("name"),
+                            recipes.getString("description"),
+                            recipes.getInt("engine_id"),
+                            new JSONObject(recipes.getString("args")),
+                            recipes.getString("executable_path")
+                    );
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        LOGGER.log(Level.INFO, "Fetched recipes : " + Entrypoint.analyticsComponent.
+                getKpiCatalog().getAllKpis() + "\n");
+
+
     }
 
     private static void analyticsModuleInitialization() {
@@ -85,9 +149,10 @@ public class Entrypoint {
         analyticsComponent = AnalyticsSystem.getInstance(
             configuration.kpiBackend.getDbUrl(),
             configuration.kpiBackend.getDbUsername(),
-            configuration.kpiBackend.getDbPassword(),
-            fetch_engines()
+            configuration.kpiBackend.getDbPassword()
         );
+        fetch_engines();
+        fetch_recipes();
     }
 
     private static void pubSubConnectorsInitialization() {
@@ -152,11 +217,11 @@ public class Entrypoint {
         // Datastore module initialization
         storageBackendInitialization();
 
-        // PubSub connectors initialization
-        pubSubConnectorsInitialization();
-
         // KPI DB initialization
         analyticsModuleInitialization();
+
+        // PubSub connectors initialization
+        pubSubConnectorsInitialization();
 
         // AuthClient backend initialization.
         authClientBackendInitialization();

@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 
+import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import org.apache.commons.io.IOUtils;
@@ -47,18 +48,23 @@ public class RecipeResource {
 
         try {
             r.save();
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e.toString());
 
             status = "ERROR";
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
         }
 
         try {
-            response.flushBuffer();
+            if (response != null) {
+                response.flushBuffer();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,7 +95,9 @@ public class RecipeResource {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
+                r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
+                new JSONObject(r.getArgs()), r.getExecutable_path());
         return new RequestResponse(status, details);
     }
 

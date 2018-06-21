@@ -28,23 +28,17 @@ public class ExecutEngineCatalog {
 			return new Gson().toJson(executEngines);
 	}
 
-	public void initialize(ResultSet engines) {
-		if (engines != null) {
-			try {
-				while (engines.next()) {
-					addNewExecutEngine(
-							engines.getInt("id"),
-							engines.getString("name"),
-							engines.getString("engine_path"),
-							engines.getBoolean("local_engine"),
-							new JSONObject(engines.getString("args"))
-					);
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+	//public void initialize(List<ExecutEngineDescriptor>) {
+		//if (engines != null) {
+		//	try {
+//
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//			}
+		//}
+
+
+	//}
 
 	public int getExecutEnginesCounter() {
 		return executEngines.size();
@@ -55,6 +49,6 @@ public class ExecutEngineCatalog {
 		ExecutEngineDescriptor newExecutEngineDescriptor = new ExecutEngineDescriptor(
 			engineName, executionPreamble, local_engine, args
 		);
-		executEngines.put(engineId, newExecutEngineDescriptor);
+		this.executEngines.put(engineId, newExecutEngineDescriptor);
 	}
 }
