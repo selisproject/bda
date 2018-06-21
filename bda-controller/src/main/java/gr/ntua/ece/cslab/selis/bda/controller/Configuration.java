@@ -2,8 +2,6 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -174,5 +172,6 @@ public class Configuration {
         conf.kpiBackend.dbUsername = properties.getProperty("kpi.db.username");
         conf.kpiBackend.dbPassword = properties.getProperty("kpi.db.password");
         return conf;
+
     }
 }
