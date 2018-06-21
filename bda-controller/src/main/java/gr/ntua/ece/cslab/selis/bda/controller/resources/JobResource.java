@@ -40,14 +40,11 @@ public class JobResource {
             }
 
             MessageType msg = MessageType.getMessageById(m.getMessageTypeId());
-            LOGGER.log(Level.INFO, "Fetched equivalent msg type.");
             Recipe r = Recipe.getRecipeById(m.getRecipeId());
-            LOGGER.log(Level.INFO, "Fetched equivalent recipe.");
             JSONObject msgFormat = new JSONObject(msg.getFormat());
             LOGGER.log(Level.INFO, "Create kpidb table..");
             Entrypoint.analyticsComponent.getKpidb().create(new KPITable(r.getName(),
                     new KPISchema(msgFormat)));
-            LOGGER.log(Level.INFO, "Created kpidb table..");
             Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(r.getId(), r.getName(), r.getDescription(),
                     r.getEngine_id(), new JSONObject(r.getArgs()), r.getExecutable_path());
 

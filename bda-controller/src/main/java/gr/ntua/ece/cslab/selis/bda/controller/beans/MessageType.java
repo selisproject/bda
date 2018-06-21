@@ -96,7 +96,8 @@ public class MessageType implements Serializable {
 
     private final static String INSERT_MESSAGE_QUERY =
         "INSERT INTO message_type (name,description,active,format) " +
-        "VALUES (?, ?, ?, ?);";
+        "VALUES (?, ?, ?, ?) " +
+        "RETURNING id;";
 
     public static List<String> getActiveMessageTypeNames() {
         Connection connection = BDAdbConnector.getInstance().getBdaConnection();
@@ -110,17 +111,10 @@ public class MessageType implements Serializable {
             while (resultSet.next()) {
                 messageTypeNames.addElement(resultSet.getString("name"));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
             connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-
 
         return messageTypeNames;
     }
@@ -194,10 +188,13 @@ public class MessageType implements Serializable {
         statement.setBoolean(3, this.active);
         statement.setString(4, this.format);
 
-        statement.executeUpdate();
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            this.id = resultSet.getInt("id");
 
-        LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type");
+        }
 
+        LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
         connection.close();
         // TODO: Verify if we want autocommit. Set it explicitely.
         // connection.commit();

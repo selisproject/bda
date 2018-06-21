@@ -146,15 +146,11 @@ public class Recipe implements Serializable {
 
                 recipes.addElement(recipe);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
             connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return recipes;
      }
 

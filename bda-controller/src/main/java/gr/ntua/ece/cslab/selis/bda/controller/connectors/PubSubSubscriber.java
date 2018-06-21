@@ -14,14 +14,11 @@ import com.google.gson.JsonParser;
 
 import java.sql.SQLException;
 import java.util.*;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PubSubSubscriber implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(PubSubSubscriber.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
-
-    private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private static String authHash;
     private static String hostname;
@@ -42,12 +39,10 @@ public class PubSubSubscriber implements Runnable {
 
     @Override
     public void run() {
-        PubSub pubsub;
-        Vector<Subscription> subscriptions = new Vector<Subscription>(DEFAULT_VECTOR_SIZE);
+        PubSub pubsub = null;
 
         while (reloadMessageTypesFlag) {
             reloadMessageTypesFlag = false;
-            subscriptions.clear();
 
             try {
                 pubsub = new PubSub(this.hostname, this.portNumber);
@@ -69,8 +64,6 @@ public class PubSubSubscriber implements Runnable {
                             }
                         }
                     });
-
-                    subscriptions.addElement(subscription);
                 }
 
                 LOGGER.log(Level.INFO, 
@@ -81,8 +74,10 @@ public class PubSubSubscriber implements Runnable {
                 LOGGER.log(Level.WARNING, 
                            "Could not subscribe, got error: {0}", 
                            ex.getMessage());
+                pubsub.close();
             } catch (Exception e) {
                 e.printStackTrace();
+                pubsub.close();
             }
 
             while (true) {
@@ -90,14 +85,17 @@ public class PubSubSubscriber implements Runnable {
                     Thread.sleep(300);
 
                     if (reloadMessageTypesFlag) {
+                        pubsub.close();
                         break;
                     }
                 } catch (InterruptedException e) {
                     LOGGER.log(Level.WARNING,"Subscriber was interrupted.");
+                    pubsub.close();
                     break;
                 }
             }
         }
+        pubsub.close();
         LOGGER.log(Level.INFO,"Subscriber finished.");
     }
 

@@ -1,11 +1,17 @@
 package gr.ntua.ece.cslab.selis.bda.analytics.runners;
 
+import org.apache.spark.launcher.SparkLauncher;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
@@ -13,7 +19,8 @@ import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
 import org.json.JSONObject;
 
-public class LocalRunner extends ArgumentParser implements Runnable {
+public class SparkRunner extends ArgumentParser implements Runnable {
+    private final static Logger LOGGER = Logger.getLogger(SparkLauncher.class.getCanonicalName());
 
     String engine_part;
     String recipe_part;
@@ -22,10 +29,10 @@ public class LocalRunner extends ArgumentParser implements Runnable {
     KPIBackend kpidb;
     String message;
 
-    public LocalRunner(KpiDescriptor kpi,
-                    ExecutEngineDescriptor engine,
-                    String message,
-                    KPIBackend kpidb) {
+    public SparkRunner(KpiDescriptor kpi,
+                       ExecutEngineDescriptor engine,
+                       String message,
+                       KPIBackend kpidb) {
         this.kpiDescriptor = kpi;
         this.engine = engine;
         this.message = message;
@@ -43,49 +50,52 @@ public class LocalRunner extends ArgumentParser implements Runnable {
 
         // Set the path of the recipe executable
         recipe_part += kpi.getExecutable().getOsPath();
-
     }
 
+    @Override
     public void run() {
+        Process spark = null;
         try {
-
-            System.out.println(engine_part);
-            System.out.println(recipe_part);
-            ProcessBuilder pb = new ProcessBuilder(Arrays.asList(
-                    engine_part, recipe_part, message,
-                    get_executable_arguments(kpiDescriptor.getExecutable().getArgs())));
-            File out = new File("/results/" + kpiDescriptor.getName() + ".out");
-            pb.redirectError(ProcessBuilder.Redirect.to(new File(
-                    "/results/" + kpiDescriptor.getName() + ".err")));
-            pb.redirectOutput(ProcessBuilder.Redirect.to(out));
-            Process p = pb.start();
-            p.waitFor();
+            spark = new SparkLauncher()
+                    .setMaster(engine_part)
+                    .setDeployMode("cluster")
+                    .setAppResource(recipe_part)
+                    //.redirectOutput(new File("/results/" + kpiDescriptor.getName() + ".out"))
+                    .addAppArgs(message).launch();
+        } catch (IOException e) {
+            e.printStackTrace();
+            LOGGER.log(Level.WARNING,"Spark job failed to start!");
+        }
+        try {
+            spark.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            LOGGER.log(Level.WARNING,"Spark job execution was interrupted!");
+        }
+        /*try {
             store("/results/" + kpiDescriptor.getName() + ".out");
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
-        }
-
+        }*/
+        spark.destroy();
+        LOGGER.log(Level.INFO,"Spark job finished!");
     }
 
     private void store(String outputpath) throws Exception {
-
-//		KPI newkpi = new KPI("sonae_orderforecast", (new Timestamp(System.currentTimeMillis())).toString(), data);
         JSONObject msg = new JSONObject(this.message);
         BufferedReader bufferedReader = new BufferedReader(new FileReader(outputpath));
         String line = null;
         StringBuffer sb = new StringBuffer();
         try {
             while ((line = bufferedReader.readLine()) != null) {
-                //System.out.println(line);
                 sb.append(line);
             }
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
         String result = sb.toString();
         result = result.replaceAll("\\s", "");
-        System.out.println(result);
+        LOGGER.log(Level.INFO,result);
         List<KeyValue> entries = new ArrayList<>();
         for (Iterator<String> it = msg.getJSONObject("payload").keys(); it.hasNext(); ) {
             String key = it.next();

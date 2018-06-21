@@ -139,6 +139,7 @@ public class JobDescription implements Serializable {
 
                 jobs.addElement(job);
             }
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -168,12 +169,13 @@ public class JobDescription implements Serializable {
                 job.id = resultSet.getInt("id");
                 job.exists = true;
 
+                connection.close();
                 return job;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
