@@ -51,6 +51,7 @@ public class SparkRunner extends ArgumentParser implements Runnable {
                     .setMaster(engine_part)
                     .setDeployMode("client")
                     .setAppResource(recipe_part)
+                    .setConf("spark.port.maxRetries","100")
                     .addSparkArg("--driver-class-path","/resources/postgresql-42.2.1.jar")
                     .addSparkArg("--jars","/resources/postgresql-42.2.1.jar")
                     //.redirectOutput(new File("/results/" + kpiDescriptor.getName() + ".out"))

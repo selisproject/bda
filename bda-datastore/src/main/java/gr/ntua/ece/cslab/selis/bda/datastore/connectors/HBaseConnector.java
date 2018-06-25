@@ -12,7 +12,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,9 +65,10 @@ public class HBaseConnector implements Connector {
         }
     }
 
-    public void put(Message row) throws IOException {
+    public String put(Message row) throws IOException {
         Admin admin = connection.getAdmin();
         TableName tableName = TableName.valueOf("Events");
+        String rowkey = null;
         if (!admin.tableExists(tableName)) {
             HTableDescriptor desc = new HTableDescriptor(tableName);
             desc.addFamily(new HColumnDescriptor("messages"));
@@ -82,13 +82,14 @@ public class HBaseConnector implements Connector {
                 if (fields.getKey().matches("topic"))
                     topic = fields.getValue();
             }
-            String rowkey = timestamp + "_"+topic;
+            rowkey = timestamp + "_"+topic;
             Put p = new Put(Bytes.toBytes(rowkey));
             for (KeyValue fields: row.getEntries())
                 p.addColumn(Bytes.toBytes("messages"), Bytes.toBytes(fields.getKey()), Bytes.toBytes(fields.getValue()));
             table.put(p);
         }
         admin.close();
+        return rowkey;
     }
 
     public void put(MasterData masterData){
@@ -151,13 +152,20 @@ public class HBaseConnector implements Connector {
         s.addFamily(Bytes.toBytes("messages"));
         FilterList filterList = new FilterList();
         for (Map.Entry<String,String> f: filters.entrySet()) {
-            SingleColumnValueFilter filter = new SingleColumnValueFilter(
-                    Bytes.toBytes("messages"),
-                    Bytes.toBytes(f.getKey()),
-                    CompareFilter.CompareOp.EQUAL,
-                    new SubstringComparator(f.getValue()));
-            filter.setFilterIfMissing(true);
-            filterList.addFilter(filter);
+            if (f.getKey().equalsIgnoreCase("key")){
+                RowFilter filter = new RowFilter(CompareFilter.CompareOp.EQUAL,
+                        new SubstringComparator(f.getValue()));
+                filterList.addFilter(filter);
+            }
+            else {
+                SingleColumnValueFilter filter = new SingleColumnValueFilter(
+                        Bytes.toBytes("messages"),
+                        Bytes.toBytes(f.getKey()),
+                        CompareFilter.CompareOp.EQUAL,
+                        new SubstringComparator(f.getValue()));
+                filter.setFilterIfMissing(true);
+                filterList.addFilter(filter);
+            }
         }
         s.setFilter(filterList);
         ResultScanner scanner = table.getScanner(s);

@@ -19,7 +19,7 @@ public class LocalFSConnector implements Connector {
     }
 
     // Used to initialize or append a message in the EventLog which is a csv file
-    public void put(Message row) throws Exception {
+    public String put(Message row) throws Exception {
         File evlog = new File(FS + "/EventLog.csv");
         FileWriter fw;
         BufferedWriter bw;
@@ -55,6 +55,7 @@ public class LocalFSConnector implements Connector {
         }
         bw.close();
         fw.close();
+        return null;
     }
 
     // Create table, populate it and store it in csv file

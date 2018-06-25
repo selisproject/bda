@@ -13,8 +13,9 @@ public class HDFSConnector implements Connector {
         this.FS = FS;
     }
 
-    public void put(Message message){
+    public String put(Message message){
         System.out.println("put in HDFS " + FS);
+        return null;
     }
 
     public void put(MasterData masterData){

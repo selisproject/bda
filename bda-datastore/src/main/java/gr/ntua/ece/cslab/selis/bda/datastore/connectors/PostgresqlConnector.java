@@ -50,7 +50,7 @@ public class PostgresqlConnector implements Connector {
     }
 
     // Used to initialize or append a message in the EventLog
-    public void put(Message row) throws Exception {
+    public String put(Message row) throws Exception {
         try {
             DatabaseMetaData dbm = connection.getMetaData();
             ResultSet rs = dbm.getTables(null, null, "Events", null);
@@ -105,6 +105,7 @@ public class PostgresqlConnector implements Connector {
             e.printStackTrace();
             connection.rollback();
         }
+        return null;
     }
 
     // Create dimension table and populate it
