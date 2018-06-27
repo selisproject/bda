@@ -154,7 +154,7 @@ public class PostgresqlConnector implements Connector {
                                             prepst.setInt(i, Integer.valueOf(element.getValue()));
                                     else if (field.getValue().contains("numeric"))
                                         if (element.getValue().equalsIgnoreCase("null"))
-                                            prepst.setNull(i,Types.FLOAT);
+                                            prepst.setNull(i,Types.NUMERIC);
                                         else
                                             prepst.setFloat(i, Float.valueOf(element.getValue()));
                                     else if (field.getValue().contains("timestamp"))
@@ -163,11 +163,25 @@ public class PostgresqlConnector implements Connector {
                                         else
                                             prepst.setTimestamp(i, Timestamp.valueOf(element.getValue()));
                                     else if (field.getValue().contains("bytea"))
-                                        prepst.setBytes(i, element.getValue().getBytes());
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.BINARY);
+                                        else
+                                            prepst.setBytes(i, element.getValue().getBytes());
                                     else if (field.getValue().contains("boolean"))
-                                        prepst.setBoolean(i, Boolean.parseBoolean(element.getValue()));
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.BOOLEAN);
+                                        else
+                                            prepst.setBoolean(i, Boolean.parseBoolean(element.getValue()));
+                                    else if (field.getValue().contains("character varying"))
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.VARCHAR);
+                                        else
+                                            prepst.setString(i, element.getValue());
                                     else
-                                        prepst.setString(i, element.getValue());
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.NULL);
+                                        else
+                                            prepst.setString(i, element.getValue());
                                 }
                             }
                             i++;
