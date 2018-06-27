@@ -14,38 +14,34 @@ public class HDFSConnector implements Connector {
     }
 
     public String put(Message message){
-        System.out.println("put in HDFS " + FS);
-        return null;
+        throw new java.lang.UnsupportedOperationException();
     }
 
     public void put(MasterData masterData){
-        System.out.println("put in HDFS " + FS);
+        throw new java.lang.UnsupportedOperationException();
     }
 
     public List<Tuple> getLast(Integer args){
-        System.out.println("get from HDFS " + FS);
-        return null;
+        throw new java.lang.UnsupportedOperationException();
     }
 
-
     public List<Tuple> getFrom(Integer args){
-        System.out.println("get from HDFS " + FS);
-        return null;
+        throw new java.lang.UnsupportedOperationException();
     }
 
     public List<Tuple> get(String args,  HashMap<String,String> filters){
-        System.out.println("get from HDFS " + FS);
-        return null;
+        throw new java.lang.UnsupportedOperationException();
     }
 
     public DimensionTable describe(String args){
-        System.out.println("print HDFS schema " + FS);
-        return null;
+        throw new java.lang.UnsupportedOperationException();
     }
 
     public List<String> list() {
-        return null;
+        throw new java.lang.UnsupportedOperationException();
     }
 
-    public void close(){};
+    public void close(){
+        throw new java.lang.UnsupportedOperationException();
+    }
 }

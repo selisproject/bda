@@ -15,6 +15,7 @@ public class Configuration {
     private static Logger LOGGER =Logger.getLogger(Configuration.class.getCanonicalName());
     public final Server server;
     public final StorageBackend storageBackend;
+    public final ExecutionEngine execEngine;
     public final PubSubSubscriber subscriber;
     public final AuthClientBackend authClientBackend;
     public final KPIBackend kpiBackend;
@@ -57,6 +58,15 @@ public class Configuration {
         public String getDbUsername() { return dbUsername; }
 
         public String getDbPassword() { return dbPassword; }
+    }
+    public class ExecutionEngine {
+        private String SparkMasterURL, SparkExecutionMode;
+
+        public ExecutionEngine(){}
+
+        public String getSparkMasterURL() { return SparkMasterURL; }
+
+        public String getSparkExecutionMode() { return SparkExecutionMode; }
     }
     public class PubSubSubscriber {
         private String authHash, hostname;
@@ -103,6 +113,7 @@ public class Configuration {
         this.subscriber = new PubSubSubscriber();
         this.authClientBackend = new AuthClientBackend();
         this.kpiBackend = new KPIBackend();
+        this.execEngine = new ExecutionEngine();
     }
 
     /**
@@ -171,6 +182,10 @@ public class Configuration {
         conf.kpiBackend.dbUrl = properties.getProperty("kpi.db.url");
         conf.kpiBackend.dbUsername = properties.getProperty("kpi.db.username");
         conf.kpiBackend.dbPassword = properties.getProperty("kpi.db.password");
+
+        // Execution engine configuration
+        conf.execEngine.SparkMasterURL = properties.getProperty("spark.master.url");
+        conf.execEngine.SparkExecutionMode = properties.getProperty("spark.execution.mode");
         return conf;
 
     }

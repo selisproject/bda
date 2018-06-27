@@ -92,8 +92,8 @@ public class HBaseConnector implements Connector {
         return rowkey;
     }
 
-    public void put(MasterData masterData){
-        System.out.println("put in HBase ");
+    public void put(MasterData masterData) {
+        throw new java.lang.UnsupportedOperationException("Inserting master data in HBase is not supported.");
     }
 
     public List<Tuple> getLast(Integer args) throws IOException {
@@ -145,6 +145,8 @@ public class HBaseConnector implements Connector {
         List<Tuple> res = new LinkedList<>();
         if (tablename=="")
             tablename = "Events";
+        else
+            throw new java.lang.UnsupportedOperationException("Cannot query a dimension table. HBase contains only the EventLog.");
         TableName tableName = TableName.valueOf(tablename);
         Table table = connection.getTable(tableName);
         Scan s = new Scan();
@@ -184,12 +186,11 @@ public class HBaseConnector implements Connector {
     }
 
     public DimensionTable describe(String args){
-        System.out.println("print HBase schema " );
-        return null;
+        throw new java.lang.UnsupportedOperationException("HBase column schema is dynamic and shall not be described.");
     }
 
     public List<String> list() {
-        return null;
+        throw new java.lang.UnsupportedOperationException("HBase only contains the EventLog table.");
     }
 
     public void close(){

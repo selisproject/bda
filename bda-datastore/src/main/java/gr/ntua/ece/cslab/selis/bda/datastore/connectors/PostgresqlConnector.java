@@ -51,7 +51,7 @@ public class PostgresqlConnector implements Connector {
 
     // Used to initialize or append a message in the EventLog
     public String put(Message row) throws Exception {
-        try {
+        /*try {
             DatabaseMetaData dbm = connection.getMetaData();
             ResultSet rs = dbm.getTables(null, null, "Events", null);
             if (rs.next()) {
@@ -104,8 +104,8 @@ public class PostgresqlConnector implements Connector {
         } catch (SQLException e) {
             e.printStackTrace();
             connection.rollback();
-        }
-        return null;
+        }*/
+        throw new java.lang.UnsupportedOperationException("Creating EventLog in Postgres is not supported.");
     }
 
     // Create dimension table and populate it
@@ -187,7 +187,7 @@ public class PostgresqlConnector implements Connector {
 
     // get last num rows from EventLog
     public List<Tuple> getLast(Integer num) throws Exception {
-        List<Tuple> res = new LinkedList<>();
+        /*List<Tuple> res = new LinkedList<>();
         try {
             Statement st = connection.createStatement();
             // Turn use of the cursor on.
@@ -209,20 +209,20 @@ public class PostgresqlConnector implements Connector {
             e.printStackTrace();
             connection.rollback();
         }
-        return res;
+        return res;*/
+        throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
     }
 
 
     public List<Tuple> getFrom(Integer args){
-        System.out.println("get from PostgreSQL " + jdbcURL);
-        return null;
+        throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
     }
 
     // Get rows matching a specific column filter from a table
     public List<Tuple> get(String tablename, HashMap<String,String> filters) throws Exception {
         List<Tuple> res = new LinkedList<>();
         if (tablename.matches("")){
-            DimensionTable table = this.describe(tablename);
+            /*DimensionTable table = this.describe(tablename);
             List<KeyValue> columns = table.getSchema().getColumnTypes();
             for (Map.Entry<String,String> filter: filters.entrySet()) {
                 for (KeyValue field : columns) {
@@ -231,7 +231,8 @@ public class PostgresqlConnector implements Connector {
                             throw new Exception("Cannot filter the raw message in the eventLog.");
                     }
                 }
-            }
+            }*/
+            throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
         }
         try {
             Statement st = connection.createStatement();
@@ -264,7 +265,7 @@ public class PostgresqlConnector implements Connector {
     // get column names and types for table 'args'
     public DimensionTable describe(String args) throws Exception {
         if (args.matches(""))
-            args = "Events";
+            throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
         List<String> columnNames = new LinkedList<>();
         List<KeyValue> columnTypes = new LinkedList<>();
         try {
@@ -307,5 +308,5 @@ public class PostgresqlConnector implements Connector {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    };
+    }
 }

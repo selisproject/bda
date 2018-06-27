@@ -141,7 +141,6 @@ public class Entrypoint {
         LOGGER.log(Level.INFO, "Fetched recipes : " + Entrypoint.analyticsComponent.
                 getKpiCatalog().getAllKpis() + "\n");
 
-
     }
 
     private static void analyticsModuleInitialization() {
