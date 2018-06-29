@@ -48,8 +48,8 @@ public class SparkRunner extends ArgumentParser implements Runnable {
         SparkAppHandle handle = null;
         try {
             handle = new SparkLauncher()
-                    .setMaster(engine_part)
-                    .setDeployMode("client")
+                    .setMaster("yarn")
+                    .setDeployMode("cluster")
                     .setAppResource(recipe_part)
                     // the three properties below should be removed in the future
                     .setConf("spark.port.maxRetries","100")
