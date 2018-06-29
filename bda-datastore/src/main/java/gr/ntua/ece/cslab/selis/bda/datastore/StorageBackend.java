@@ -30,7 +30,7 @@ public class StorageBackend {
      *  be in json format). **/
     public void init(MasterData masterData) throws Exception {
         DTconnector.put(masterData);
-        List<KeyValue> columns = new LinkedList<>();
+        /*List<KeyValue> columns = new LinkedList<>();
         for (DimensionTable table: masterData.getTables()) {
             String key = table.getSchema().getPrimaryKey();
             String type = "";
@@ -41,14 +41,14 @@ public class StorageBackend {
             columns.add(field);
         }
         Message emptyMsg = new Message(new LinkedList<>(), columns);
-        ELconnector.put(emptyMsg);
+        ELconnector.put(emptyMsg);*/
     }
 
     /** Insert a new message in the EventLog.
      *  This method takes as input a Message and saves each key that matches with an EventLog column name in the
      *  relevant column of the eventLog table, while all the non-matching keys are saved as a blob in json format
      *  in the 'message' column of the eventLog table. **/
-    public void insert(Message message) throws Exception {
+    public String insert(Message message) throws Exception {
         // Convert message to appropriate format taking into account the schema
         /*JSONObject json = new JSONObject(); // to store blob
         List<String> fields = ELconnector.describe("").getSchema().getColumnNames();
@@ -69,7 +69,7 @@ public class StorageBackend {
             throw new Exception("Message does not contain any foreign keys.");
         else if (json.isEmpty() || !msg.containsKey("event_type") || msg.size() < 3)
             throw new Exception("Message contains strange event format. Append aborted.");*/
-        ELconnector.put(message);
+        return ELconnector.put(message);
     }
 
     /** Get rows from EventLog. Fetches either the last n messages or the messages received the last n days.

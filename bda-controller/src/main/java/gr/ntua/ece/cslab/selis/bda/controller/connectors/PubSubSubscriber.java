@@ -103,6 +103,7 @@ public class PubSubSubscriber implements Runnable {
 
         gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
         String messageType = "";
+        String message_id = "";
         for (Map.Entry<String, Object> entry : message.entrySet()) {
             String key = entry.getKey() != null ? entry.getKey() : "";
             if (key.matches("message_type")) {
@@ -139,7 +140,7 @@ public class PubSubSubscriber implements Runnable {
         }
         bdamessage.setEntries(entries);
         try {
-            Entrypoint.datastore.insert(bdamessage);
+            message_id = Entrypoint.datastore.insert(bdamessage);
             LOGGER.info("Subscriber[" + authHash + "], Received and persisted " + messageType + " message.");
         } catch (Exception e) {
             e.printStackTrace();
@@ -150,7 +151,7 @@ public class PubSubSubscriber implements Runnable {
             JobDescription job = JobDescription.getJobByMessageId(msgInfo.getId());
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], Launching " + job.getName() + " recipe.");
             // TODO: check job.getJob_type()
-            Entrypoint.analyticsComponent.run(job.getRecipeId(), message.toString());
+            Entrypoint.analyticsComponent.run(job.getRecipeId(), message_id);
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], No recipe found for message " + messageType + ".");
         }

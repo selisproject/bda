@@ -50,8 +50,8 @@ public class PostgresqlConnector implements Connector {
     }
 
     // Used to initialize or append a message in the EventLog
-    public void put(Message row) throws Exception {
-        try {
+    public String put(Message row) throws Exception {
+        /*try {
             DatabaseMetaData dbm = connection.getMetaData();
             ResultSet rs = dbm.getTables(null, null, "Events", null);
             if (rs.next()) {
@@ -104,7 +104,8 @@ public class PostgresqlConnector implements Connector {
         } catch (SQLException e) {
             e.printStackTrace();
             connection.rollback();
-        }
+        }*/
+        throw new java.lang.UnsupportedOperationException("Creating EventLog in Postgres is not supported.");
     }
 
     // Create dimension table and populate it
@@ -153,7 +154,7 @@ public class PostgresqlConnector implements Connector {
                                             prepst.setInt(i, Integer.valueOf(element.getValue()));
                                     else if (field.getValue().contains("numeric"))
                                         if (element.getValue().equalsIgnoreCase("null"))
-                                            prepst.setNull(i,Types.FLOAT);
+                                            prepst.setNull(i,Types.NUMERIC);
                                         else
                                             prepst.setFloat(i, Float.valueOf(element.getValue()));
                                     else if (field.getValue().contains("timestamp"))
@@ -162,11 +163,25 @@ public class PostgresqlConnector implements Connector {
                                         else
                                             prepst.setTimestamp(i, Timestamp.valueOf(element.getValue()));
                                     else if (field.getValue().contains("bytea"))
-                                        prepst.setBytes(i, element.getValue().getBytes());
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.BINARY);
+                                        else
+                                            prepst.setBytes(i, element.getValue().getBytes());
                                     else if (field.getValue().contains("boolean"))
-                                        prepst.setBoolean(i, Boolean.parseBoolean(element.getValue()));
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.BOOLEAN);
+                                        else
+                                            prepst.setBoolean(i, Boolean.parseBoolean(element.getValue()));
+                                    else if (field.getValue().contains("character varying"))
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.VARCHAR);
+                                        else
+                                            prepst.setString(i, element.getValue());
                                     else
-                                        prepst.setString(i, element.getValue());
+                                        if (element.getValue().equalsIgnoreCase("null"))
+                                            prepst.setNull(i,Types.NULL);
+                                        else
+                                            prepst.setString(i, element.getValue());
                                 }
                             }
                             i++;
@@ -186,7 +201,7 @@ public class PostgresqlConnector implements Connector {
 
     // get last num rows from EventLog
     public List<Tuple> getLast(Integer num) throws Exception {
-        List<Tuple> res = new LinkedList<>();
+        /*List<Tuple> res = new LinkedList<>();
         try {
             Statement st = connection.createStatement();
             // Turn use of the cursor on.
@@ -208,20 +223,20 @@ public class PostgresqlConnector implements Connector {
             e.printStackTrace();
             connection.rollback();
         }
-        return res;
+        return res;*/
+        throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
     }
 
 
     public List<Tuple> getFrom(Integer args){
-        System.out.println("get from PostgreSQL " + jdbcURL);
-        return null;
+        throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
     }
 
     // Get rows matching a specific column filter from a table
     public List<Tuple> get(String tablename, HashMap<String,String> filters) throws Exception {
         List<Tuple> res = new LinkedList<>();
         if (tablename.matches("")){
-            DimensionTable table = this.describe(tablename);
+            /*DimensionTable table = this.describe(tablename);
             List<KeyValue> columns = table.getSchema().getColumnTypes();
             for (Map.Entry<String,String> filter: filters.entrySet()) {
                 for (KeyValue field : columns) {
@@ -230,7 +245,8 @@ public class PostgresqlConnector implements Connector {
                             throw new Exception("Cannot filter the raw message in the eventLog.");
                     }
                 }
-            }
+            }*/
+            throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
         }
         try {
             Statement st = connection.createStatement();
@@ -263,7 +279,7 @@ public class PostgresqlConnector implements Connector {
     // get column names and types for table 'args'
     public DimensionTable describe(String args) throws Exception {
         if (args.matches(""))
-            args = "Events";
+            throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
         List<String> columnNames = new LinkedList<>();
         List<KeyValue> columnTypes = new LinkedList<>();
         try {
@@ -306,5 +322,5 @@ public class PostgresqlConnector implements Connector {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    };
+    }
 }

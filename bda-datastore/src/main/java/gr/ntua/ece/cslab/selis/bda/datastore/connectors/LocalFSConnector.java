@@ -4,7 +4,10 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class LocalFSConnector implements Connector {
     private String FS;
@@ -19,7 +22,7 @@ public class LocalFSConnector implements Connector {
     }
 
     // Used to initialize or append a message in the EventLog which is a csv file
-    public void put(Message row) throws Exception {
+    public String put(Message row) throws Exception {
         File evlog = new File(FS + "/EventLog.csv");
         FileWriter fw;
         BufferedWriter bw;
@@ -55,6 +58,12 @@ public class LocalFSConnector implements Connector {
         }
         bw.close();
         fw.close();
+
+        LineNumberReader lnr = new LineNumberReader(new FileReader(evlog));
+        lnr.skip(Long.MAX_VALUE);
+        Integer num = lnr.getLineNumber();
+        lnr.close();
+        return num.toString();
     }
 
     // Create table, populate it and store it in csv file
@@ -117,8 +126,7 @@ public class LocalFSConnector implements Connector {
 
     // Get rows for last num days from EventLog
     public List<Tuple> getFrom(Integer num){
-        System.out.println("get from " + FS);
-        return new LinkedList<>();
+        throw new java.lang.UnsupportedOperationException();
     }
 
     // Get rows matching a specific column filter from a table
@@ -126,13 +134,27 @@ public class LocalFSConnector implements Connector {
         List<Tuple> res = new LinkedList<>();
         List<String> fields = describe(table).getSchema().getColumnNames();
         HashMap<Integer,String> positions = new HashMap<>();
+        String line;
+
         for (Map.Entry<String,String> flt: filters.entrySet()) {
             Integer pos = fields.indexOf(flt.getKey());
-            if (pos == -1)
+            if ((pos == -1) && !(table.matches("") && flt.getKey().equalsIgnoreCase("key")))
                 throw new Exception("Column not found in the table.");
-            positions.put(pos,flt.getValue());
+            else if ((pos == -1) && (table.matches("") && flt.getKey().equalsIgnoreCase("key"))){
+                try (Stream<String> lines = Files.lines(Paths.get(FS + "/EventLog.csv"))) {
+                    line = lines.skip(Long.parseLong(flt.getValue())-1).findFirst().get();
+                }
+                String[] values = line.split("\t");
+                List<KeyValue> entries = new LinkedList<>();
+                for (int i = 0; i < fields.size(); i++)
+                    entries.add(new KeyValue(fields.get(i), values[i]));
+                res.add(new Tuple(entries));
+                return res;
+            }
+            else
+                positions.put(pos,flt.getValue());
         }
-        String line;
+
         int counter = 0;
         if (table.matches(""))
             table = "EventLog";
@@ -181,5 +203,5 @@ public class LocalFSConnector implements Connector {
         return tables;
     }
 
-    public void close(){};
+    public void close(){}
 }

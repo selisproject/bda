@@ -1,4 +1,4 @@
-FROM p7hb/docker-spark:latest
+FROM selis-spark:latest
 
 # Declare `localuser` as build argument.
 ARG localuser

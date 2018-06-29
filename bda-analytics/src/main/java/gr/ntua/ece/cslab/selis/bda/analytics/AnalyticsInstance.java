@@ -7,8 +7,6 @@ import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.runners.RunnerFactory;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 
-import java.sql.ResultSet;
-
 public class AnalyticsInstance {
 
     private KPIBackend kpidb;
@@ -35,14 +33,10 @@ public class AnalyticsInstance {
         ExecutEngineDescriptor engine =  engineCatalog.getExecutEngine(
                 kpi.getExecutable().getEngineID()
         );
-        System.out.println("Engine id : " + kpi.getExecutable().getEngineID());
-        System.out.println(kpi.toString());
-        System.out.println(engine);
+
         Runnable runner = RunnerFactory.getInstance().getRunner(kpi, engine, message, this.kpidb);
 
-
         Thread t = new Thread(runner);
-
         t.start();
 
         try {

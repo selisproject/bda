@@ -1,23 +1,14 @@
 package gr.ntua.ece.cslab.selis.bda.analytics.runners;
 
 import org.apache.spark.launcher.SparkLauncher;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import org.apache.spark.launcher.SparkAppHandle;
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
-import org.json.JSONObject;
 
 public class SparkRunner extends ArgumentParser implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(SparkLauncher.class.getCanonicalName());
@@ -54,55 +45,32 @@ public class SparkRunner extends ArgumentParser implements Runnable {
 
     @Override
     public void run() {
-        Process spark = null;
+        SparkAppHandle handle = null;
         try {
-            spark = new SparkLauncher()
-                    .setMaster(engine_part)
+            handle = new SparkLauncher()
+                    .setMaster("yarn")
                     .setDeployMode("cluster")
                     .setAppResource(recipe_part)
+                    // the three properties below should be removed in the future
+                    .setConf("spark.port.maxRetries","100")
+                    .addSparkArg("--driver-class-path","/resources/postgresql-42.2.1.jar")
+                    .addSparkArg("--jars","/resources/postgresql-42.2.1.jar")
                     //.redirectOutput(new File("/results/" + kpiDescriptor.getName() + ".out"))
-                    .addAppArgs(message).launch();
+                    .addAppArgs(message).startApplication();
         } catch (IOException e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING,"Spark job failed to start!");
         }
-        try {
-            spark.waitFor();
+        /*try {
+            while (!handle.getState().equals(SparkAppHandle.State.FINISHED) && !handle.getState().equals(SparkAppHandle.State.FAILED) && !handle.getState().equals(SparkAppHandle.State.LOST))
+                Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING,"Spark job execution was interrupted!");
         }
-        /*try {
-            store("/results/" + kpiDescriptor.getName() + ".out");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
-        spark.destroy();
-        LOGGER.log(Level.INFO,"Spark job finished!");
+        handle.stop();
+        handle.kill();
+        LOGGER.log(Level.INFO,"Spark job finished!");*/
     }
 
-    private void store(String outputpath) throws Exception {
-        JSONObject msg = new JSONObject(this.message);
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(outputpath));
-        String line = null;
-        StringBuffer sb = new StringBuffer();
-        try {
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        String result = sb.toString();
-        result = result.replaceAll("\\s", "");
-        LOGGER.log(Level.INFO,result);
-        List<KeyValue> entries = new ArrayList<>();
-        for (Iterator<String> it = msg.getJSONObject("payload").keys(); it.hasNext(); ) {
-            String key = it.next();
-            entries.add(new KeyValue(key, msg.getJSONObject("payload").get(key).toString()));
-        }
-        entries.add(new KeyValue("result", (new JSONObject(result)).toString()));
-        kpidb.insert(new KPI(kpiDescriptor.getName(), (new Timestamp(System.currentTimeMillis())).toString(), entries));
-
-    }
 }

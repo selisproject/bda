@@ -156,19 +156,6 @@ fi
 # Build images. ################################################################
 ################################################################################
 
-SELIS_BDA_IMAGE_ID="$(docker images --quiet "$SELIS_BDA_IMAGE")"
-
-if [ "$SELIS_BDA_IMAGE_ID" == "" ]
-then
-    echo "Building selis image..."
-
-    docker build \
-        --file "$SELIS_BDA_DOCKERFILE" \
-        --build-arg localuser="$(whoami)" \
-        --tag "$SELIS_BDA_IMAGE" \
-        .
-fi
-
 SELIS_POSTGRES_IMAGE_ID="$(docker images --quiet "$SELIS_POSTGRES_IMAGE")"
 
 if [ "$SELIS_POSTGRES_IMAGE_ID" == "" ]
@@ -205,6 +192,18 @@ then
         .
 fi
 
+SELIS_BDA_IMAGE_ID="$(docker images --quiet "$SELIS_BDA_IMAGE")"
+
+if [ "$SELIS_BDA_IMAGE_ID" == "" ]
+then
+    echo "Building selis image..."
+
+    docker build \
+        --file "$SELIS_BDA_DOCKERFILE" \
+        --build-arg localuser="$(whoami)" \
+        --tag "$SELIS_BDA_IMAGE" \
+        .
+fi
 
 ################################################################################
 # Run containers. ##############################################################
@@ -268,12 +267,10 @@ then
             --detach \
             --network "$SELIS_NETWORK" \
             --publish 127.0.0.1:8080:8080 \
-            --env SPARK_NO_DAEMONIZE=True \
-            --env PYSPARK_PYTHON=python3 \
             --hostname "$SELIS_SPARK_MASTER_CONTAINER" \
             --name "$SELIS_SPARK_MASTER_CONTAINER" \
             "$SELIS_SPARK_IMAGE" \
-            start-master.sh
+            /entrypoint.sh master first
 
         echo "Running selis spark worker container."
 
@@ -281,12 +278,10 @@ then
             --detach \
             --network "$SELIS_NETWORK" \
             --publish 127.0.0.1:8081:8081 \
-            --env SPARK_NO_DAEMONIZE=True \
-            --env PYSPARK_PYTHON=python3 \
             --hostname "$SELIS_SPARK_WORKER_CONTAINER" \
             --name "$SELIS_SPARK_WORKER_CONTAINER" \
             "$SELIS_SPARK_IMAGE" \
-            start-slave.sh "spark://$SELIS_SPARK_MASTER_CONTAINER:7077"
+            /entrypoint.sh worker
 
     fi
 

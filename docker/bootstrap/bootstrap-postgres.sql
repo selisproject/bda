@@ -60,4 +60,4 @@ ALTER TABLE execution_engines    OWNER TO selis;
 INSERT INTO execution_engines (name, engine_path, local_engine, args)
     VALUES ('python3', '/usr/bin/python3', true, '{}'::json);
 INSERT INTO execution_engines (name, engine_path, local_engine, args)
-    VALUES ('pyspark', 'spark://selis-spark:7077', false, '{}'::json);
+    VALUES ('pyspark', 'spark://selis-spark-master:7077', false, '{}'::json);
