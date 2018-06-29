@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;

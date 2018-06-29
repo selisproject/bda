@@ -65,6 +65,35 @@ public class HBaseConnector implements Connector {
         }
     }
 
+    public void init() {
+        // Create EventLog table
+        Admin admin = null;
+        try {
+            admin = connection.getAdmin();
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
+            e.printStackTrace();
+            return;
+        }
+        TableName tableName = TableName.valueOf("Events");
+        try {
+            if (!admin.tableExists(tableName)) {
+                HTableDescriptor desc = new HTableDescriptor(tableName);
+                desc.addFamily(new HColumnDescriptor("messages"));
+                admin.createTable(desc);
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Creation of EventLog table Failed! Check output console.");
+            e.printStackTrace();
+            return;
+        }
+        try {
+            admin.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String put(Message row) throws IOException {
         Admin admin = connection.getAdmin();
         TableName tableName = TableName.valueOf("Events");

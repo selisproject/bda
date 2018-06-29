@@ -1,4 +1,4 @@
-package gr.ntua.ece.cslab.selis.bda.controller;
+package gr.ntua.ece.cslab.selis.bda.common;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 /**
  * This class holds all the configuration options used by the Big Data Analytics component as a whole
  * (including the various subsystems).
- * Created by Giannis Giannakopoulos on 10/6/17.
  */
 public class Configuration {
     private static Logger LOGGER =Logger.getLogger(Configuration.class.getCanonicalName());
