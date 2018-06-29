@@ -30,7 +30,7 @@ public class StorageBackend {
      *  be in json format). **/
     public void init(MasterData masterData) throws Exception {
         DTconnector.put(masterData);
-        List<KeyValue> columns = new LinkedList<>();
+        /*List<KeyValue> columns = new LinkedList<>();
         for (DimensionTable table: masterData.getTables()) {
             String key = table.getSchema().getPrimaryKey();
             String type = "";
@@ -41,7 +41,7 @@ public class StorageBackend {
             columns.add(field);
         }
         Message emptyMsg = new Message(new LinkedList<>(), columns);
-        ELconnector.put(emptyMsg);
+        ELconnector.put(emptyMsg);*/
     }
 
     /** Insert a new message in the EventLog.
