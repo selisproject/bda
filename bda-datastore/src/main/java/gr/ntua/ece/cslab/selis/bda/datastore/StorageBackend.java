@@ -1,7 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
-import gr.ntua.ece.cslab.selis.bda.datastore.connectors.Connector;
+import gr.ntua.ece.cslab.selis.bda.datastore.connectors.DatastoreConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
 import org.json.simple.JSONObject;
 
@@ -13,8 +13,8 @@ import java.util.List;
 
 public class StorageBackend {
 
-    private Connector ELconnector;
-    private Connector DTconnector;
+    private DatastoreConnector ELconnector;
+    private DatastoreConnector DTconnector;
 
     /** The StorageBackend constructor creates two new connections, one for the EventLog FS and one for the Dimension
      *  tables FS, using the FS parameters that are provided as input Strings. **/

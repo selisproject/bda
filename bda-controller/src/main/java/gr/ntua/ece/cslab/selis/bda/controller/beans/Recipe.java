@@ -1,6 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.BDAdbConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
 import org.json.JSONObject;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -122,7 +122,7 @@ public class Recipe implements Serializable {
     }
 
     public static List<Recipe> getRecipes() {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         Vector<Recipe> recipes = new Vector<Recipe>(DEFAULT_VECTOR_SIZE);
 
@@ -155,7 +155,7 @@ public class Recipe implements Serializable {
      }
 
     public static Recipe getRecipeById(int id) {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_RECIPE_BY_ID);
@@ -191,7 +191,7 @@ public class Recipe implements Serializable {
 
 
     public static Recipe getRecipeByName(String name) {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_RECIPE_BY_NAME);
@@ -230,7 +230,7 @@ public class Recipe implements Serializable {
 
     public void updateBinaryPath() throws SQLException, UnsupportedOperationException {
         // The object does not exist, it should be inserted.
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         PreparedStatement statement = connection.prepareStatement(SET_EXECUTABLE_PATH);
 
@@ -245,7 +245,7 @@ public class Recipe implements Serializable {
     public void save() throws SQLException, UnsupportedOperationException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
-            Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+            Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
             PreparedStatement statement = connection.prepareStatement(INSERT_RECIPE_QUERY);
 

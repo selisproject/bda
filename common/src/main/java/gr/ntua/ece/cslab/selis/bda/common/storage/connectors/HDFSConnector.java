@@ -8,10 +8,6 @@ public class HDFSConnector implements Connector {
         this.FS = FS;
     }
 
-    public void init() {
-        throw new UnsupportedOperationException();
-    }
-
     public void close(){
         throw new UnsupportedOperationException();
     }

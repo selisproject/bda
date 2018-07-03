@@ -5,19 +5,19 @@ import java.sql.*;
 public class PostgresqlConnector implements Connector {
 
     private String jdbcURL;
-    private String user;
+    private String username;
     private String password;
     private Connection connection;
 
-    public PostgresqlConnector(String jdbcURL, String Username, String Password){
-        this.jdbcURL = jdbcURL;
-        this.user = Username;
-        this.password = Password;
-    }
+    public PostgresqlConnector(){}
 
     // The method creates a connection to the database provided in the 'jdbcURL' parameter.
     // The database should be up and running.
-    public void init() {
+    public PostgresqlConnector(String JdbcURL, String Username, String Password){
+        this.jdbcURL = JdbcURL;
+        this.username = Username;
+        this.password = Password;
+
         try {
             Class.forName("org.postgresql.Driver");
 
@@ -28,7 +28,7 @@ public class PostgresqlConnector implements Connector {
         System.out.println("PostgreSQL JDBC Driver Registered!");
 
         try {
-            connection = DriverManager.getConnection(jdbcURL, user, password);
+            connection = DriverManager.getConnection(jdbcURL, username, password);
         } catch (SQLException e) {
             System.out.println("Connection Failed! Check output console");
             e.printStackTrace();
@@ -44,6 +44,10 @@ public class PostgresqlConnector implements Connector {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public Connection getConnection() {
+        return connection;
     }
 
     public void close(){

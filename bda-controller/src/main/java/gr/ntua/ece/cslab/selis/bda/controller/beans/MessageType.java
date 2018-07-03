@@ -1,6 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.BDAdbConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
 
 import java.io.Serializable;
 import java.sql.*;
@@ -100,7 +100,7 @@ public class MessageType implements Serializable {
         "RETURNING id;";
 
     public static List<String> getActiveMessageTypeNames() {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         Vector<String> messageTypeNames = new Vector<String>(10);
 
@@ -120,7 +120,7 @@ public class MessageType implements Serializable {
     }
 
     public static MessageType getMessageByName(String name) throws SQLException {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_MESSAGE_BY_NAME_QUERY);
@@ -150,7 +150,7 @@ public class MessageType implements Serializable {
     }
 
     public static MessageType getMessageById(int id) throws SQLException {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_MESSAGE_BY_ID_QUERY);
@@ -180,7 +180,7 @@ public class MessageType implements Serializable {
     }
 
     public void save() throws SQLException {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
         PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE_QUERY);
 
         statement.setString(1, this.name);

@@ -1,13 +1,14 @@
-package gr.ntua.ece.cslab.selis.bda.controller.connectors;
+package gr.ntua.ece.cslab.selis.bda.common.storage.connectors;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class BDAdbConnector {
+public class BDAdbPooledConnector {
 
-    private static BDAdbConnector dataSource = null;
+    private static BDAdbPooledConnector dataSource = null;
 
     private static HikariConfig bdaDataSourceConfig = null;
     private static HikariConfig labDataSourceConfig = null;
@@ -15,7 +16,7 @@ public class BDAdbConnector {
     private HikariDataSource bdaPooledDataSource = null;
     private HikariDataSource labPooledDataSource = null;
 
-    private BDAdbConnector() {
+    private BDAdbPooledConnector() {
         this.bdaPooledDataSource = new HikariDataSource(bdaDataSourceConfig);
         this.labPooledDataSource = new HikariDataSource(labDataSourceConfig);
     }
@@ -34,9 +35,9 @@ public class BDAdbConnector {
         labDataSourceConfig.setPassword(password);
     }
 
-    public static BDAdbConnector getInstance() {
+    public static BDAdbPooledConnector getInstance() {
         if (dataSource == null) {
-            dataSource = new BDAdbConnector();
+            dataSource = new BDAdbPooledConnector();
         }
 
         return dataSource;

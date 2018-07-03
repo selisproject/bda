@@ -1,12 +1,14 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
-import gr.ntua.ece.cslab.selis.bda.datastore.connectors.PostgresqlPooledDataSource;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.*;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -56,7 +58,7 @@ public class Entrypoint {
             configuration.storageBackend.getDbPassword()
         );
 
-        BDAdbConnector.init(
+        BDAdbPooledConnector.init(
             configuration.storageBackend.getBdaDatabaseURL(),
             configuration.storageBackend.getDimensionTablesURL(),
             configuration.storageBackend.getDbUsername(),
@@ -67,7 +69,7 @@ public class Entrypoint {
 
     private static void fetch_engines() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
-        Connection conn = BDAdbConnector.getInstance().getBdaConnection();
+        Connection conn = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         Statement statement;
         ResultSet engines = null;
@@ -106,7 +108,7 @@ public class Entrypoint {
 
     private static void fetch_recipes() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
-        Connection conn = BDAdbConnector.getInstance().getBdaConnection();
+        Connection conn = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         Statement statement;
         ResultSet recipes = null;
@@ -213,6 +215,8 @@ public class Entrypoint {
         if(configuration==null) {
             System.exit(1);
         }
+
+        SystemConnector.init();
 
         // Datastore module initialization
         storageBackendInitialization();

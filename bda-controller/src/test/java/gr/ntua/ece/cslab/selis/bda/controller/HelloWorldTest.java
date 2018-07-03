@@ -6,7 +6,7 @@ import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.BDAdbConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.MessageResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.RecipeResource;
@@ -92,7 +92,7 @@ public class HelloWorldTest {
             "WHERE id = ?;";
 
     private void execute_delete(String query, int id) {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(query);
@@ -129,7 +129,7 @@ public class HelloWorldTest {
 
     private void fetch_engines() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
-        Connection conn = BDAdbConnector.getInstance().getBdaConnection();
+        Connection conn = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         Statement statement;
         ResultSet engines = null;
@@ -168,7 +168,7 @@ public class HelloWorldTest {
 
     private void initialize_components() {
         LOGGER.log(Level.INFO, "Initializing BDADB Connector...");
-        BDAdbConnector.init(
+        BDAdbPooledConnector.init(
                 Entrypoint.configuration.storageBackend.getBdaDatabaseURL(),
                 Entrypoint.configuration.storageBackend.getDimensionTablesURL(),
                 Entrypoint.configuration.storageBackend.getDbUsername(),
@@ -302,8 +302,8 @@ public class HelloWorldTest {
 
 
         LOGGER.log(Level.INFO, "Closing connections...");
-        BDAdbConnector.getInstance().getBdaConnection().close();
-        BDAdbConnector.getInstance().getLabConnection().close();
+        BDAdbPooledConnector.getInstance().getBdaConnection().close();
+        BDAdbPooledConnector.getInstance().getLabConnection().close();
         Entrypoint.analyticsComponent.getKpidb().stop();
         
     }

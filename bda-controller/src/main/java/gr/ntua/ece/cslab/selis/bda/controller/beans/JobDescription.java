@@ -1,6 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.BDAdbConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
 
 import java.sql.*;
 import java.util.List;
@@ -116,7 +116,7 @@ public class JobDescription implements Serializable {
     }
 
     public static List<JobDescription> getActiveJobs() {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         Vector<JobDescription> jobs = new Vector<JobDescription>(DEFAULT_VECTOR_SIZE);
 
@@ -148,7 +148,7 @@ public class JobDescription implements Serializable {
      }
 
     public static JobDescription getJobById(int id) throws SQLException {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_JOB_BY_ID_QUERY);
@@ -180,7 +180,7 @@ public class JobDescription implements Serializable {
     }
 
     public static JobDescription getJobByMessageId(int id) throws SQLException {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_JOB_BY_MESSAGE_ID_QUERY);
@@ -215,7 +215,7 @@ public class JobDescription implements Serializable {
     public void save() throws SQLException, UnsupportedOperationException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
-            Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+            Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
             PreparedStatement statement = connection.prepareStatement(INSERT_JOB_QUERY);
 

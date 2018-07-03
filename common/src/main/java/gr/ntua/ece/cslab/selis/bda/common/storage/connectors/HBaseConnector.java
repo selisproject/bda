@@ -18,13 +18,13 @@ public class HBaseConnector implements Connector {
     private String hostname;
     private Connection connection;
 
+    public HBaseConnector(){}
+
     public HBaseConnector(String FS, String username, String password) {
         // Store Connection Parameters.
         this.port = getHBaseConnectionPort(FS);
         this.hostname = getHBaseConnectionURL(FS);
-    }
 
-    public void init() {
         LOGGER.log(Level.INFO, "Initializing HBase Connector...");
 
         // Initialize HBase Configuration.
@@ -58,6 +58,10 @@ public class HBaseConnector implements Connector {
         } finally {
             LOGGER.log(Level.INFO, "HBase connection initialized.");
         }
+    }
+
+    public Connection getConnection() {
+        return connection;
     }
 
     public void close(){

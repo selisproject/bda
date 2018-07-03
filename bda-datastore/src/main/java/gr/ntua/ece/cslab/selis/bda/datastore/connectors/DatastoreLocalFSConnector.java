@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.LocalFSConnector;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import java.io.*;
@@ -9,16 +10,13 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class LocalFSConnector implements Connector {
+public class DatastoreLocalFSConnector extends LocalFSConnector implements DatastoreConnector {
     private String FS;
 
     // The constructor creates the filesystem folder using the 'FS' parameter.
     // If this folder exists, it should be initially empty (before the bootstraping).
-    public LocalFSConnector(String FS){
-        File fs = new File(FS);
-        if (!fs.exists())
-            fs.mkdir();
-        this.FS = FS;
+    public DatastoreLocalFSConnector(){
+
     }
 
     // Used to initialize or append a message in the EventLog which is a csv file
@@ -202,6 +200,4 @@ public class LocalFSConnector implements Connector {
             tables.add(file.getName().split("\\.")[0]);
         return tables;
     }
-
-    public void close(){}
 }

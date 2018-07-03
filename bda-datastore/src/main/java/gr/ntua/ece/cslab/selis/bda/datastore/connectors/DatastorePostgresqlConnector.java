@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -8,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class PostgresqlConnector implements Connector {
+public class DatastorePostgresqlConnector extends PostgresqlConnector implements DatastoreConnector {
 
     private String jdbcURL;
     private String user;
@@ -17,36 +18,8 @@ public class PostgresqlConnector implements Connector {
 
     // The constructor creates a connection to the database provided in the 'jdbcURL' parameter.
     // The database should be up and running.
-    public PostgresqlConnector(String jdbcURL, String Username, String Password){
-        this.jdbcURL = jdbcURL;
-        this.user = Username;
-        this.password = Password;
-        try {
-            Class.forName("org.postgresql.Driver");
+    public DatastorePostgresqlConnector(){
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return;
-        }
-        System.out.println("PostgreSQL JDBC Driver Registered!");
-
-        try {
-            connection = DriverManager.getConnection(jdbcURL, user, password);
-        } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
-            e.printStackTrace();
-            return;
-        }
-        if (connection == null) {
-            System.out.println("Failed to make connection!");
-        }
-
-        // make sure autocommit is off
-        try {
-            connection.setAutoCommit(false);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     // Used to initialize or append a message in the EventLog
@@ -314,13 +287,5 @@ public class PostgresqlConnector implements Connector {
             e.printStackTrace();
         }
         return tables;
-    }
-
-    public void close(){
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 }
