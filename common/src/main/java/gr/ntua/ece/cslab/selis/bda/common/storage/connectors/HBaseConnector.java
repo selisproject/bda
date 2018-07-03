@@ -14,14 +14,18 @@ public class HBaseConnector implements Connector {
 
     private final static Logger LOGGER = Logger.getLogger(HBaseConnector.class.getCanonicalName());
 
+    private String FS;
     private String port;
     private String hostname;
     private Connection connection;
 
-    public HBaseConnector(){}
+    public HBaseConnector(HBaseConnector conn){
+        this (conn.FS, "", "");
+    }
 
     public HBaseConnector(String FS, String username, String password) {
         // Store Connection Parameters.
+        this.FS = FS;
         this.port = getHBaseConnectionPort(FS);
         this.hostname = getHBaseConnectionURL(FS);
 

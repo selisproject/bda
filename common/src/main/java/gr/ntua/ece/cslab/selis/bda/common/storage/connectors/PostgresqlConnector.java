@@ -9,7 +9,9 @@ public class PostgresqlConnector implements Connector {
     private String password;
     private Connection connection;
 
-    public PostgresqlConnector(){}
+    public PostgresqlConnector(PostgresqlConnector conn){
+        this (conn.jdbcURL,conn.username,conn.password);
+    }
 
     // The method creates a connection to the database provided in the 'jdbcURL' parameter.
     // The database should be up and running.
@@ -48,6 +50,10 @@ public class PostgresqlConnector implements Connector {
 
     public Connection getConnection() {
         return connection;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public void close(){

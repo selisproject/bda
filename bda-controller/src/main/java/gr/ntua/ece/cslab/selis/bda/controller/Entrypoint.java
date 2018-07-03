@@ -4,7 +4,6 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
-import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.*;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
@@ -39,16 +38,9 @@ public class Entrypoint {
     public static Configuration configuration;
     public static Thread subscriber;
     public static PubSubPublisher publisher;
-    public static StorageBackend datastore;
     public static AnalyticsInstance analyticsComponent;
 
     private static void storageBackendInitialization() {
-        LOGGER.log(Level.INFO, "Initializing storage backend...");
-        datastore = new StorageBackend(
-            configuration.storageBackend.getEventLogURL(),
-            configuration.storageBackend.getDimensionTablesURL(),
-            configuration.storageBackend.getDbUsername(),
-            configuration.storageBackend.getDbPassword());
 
         LOGGER.log(Level.INFO, "Initializing Postgresql connection pool ...");
         PostgresqlPooledDataSource.init(

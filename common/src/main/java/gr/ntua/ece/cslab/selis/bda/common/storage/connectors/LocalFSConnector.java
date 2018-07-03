@@ -5,7 +5,9 @@ import java.io.*;
 public class LocalFSConnector implements Connector {
     private String FS;
 
-    public LocalFSConnector(){};
+    public LocalFSConnector(LocalFSConnector conn){
+        this (conn.FS,"","");
+    };
 
     // This method creates the filesystem folder using the 'FS' parameter.
     // If this folder exists, it should be initially empty (before the bootstraping).
@@ -15,6 +17,10 @@ public class LocalFSConnector implements Connector {
         File fs = new File(FS);
         if (!fs.exists())
             fs.mkdir();
+    }
+
+    public String getFS() {
+        return FS;
     }
 
     public void close(){

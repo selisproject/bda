@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
@@ -140,7 +141,8 @@ public class PubSubSubscriber implements Runnable {
         }
         bdamessage.setEntries(entries);
         try {
-            message_id = Entrypoint.datastore.insert(bdamessage);
+            // TODO: get scn name
+            message_id = new StorageBackend("").insert(bdamessage);
             LOGGER.info("Subscriber[" + authHash + "], Received and persisted " + messageType + " message.");
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.datastore;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.DatastoreConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
@@ -18,9 +19,9 @@ public class StorageBackend {
 
     /** The StorageBackend constructor creates two new connections, one for the EventLog FS and one for the Dimension
      *  tables FS, using the FS parameters that are provided as input Strings. **/
-    public StorageBackend(String EventLogFS, String DimensionTablesFS, String dbUsername, String dbPassword) {
-        this.ELconnector = ConnectorFactory.getInstance().generateConnector(EventLogFS, dbUsername, dbPassword);
-        this.DTconnector = ConnectorFactory.getInstance().generateConnector(DimensionTablesFS, dbUsername, dbPassword);
+    public StorageBackend(String SCN) {
+        this.ELconnector = ConnectorFactory.getInstance().generateConnector(SystemConnector.getELconnector(SCN));
+        this.DTconnector = ConnectorFactory.getInstance().generateConnector(SystemConnector.getDTconnector(SCN));
     }
 
     /** Initialize the eventLog and dimension tables in the underlying FS Using the masterData.
