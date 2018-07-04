@@ -16,17 +16,18 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DatastoreHBaseConnector extends HBaseConnector implements DatastoreConnector {
+public class DatastoreHBaseConnector implements DatastoreConnector {
     // TODO: Should setup connection using username/password.
 
     private final static Logger LOGGER = Logger.getLogger(HBaseConnector.class.getCanonicalName());
 
+    HBaseConnector conn;
     public DatastoreHBaseConnector(HBaseConnector conn) {
-        super(conn);
+        this.conn = conn;
     }
 
     public String put(Message row) throws IOException {
-        Admin admin = this.getConnection().getAdmin();
+        Admin admin = conn.getConnection().getAdmin();
         TableName tableName = TableName.valueOf("Events");
         String rowkey = null;
         if (!admin.tableExists(tableName)) {
@@ -35,7 +36,7 @@ public class DatastoreHBaseConnector extends HBaseConnector implements Datastore
             admin.createTable(desc);
         }
         else {
-            Table table = this.getConnection().getTable(tableName);
+            Table table = conn.getConnection().getTable(tableName);
             Long timestamp = Timestamp.valueOf(LocalDateTime.now()).getTime();
             String topic="";
             for (KeyValue fields: row.getEntries()){
@@ -59,7 +60,7 @@ public class DatastoreHBaseConnector extends HBaseConnector implements Datastore
     public List<Tuple> getLast(Integer args) throws IOException {
         List<Tuple> res = new LinkedList<>();
         TableName tableName = TableName.valueOf("Events");
-        Table table = this.getConnection().getTable(tableName);
+        Table table = conn.getConnection().getTable(tableName);
         Scan s = new Scan();
         s.addFamily(Bytes.toBytes("messages"));
         s.setReversed(true);
@@ -83,7 +84,7 @@ public class DatastoreHBaseConnector extends HBaseConnector implements Datastore
     public List<Tuple> getFrom(Integer args) throws IOException {
         List<Tuple> res = new LinkedList<>();
         TableName tableName = TableName.valueOf("Events");
-        Table table = this.getConnection().getTable(tableName);
+        Table table = conn.getConnection().getTable(tableName);
         Scan s = new Scan();
         s.addFamily(Bytes.toBytes("messages"));
         s.setTimeRange(Timestamp.valueOf(LocalDateTime.now().minusDays(args)).getTime(),Timestamp.valueOf(LocalDateTime.now()).getTime());
@@ -108,7 +109,7 @@ public class DatastoreHBaseConnector extends HBaseConnector implements Datastore
         else
             throw new java.lang.UnsupportedOperationException("Cannot query a dimension table. HBase contains only the EventLog.");
         TableName tableName = TableName.valueOf(tablename);
-        Table table = this.getConnection().getTable(tableName);
+        Table table = conn.getConnection().getTable(tableName);
         Scan s = new Scan();
         s.setReversed(true);
         s.addFamily(Bytes.toBytes("messages"));

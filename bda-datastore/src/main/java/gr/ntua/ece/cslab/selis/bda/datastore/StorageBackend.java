@@ -115,9 +115,4 @@ public class StorageBackend {
             return DTconnector.list();
     }
 
-    public void close(){
-        DTconnector.close();
-        ELconnector.close();
-    }
-
 }

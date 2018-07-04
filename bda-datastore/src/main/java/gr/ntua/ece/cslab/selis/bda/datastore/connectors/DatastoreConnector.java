@@ -7,7 +7,7 @@ import java.util.List;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
 /** Methods that a connector should implement for accessing the filesystem. **/
-public interface DatastoreConnector extends Connector {
+public interface DatastoreConnector {
     String put(Message args) throws Exception;
     void put(MasterData args) throws Exception;
     List<Tuple> getLast(Integer args) throws Exception;

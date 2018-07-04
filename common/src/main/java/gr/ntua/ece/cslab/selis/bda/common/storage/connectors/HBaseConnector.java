@@ -19,10 +19,6 @@ public class HBaseConnector implements Connector {
     private String hostname;
     private Connection connection;
 
-    public HBaseConnector(HBaseConnector conn){
-        this (conn.FS, "", "");
-    }
-
     public HBaseConnector(String FS, String username, String password) {
         // Store Connection Parameters.
         this.FS = FS;

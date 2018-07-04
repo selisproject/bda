@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
+import com.sun.jdi.connect.Connector;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
@@ -9,12 +10,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class DatastorePostgresqlConnector extends PostgresqlConnector implements DatastoreConnector {
+public class DatastorePostgresqlConnector implements DatastoreConnector {
+
+    PostgresqlConnector conn;
 
     // The constructor creates a connection to the database provided in the 'jdbcURL' parameter.
     // The database should be up and running.
     public DatastorePostgresqlConnector(PostgresqlConnector conn){
-        super(conn);
+        this.conn=conn;
     }
 
     // Used to initialize or append a message in the EventLog
@@ -79,7 +82,7 @@ public class DatastorePostgresqlConnector extends PostgresqlConnector implements
     // Create dimension table and populate it
     public void put(MasterData masterData) throws Exception {
         try {
-            Statement st = this.getConnection().createStatement();
+            Statement st = conn.getConnection().createStatement();
             for (DimensionTable table: masterData.getTables()) {
                 List<KeyValue> columns = table.getSchema().getColumnTypes();
                 String primaryKey = table.getSchema().getPrimaryKey();
@@ -95,7 +98,7 @@ public class DatastorePostgresqlConnector extends PostgresqlConnector implements
                 q=q.substring(0, q.length() - 1)+");";
                 System.out.println(q);
                 st.addBatch(q);
-                st.addBatch("ALTER TABLE " + table.getName() + " OWNER TO "+ this.getUsername()+";");
+                st.addBatch("ALTER TABLE " + table.getName() + " OWNER TO "+ conn.getUsername()+";");
                 st.executeBatch();
 
                 // fill-in column values
@@ -109,7 +112,7 @@ public class DatastorePostgresqlConnector extends PostgresqlConnector implements
                     }
                     insertTableSQL = insertTableSQL.substring(0, insertTableSQL.length() - 1) + ") VALUES (" + values.substring(0, values.length() - 1) + ");";
 
-                    PreparedStatement prepst = this.getConnection().prepareStatement(insertTableSQL);
+                    PreparedStatement prepst = conn.getConnection().prepareStatement(insertTableSQL);
                     for (Tuple tuple : data) {
                         int i = 1;
                         for (KeyValue element : tuple.getTuple()) {
@@ -158,12 +161,12 @@ public class DatastorePostgresqlConnector extends PostgresqlConnector implements
                     }
                     prepst.executeBatch();
                 }
-                this.getConnection().commit();
+                conn.getConnection().commit();
             }
         } catch (SQLException e) {
             System.out.println("Failed creation");
             e.printStackTrace();
-            this.getConnection().rollback();
+            conn.getConnection().rollback();
         }
     }
 
@@ -217,7 +220,7 @@ public class DatastorePostgresqlConnector extends PostgresqlConnector implements
             throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
         }
         try {
-            Statement st = this.getConnection().createStatement();
+            Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
             String q = "SELECT * FROM "+tablename+" WHERE ";
@@ -239,7 +242,7 @@ public class DatastorePostgresqlConnector extends PostgresqlConnector implements
             rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            this.getConnection().rollback();
+            conn.getConnection().rollback();
         }
         return res;
     }
@@ -251,7 +254,7 @@ public class DatastorePostgresqlConnector extends PostgresqlConnector implements
         List<String> columnNames = new LinkedList<>();
         List<KeyValue> columnTypes = new LinkedList<>();
         try {
-            Statement st = this.getConnection().createStatement();
+            Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
             ResultSet rs = st.executeQuery("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = '"+args+"';");
@@ -262,7 +265,7 @@ public class DatastorePostgresqlConnector extends PostgresqlConnector implements
             rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            this.getConnection().rollback();
+            conn.getConnection().rollback();
         }
         return new DimensionTable(args,
                 new DimensionTableSchema(columnNames, columnTypes, ""),
@@ -273,7 +276,7 @@ public class DatastorePostgresqlConnector extends PostgresqlConnector implements
     public List<String> list() {
         List<String> tables = new LinkedList<>();
         try {
-            DatabaseMetaData dbm = this.getConnection().getMetaData();
+            DatabaseMetaData dbm = conn.getConnection().getMetaData();
             ResultSet rs = dbm.getTables(null, null, "%", new String[] {"TABLE"});
             while (rs.next())
                 if (!rs.getString("TABLE_NAME").equalsIgnoreCase("Events"))

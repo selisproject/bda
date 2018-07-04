@@ -11,17 +11,21 @@ import java.util.logging.Logger;
 
 public class SystemConnector {
     private final static Logger LOGGER = Logger.getLogger(SystemConnector.class.getCanonicalName());
-    public static Configuration configuration;
+    private static Configuration configuration;
+    private static SystemConnector systemConnector;
+
     private Connector BDAconnector;
     private HashMap<String, Connector> ELconnectors;
     private HashMap<String, Connector> DTconnectors;
     private HashMap<String, Connector> KPIconnectors;
 
-    private static SystemConnector systemConnector;
-
     /** The constructor creates new connections for the EventLog FS, the Dimension
      *  tables FS and the KPI db per LL as well as the BDA db. **/
     public SystemConnector() {
+        this.ELconnectors = new HashMap<String, Connector>();
+        this.DTconnectors = new HashMap<String, Connector>();
+        this.KPIconnectors = new HashMap<String, Connector>();
+
         LOGGER.log(Level.INFO, "Initializing BDA db connector...");
         BDAconnector = ConnectorFactory.getInstance().generateConnector(
                 configuration.storageBackend.getBdaDatabaseURL(),
@@ -31,15 +35,15 @@ public class SystemConnector {
 
         // TODO: get SCNs from BDA db
         LinkedList<String> SCNs = new LinkedList<>();
+        SCNs.add("");
+        LOGGER.log(Level.INFO, "Initializing SCN connectors...");
         for (String SCN: SCNs){
-            LOGGER.log(Level.INFO, "Initializing EventLog connector...");
             ELconnectors.put(SCN, ConnectorFactory.getInstance().generateConnector(
                     configuration.storageBackend.getEventLogURL(),
                     configuration.storageBackend.getDbUsername(),
                     configuration.storageBackend.getDbPassword()
             ));
 
-            LOGGER.log(Level.INFO, "Initializing Dimension tables connector...");
             DTconnectors.put(SCN, ConnectorFactory.getInstance().generateConnector(
                     configuration.storageBackend.getDimensionTablesURL(),
                     configuration.storageBackend.getDbUsername(),
@@ -52,7 +56,6 @@ public class SystemConnector {
                     configuration.storageBackend.getDbPassword()
             );*/
 
-            LOGGER.log(Level.INFO, "Initializing KPI db connector...");
             KPIconnectors.put(SCN, ConnectorFactory.getInstance().generateConnector(
                     configuration.kpiBackend.getDbUrl(),
                     configuration.kpiBackend.getDbUsername(),
@@ -67,7 +70,12 @@ public class SystemConnector {
         return systemConnector;
     }
 
-    public static void init(){
+    public static void init(String args){
+        // parse configuration
+        configuration = Configuration.parseConfiguration(args);
+        if(configuration==null) {
+            System.exit(1);
+        }
         if (systemConnector == null)
             systemConnector = new SystemConnector();
     }

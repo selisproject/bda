@@ -208,7 +208,7 @@ public class Entrypoint {
             System.exit(1);
         }
 
-        SystemConnector.init();
+        SystemConnector.init(args[0]);
 
         // Datastore module initialization
         storageBackendInitialization();

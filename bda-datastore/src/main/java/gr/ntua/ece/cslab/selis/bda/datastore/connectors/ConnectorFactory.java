@@ -20,13 +20,13 @@ public class ConnectorFactory {
      *  Connectors are implemented for four different filesystems: local, HBase, HDFS, PostgreSQL. **/
     public DatastoreConnector generateConnector(Connector conn){
         DatastoreConnector connector = null;
-        if (conn.getClass().getCanonicalName().equalsIgnoreCase("HBaseConnector")){
+        if ( conn instanceof HBaseConnector ){
             connector = new DatastoreHBaseConnector( (HBaseConnector) conn);
         }
-        else if (conn.getClass().getCanonicalName().equalsIgnoreCase("PostgresqlConnector")) {
+        else if (conn instanceof PostgresqlConnector) {
             connector = new DatastorePostgresqlConnector( (PostgresqlConnector) conn);
         }
-        else if (conn.getClass().getCanonicalName().equalsIgnoreCase("LocalFSConnector")) {
+        else if (conn instanceof LocalFSConnector) {
             connector = new DatastoreLocalFSConnector( (LocalFSConnector) conn);
         }
         return connector;
