@@ -11,6 +11,14 @@ CREATE DATABASE selis_test_db WITH OWNER selis;
 
 \connect selis_bda_db
 
+CREATE TABLE scn_db_info (
+    id          SERIAL PRIMARY KEY,
+    slug        VARCHAR(64) NOT NULL UNIQUE,
+    name        VARCHAR(128) NOT NULL,
+    description VARCHAR(256),
+    dbname      VARCHAR(64) NOT NULL
+);
+
 CREATE TABLE message_type (
     id          SERIAL PRIMARY KEY,
     name        VARCHAR(64) NOT NULL UNIQUE,
@@ -48,8 +56,9 @@ CREATE TABLE jobs (
 
 ALTER TABLE jobs                OWNER TO selis;
 ALTER TABLE recipes             OWNER TO selis;
+ALTER TABLE scn_db_info         OWNER TO selis;
 ALTER TABLE message_type        OWNER TO selis;
-ALTER TABLE execution_engines    OWNER TO selis;
+ALTER TABLE execution_engines   OWNER TO selis;
 
 --grant all privileges on table message_type to selis;
 --grant all privileges on table jobs to selis;
