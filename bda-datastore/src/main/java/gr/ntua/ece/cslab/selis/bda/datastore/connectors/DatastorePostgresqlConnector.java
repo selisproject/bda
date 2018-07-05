@@ -1,6 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
-import com.sun.jdi.connect.Connector;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
