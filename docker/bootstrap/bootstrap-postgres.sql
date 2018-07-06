@@ -1,5 +1,11 @@
 CREATE USER selis WITH PASSWORD '123456';
 
+CREATE USER selis_admin WITH PASSWORD '123456';
+
+ALTER USER selis_admin CREATEDB;
+
+GRANT selis to selis_admin;
+
 CREATE DATABASE selis_bda_db WITH OWNER selis;
 
 CREATE DATABASE selis_lab_db WITH OWNER selis;

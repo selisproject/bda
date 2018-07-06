@@ -4,6 +4,7 @@ import com.google.protobuf.ServiceException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HBaseConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
+import gr.ntua.ece.cslab.selis.bda.datastore.DatastoreException;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.*;
@@ -24,6 +25,10 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
     HBaseConnector conn;
     public DatastoreHBaseConnector(HBaseConnector conn) {
         this.conn = conn;
+    }
+
+    public void createMetaTables() throws DatastoreException, UnsupportedOperationException {
+        throw new java.lang.UnsupportedOperationException("Creating Metadata tables in HBase is not supported.");
     }
 
     public String put(Message row) throws IOException {

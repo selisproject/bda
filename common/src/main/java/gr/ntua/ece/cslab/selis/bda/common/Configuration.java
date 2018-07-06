@@ -38,6 +38,7 @@ public class Configuration {
         // TODO: Should add username/password for every StorageBackend.
         //       Modify Constructor accordingly.
         private String eventLogURL, dimensionTablesURL, bdaDatabaseURL, dbUsername, dbPassword;
+        private String dbPrivilegedUsername, dbPrivilegedPassword;
 
         public StorageBackend() {
         }
@@ -57,6 +58,10 @@ public class Configuration {
         public String getDbUsername() { return dbUsername; }
 
         public String getDbPassword() { return dbPassword; }
+
+        public String getDbPrivilegedUsername() { return dbPrivilegedUsername; }
+
+        public String getDbPrivilegedPassword() { return dbPrivilegedPassword; }
     }
     public class ExecutionEngine {
         private String SparkMasterURL, SparkExecutionMode;
@@ -143,6 +148,8 @@ public class Configuration {
         // Dimension Tables Configuration.
         conf.storageBackend.dbUsername = properties.getProperty("backend.db.dimension.username");
         conf.storageBackend.dbPassword = properties.getProperty("backend.db.dimension.password");
+        conf.storageBackend.dbPrivilegedUsername = properties.getProperty("backend.db.dimension.privileged_username");
+        conf.storageBackend.dbPrivilegedPassword = properties.getProperty("backend.db.dimension.privileged_password");
         conf.storageBackend.dimensionTablesURL = properties.getProperty("backend.db.dimension.url");
 
         // BDA Database Configuration.

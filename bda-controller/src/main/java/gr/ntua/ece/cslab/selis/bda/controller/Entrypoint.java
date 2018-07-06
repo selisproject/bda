@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
+import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
@@ -226,6 +227,16 @@ public class Entrypoint {
 
         // Create folders for uploaded recipes and recipe results
         create_folders();
+
+        /*
+        try {
+            StorageBackend.createNewScn(
+                "scn_slug", "scn_name", "scn_desc", "scn_db"
+            );
+        } catch (Exception e) {
+            System.out.println("Sometimes ...");
+        }
+        */
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

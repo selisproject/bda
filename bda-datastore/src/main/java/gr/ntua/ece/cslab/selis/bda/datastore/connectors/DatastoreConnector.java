@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+import gr.ntua.ece.cslab.selis.bda.datastore.DatastoreException;
 
 /** Methods that a connector should implement for accessing the filesystem. **/
 public interface DatastoreConnector {
@@ -15,4 +16,5 @@ public interface DatastoreConnector {
     List<Tuple> get(String args, HashMap<String,String> args2) throws Exception;
     DimensionTable describe(String args) throws Exception;
     List<String> list();
+    void createMetaTables() throws DatastoreException, UnsupportedOperationException;
 }

@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+import gr.ntua.ece.cslab.selis.bda.datastore.DatastoreException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.LocalFSConnector;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
@@ -20,6 +21,9 @@ public class DatastoreLocalFSConnector implements DatastoreConnector {
         this.conn=conn;
     }
 
+    public void createMetaTables() throws DatastoreException, UnsupportedOperationException {
+        throw new java.lang.UnsupportedOperationException("Creating Metadata tables in local FS is not supported.");
+    }
     // Used to initialize or append a message in the EventLog which is a csv file
     public String put(Message row) throws Exception {
         File evlog = new File(conn.getFS() + "/EventLog.csv");

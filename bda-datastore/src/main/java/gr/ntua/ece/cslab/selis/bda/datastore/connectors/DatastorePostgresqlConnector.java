@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+import gr.ntua.ece.cslab.selis.bda.datastore.DatastoreException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.sql.*;
@@ -13,10 +14,102 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
 
     PostgresqlConnector conn;
 
+    private final String CREATE_MESSAGE_TYPES_TABLE_QUERY = 
+        "CREATE TABLE metadata.message_type ( " +
+            "id          SERIAL PRIMARY KEY, " +
+            "name        VARCHAR(64) NOT NULL UNIQUE, " +
+            "description VARCHAR(256), " +
+            "active      BOOLEAN DEFAULT(true), " +
+            "format      VARCHAR " +
+        ");";
+
+    private final String CREATE_EXECUTION_ENGINES_TABLE_QUERY = 
+        "CREATE TABLE metadata.execution_engines ( " +
+            "id              SERIAL PRIMARY KEY, " +
+            "name            VARCHAR(64) NOT NULL UNIQUE, " +
+            "engine_path     TEXT, " +
+            "local_engine    BOOLEAN DEFAULT(true), " +
+            "args            JSONB " +
+        ");";
+
+
+    private final String CREATE_RECIPES_TABLE_QUERY = 
+        "CREATE TABLE metadata.recipes ( " +
+            "id                  SERIAL PRIMARY KEY, " +
+            "name                VARCHAR(64) NOT NULL UNIQUE, " +
+            "description         VARCHAR(256), " +
+            "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
+            "engine_id           INTEGER REFERENCES metadata.execution_engines(id), " +
+            "args                JSONB " +
+        ");";
+
+    private final String CREATE_JOBS_TABLE_QUERY = 
+        "CREATE TABLE metadata.jobs ( " +
+            "id              SERIAL PRIMARY KEY, " +
+            "name            VARCHAR(64) NOT NULL UNIQUE, " +
+            "description     VARCHAR(256), " +
+            "message_type_id INTEGER REFERENCES metadata.message_type(id), " +
+            "recipe_id       INTEGER REFERENCES metadata.recipes(id), " +
+            "job_type        VARCHAR(20), " +
+            "active          BOOLEAN DEFAULT(true) " +
+        ");";
+
     // The constructor creates a connection to the database provided in the 'jdbcURL' parameter.
     // The database should be up and running.
     public DatastorePostgresqlConnector(PostgresqlConnector conn){
         this.conn=conn;
+    }
+
+    public void createMetaTables() throws DatastoreException, UnsupportedOperationException {
+        Connection connection = conn.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                CREATE_MESSAGE_TYPES_TABLE_QUERY);
+
+            statement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new DatastoreException("Could not create table `message_type`.");
+        }
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                CREATE_EXECUTION_ENGINES_TABLE_QUERY);
+
+            statement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new DatastoreException("Could not create table `execution_engines`.");
+        }
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                CREATE_RECIPES_TABLE_QUERY);
+
+            statement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new DatastoreException("Could not create table `recipes`.");
+        }
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                CREATE_JOBS_TABLE_QUERY);
+
+            statement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new DatastoreException("Could not create table `jobs`.");
+        }
     }
 
     // Used to initialize or append a message in the EventLog

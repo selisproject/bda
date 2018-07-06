@@ -3,11 +3,14 @@ package gr.ntua.ece.cslab.selis.bda.common.storage;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.ConnectorFactory;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
+import java.util.Vector;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.lang.UnsupportedOperationException;
 
 public class SystemConnector {
     private final static Logger LOGGER = Logger.getLogger(SystemConnector.class.getCanonicalName());
@@ -80,6 +83,31 @@ public class SystemConnector {
             systemConnector = new SystemConnector();
     }
 
+    public void createScnDatabase(String scnSlug, String dbname) 
+        throws SystemConnectorException, UnsupportedOperationException {
+
+        Vector<String> schemas = new Vector<String>(2);
+        schemas.add("data");
+        schemas.add("metadata");
+
+        String databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
+            configuration.storageBackend.getDimensionTablesURL(),
+            configuration.storageBackend.getDbPrivilegedUsername(),
+            configuration.storageBackend.getDbPrivilegedPassword(),
+            configuration.storageBackend.getDbUsername(),
+            dbname, 
+            schemas
+        );
+
+        Connector scnConnector = ConnectorFactory.getInstance().generateConnector(
+                databaseUrl,
+                configuration.storageBackend.getDbUsername(),
+                configuration.storageBackend.getDbPassword()
+        );
+
+        DTconnectors.put(scnSlug, scnConnector);
+    }
+
     public Connector getBDAconnector() {
         return BDAconnector;
     }
@@ -88,7 +116,9 @@ public class SystemConnector {
         return ELconnectors.get(SCN);
     }
 
-    public Connector getDTconnector(String SCN) { return DTconnectors.get(SCN); }
+    public Connector getDTconnector(String SCN) { 
+        return DTconnectors.get(SCN); 
+    }
 
     public Connector getKPIconnector(String SCN) {
         return KPIconnectors.get(SCN);

@@ -13,9 +13,11 @@ test.db.password = 123456
 test.db.url      = jdbc:postgresql://selis-postgres:5432/selis_test_db
 
 # Storage backend: dimension tables db.
-backend.db.dimension.username = selis
-backend.db.dimension.password = 123456
-backend.db.dimension.url      = jdbc:postgresql://selis-postgres:5432/
+backend.db.dimension.username            = selis
+backend.db.dimension.password            = 123456
+backend.db.dimension.privileged_username = selis_admin
+backend.db.dimension.privileged_password = 123456
+backend.db.dimension.url                 = jdbc:postgresql://selis-postgres:5432/
 
 # Storage backend: event log db.
 backend.db.event.username = selis

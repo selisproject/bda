@@ -72,6 +72,9 @@ public class HBaseConnector implements Connector {
         }
     };
 
+    public static void createDatabase(String fs, String username, String password, String dbname) {
+    }
+
     /**
      * Extracts the port from a HBase Connection URL.
      */

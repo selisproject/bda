@@ -1,5 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore;
 
+import gr.ntua.ece.cslab.selis.bda.datastore.DatastoreException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.DatastoreConnector;
@@ -11,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.sql.SQLException;
 
 public class StorageBackend {
 
@@ -22,6 +25,25 @@ public class StorageBackend {
     public StorageBackend(String SCN) {
         this.ELconnector = ConnectorFactory.getInstance().generateConnector(SystemConnector.getInstance().getELconnector(SCN));
         this.DTconnector = ConnectorFactory.getInstance().generateConnector(SystemConnector.getInstance().getDTconnector(SCN));
+    }
+
+    public static void createNewScn(String slug, String name, String description, String dbname) 
+        throws SystemConnectorException, SQLException, DatastoreException, UnsupportedOperationException {
+        // 0. Add new entry to `ScnDbInfo` table.
+        ScnDbInfo scn = new ScnDbInfo(slug, name, description, dbname);
+
+        scn.save();
+
+        // 1. Create database for Dimension Tables, with data/metadata schemas.
+        SystemConnector.getInstance().createScnDatabase(scn.getSlug(), scn.getDbName());
+        
+        // 2. Create metadata tables for new SCN.
+        DatastoreConnector localDtConnector = ConnectorFactory.getInstance().generateConnector(
+            SystemConnector.getInstance().getDTconnector(scn.getSlug()));
+
+        localDtConnector.createMetaTables();
+
+        // TODO: 3. Create database for Event Log.
     }
 
     /** Initialize the eventLog and dimension tables in the underlying FS Using the masterData.
