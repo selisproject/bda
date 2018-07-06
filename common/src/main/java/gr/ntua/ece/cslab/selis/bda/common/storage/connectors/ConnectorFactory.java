@@ -53,7 +53,7 @@ public class ConnectorFactory {
         if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
             throw new UnsupportedOperationException("Creating a database in HDFS is not supported.");
         } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
-            HBaseConnector.createDatabase(fs, username, password, dbname);
+            databaseUrl = HBaseConnector.createNamespace(fs, username, password, dbname);
         } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
             // 0. Create new database.
             try {

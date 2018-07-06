@@ -14,16 +14,16 @@ public class HBaseConnector implements Connector {
 
     private final static Logger LOGGER = Logger.getLogger(HBaseConnector.class.getCanonicalName());
 
-    private String FS;
     private String port;
     private String hostname;
+    private String namespace;
     private Connection connection;
 
     public HBaseConnector(String FS, String username, String password) {
         // Store Connection Parameters.
-        this.FS = FS;
         this.port = getHBaseConnectionPort(FS);
         this.hostname = getHBaseConnectionURL(FS);
+        this.
 
         LOGGER.log(Level.INFO, "Initializing HBase Connector...");
 
@@ -72,24 +72,78 @@ public class HBaseConnector implements Connector {
         }
     };
 
-    public static void createDatabase(String fs, String username, String password, String dbname) {
+    public static String createNamespace(String fs, String username, String password, String dbname) {
+        // Initialize HBase Configuration.
+        Configuration conf = HBaseConfiguration.create();
+        conf.set("hbase.zookeeper.property.clientPort",getHBaseConnectionPort(fs));
+        conf.set("hbase.zookeeper.quorum", getHBaseConnectionURL(fs));
+
+        // Check HBase Availability.
+        try {
+            HBaseAdmin.checkHBaseAvailable(conf);
+        } catch (ServiceException e) {
+            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
+            e.printStackTrace();
+            return null;
+        }
+
+        // Initialize HBase Connection.
+        Admin admin;
+        try {
+            admin = ConnectionFactory.createConnection(conf).getAdmin();
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
+            e.printStackTrace();
+            return null;
+        } finally {
+            LOGGER.log(Level.INFO, "HBase connection initialized.");
+        }
+
+        // Create HBase namespace
+        try {
+            admin.createNamespace(NamespaceDescriptor.create(dbname).build());
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Creation of namespace failed! Check output console.");
+            e.printStackTrace();
+            return null;
+        } finally {
+            LOGGER.log(Level.INFO, "HBase namespace created.");
+        }
+        return fs + dbname;
     }
 
     /**
      * Extracts the port from a HBase Connection URL.
      */
-    private String getHBaseConnectionPort(String FS) {
-        String[] tokens = FS.split(":");
+    private static String getHBaseConnectionPort(String FS) {
+        String[] tokens = FS.split(":")[-1].split("/");
 
-        return tokens[1];
+        return tokens[0];
     }
 
     /**
      * Extracts the host from a HBase Connection URL.
      */
-    private String getHBaseConnectionURL(String FS) {
-        String[] tokens = FS.split(":");
+    private static String getHBaseConnectionURL(String FS) {
+        String[] tokens = FS.split("/")[1].split(":");
 
         return tokens[0];
+    }
+
+    /**
+     * Extracts the namespace from a HBase Connection URL.
+     */
+    private static String getHBaseNamespace(String FS) {
+        String[] tokens = FS.split("/");
+
+        return tokens[-1];
+    }
+
+    public String getNamespace() {
+        return namespace;
     }
 }

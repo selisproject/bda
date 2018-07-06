@@ -33,7 +33,7 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
 
     public String put(Message row) throws IOException {
         Admin admin = conn.getConnection().getAdmin();
-        TableName tableName = TableName.valueOf("Events");
+        TableName tableName = TableName.valueOf(conn.getNamespace()+":Events");
         String rowkey = null;
         if (!admin.tableExists(tableName)) {
             HTableDescriptor desc = new HTableDescriptor(tableName);
@@ -64,7 +64,7 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
 
     public List<Tuple> getLast(Integer args) throws IOException {
         List<Tuple> res = new LinkedList<>();
-        TableName tableName = TableName.valueOf("Events");
+        TableName tableName = TableName.valueOf(conn.getNamespace()+":Events");
         Table table = conn.getConnection().getTable(tableName);
         Scan s = new Scan();
         s.addFamily(Bytes.toBytes("messages"));
@@ -88,7 +88,7 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
 
     public List<Tuple> getFrom(Integer args) throws IOException {
         List<Tuple> res = new LinkedList<>();
-        TableName tableName = TableName.valueOf("Events");
+        TableName tableName = TableName.valueOf(conn.getNamespace()+":Events");
         Table table = conn.getConnection().getTable(tableName);
         Scan s = new Scan();
         s.addFamily(Bytes.toBytes("messages"));
@@ -110,7 +110,7 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
     public List<Tuple> get(String tablename, HashMap<String,String> filters) throws IOException {
         List<Tuple> res = new LinkedList<>();
         if (tablename=="")
-            tablename = "Events";
+            tablename = conn.getNamespace()+":Events";
         else
             throw new java.lang.UnsupportedOperationException("Cannot query a dimension table. HBase contains only the EventLog.");
         TableName tableName = TableName.valueOf(tablename);

@@ -34,7 +34,7 @@ public class StorageBackend {
 
         scn.save();
 
-        // 1. Create database for Dimension Tables, with data/metadata schemas.
+        // 1. Create database for Dimension Tables, with data/metadata schemas and the database for the EventLog.
         SystemConnector.getInstance().createScnDatabase(scn.getSlug(), scn.getDbName());
         
         // 2. Create metadata tables for new SCN.
@@ -42,8 +42,6 @@ public class StorageBackend {
             SystemConnector.getInstance().getDTconnector(scn.getSlug()));
 
         localDtConnector.createMetaTables();
-
-        // TODO: 3. Create database for Event Log.
     }
 
     /** Initialize the eventLog and dimension tables in the underlying FS Using the masterData.

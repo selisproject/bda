@@ -99,13 +99,32 @@ public class SystemConnector {
             schemas
         );
 
-        Connector scnConnector = ConnectorFactory.getInstance().generateConnector(
+        Connector DTConnector = ConnectorFactory.getInstance().generateConnector(
                 databaseUrl,
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword()
         );
 
-        DTconnectors.put(scnSlug, scnConnector);
+        DTconnectors.put(scnSlug, DTConnector);
+
+        databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
+                configuration.storageBackend.getEventLogURL(),
+                configuration.storageBackend.getDbUsername(),
+                configuration.storageBackend.getDbPassword(),
+                configuration.storageBackend.getDbUsername(),
+                dbname,
+                null
+        );
+
+        Connector ELConnector = ConnectorFactory.getInstance().generateConnector(
+                databaseUrl,
+                configuration.storageBackend.getDbUsername(),
+                configuration.storageBackend.getDbPassword()
+        );
+
+        ELconnectors.put(scnSlug, ELConnector);
+
+        // TODO: create KPI db too
     }
 
     public Connector getBDAconnector() {
