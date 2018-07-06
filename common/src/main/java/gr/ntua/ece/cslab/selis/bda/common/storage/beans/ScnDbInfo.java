@@ -1,10 +1,12 @@
-package gr.ntua.ece.cslab.selis.bda.datastore.beans;
+package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.sql.*;
 import java.lang.UnsupportedOperationException;
+import java.util.LinkedList;
+import java.util.List;
 
 
 public class ScnDbInfo {
@@ -14,6 +16,10 @@ public class ScnDbInfo {
     private String name;
     private String description;
     private String dbname;
+
+    private final static String GET_SCN_QUERY =
+            "SELECT id, slug, name, description, dbname " +
+                    "FROM scn_db_info;";
 
     private final static String GET_SCN_BY_ID_QUERY =
         "SELECT id, slug, name, description, dbname " +
@@ -146,5 +152,35 @@ public class ScnDbInfo {
         }
 
         throw new SQLException("ScnDbInfo object not found.");
+    }
+
+    public static List<ScnDbInfo> getScnDbInfo() throws SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
+        Connection connection = connector.getConnection();
+
+        List<ScnDbInfo> scns = new LinkedList<>();
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_SCN_QUERY);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                ScnDbInfo scn = new ScnDbInfo(
+                        resultSet.getString("slug"),
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getString("dbname")
+                );
+
+                scn.id = resultSet.getInt("id");
+                scn.exists = true;
+                scns.add(scn);
+            }
+
+            return scns;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new SQLException("Failed to retrieve ScnDb info.");
     }
 }

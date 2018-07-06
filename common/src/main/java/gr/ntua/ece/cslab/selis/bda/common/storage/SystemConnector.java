@@ -1,10 +1,13 @@
 package gr.ntua.ece.cslab.selis.bda.common.storage;
 
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.ConnectorFactory;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Vector;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -17,38 +20,42 @@ public class SystemConnector {
     private static Configuration configuration;
     private static SystemConnector systemConnector;
 
-    private Connector BDAconnector;
-    private HashMap<String, Connector> ELconnectors;
-    private HashMap<String, Connector> DTconnectors;
-    private HashMap<String, Connector> KPIconnectors;
+    private Connector bdaConnector;
+    private HashMap<String, Connector> elConnectors;
+    private HashMap<String, Connector> dtConnectors;
+    private HashMap<String, Connector> kpiConnectors;
 
     /** The constructor creates new connections for the EventLog FS, the Dimension
      *  tables FS and the KPI db per LL as well as the BDA db. **/
     public SystemConnector() {
-        this.ELconnectors = new HashMap<String, Connector>();
-        this.DTconnectors = new HashMap<String, Connector>();
-        this.KPIconnectors = new HashMap<String, Connector>();
+        this.elConnectors = new HashMap<String, Connector>();
+        this.dtConnectors = new HashMap<String, Connector>();
+        this.kpiConnectors = new HashMap<String, Connector>();
 
         LOGGER.log(Level.INFO, "Initializing BDA db connector...");
-        BDAconnector = ConnectorFactory.getInstance().generateConnector(
+        bdaConnector = ConnectorFactory.getInstance().generateConnector(
                 configuration.storageBackend.getBdaDatabaseURL(),
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword()
         );
 
-        // TODO: get SCNs from BDA db
-        LinkedList<String> SCNs = new LinkedList<>();
-        SCNs.add("");
-        LOGGER.log(Level.INFO, "Initializing SCN connectors...");
-        for (String SCN: SCNs){
-            ELconnectors.put(SCN, ConnectorFactory.getInstance().generateConnector(
-                    configuration.storageBackend.getEventLogURL(),
+        List<ScnDbInfo> SCNs = new LinkedList<>();
+        try {
+            SCNs = ScnDbInfo.getScnDbInfo();
+            LOGGER.log(Level.INFO, "Initializing SCN connectors...");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        for (ScnDbInfo SCN: SCNs){
+            elConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
+                    configuration.storageBackend.getEventLogURL()+SCN.getDbName(),
                     configuration.storageBackend.getDbUsername(),
                     configuration.storageBackend.getDbPassword()
             ));
 
-            DTconnectors.put(SCN, ConnectorFactory.getInstance().generateConnector(
-                    configuration.storageBackend.getDimensionTablesURL(),
+            dtConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
+                    configuration.storageBackend.getDimensionTablesURL()+SCN.getDbName(),
                     configuration.storageBackend.getDbUsername(),
                     configuration.storageBackend.getDbPassword()
             ));
@@ -59,8 +66,8 @@ public class SystemConnector {
                     configuration.storageBackend.getDbPassword()
             );*/
 
-            KPIconnectors.put(SCN, ConnectorFactory.getInstance().generateConnector(
-                    configuration.kpiBackend.getDbUrl(),
+            kpiConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
+                    configuration.kpiBackend.getDbUrl()+SCN.getDbName(),
                     configuration.kpiBackend.getDbUsername(),
                     configuration.kpiBackend.getDbPassword()
             ));
@@ -99,13 +106,13 @@ public class SystemConnector {
             schemas
         );
 
-        Connector DTConnector = ConnectorFactory.getInstance().generateConnector(
+        Connector dtConnector = ConnectorFactory.getInstance().generateConnector(
                 databaseUrl,
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword()
         );
 
-        DTconnectors.put(scnSlug, DTConnector);
+        dtConnectors.put(scnSlug, dtConnector);
 
         databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
                 configuration.storageBackend.getEventLogURL(),
@@ -116,30 +123,30 @@ public class SystemConnector {
                 null
         );
 
-        Connector ELConnector = ConnectorFactory.getInstance().generateConnector(
+        Connector elConnector = ConnectorFactory.getInstance().generateConnector(
                 databaseUrl,
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword()
         );
 
-        ELconnectors.put(scnSlug, ELConnector);
+        elConnectors.put(scnSlug, elConnector);
 
         // TODO: create KPI db too
     }
 
     public Connector getBDAconnector() {
-        return BDAconnector;
+        return bdaConnector;
     }
 
     public Connector getELconnector(String SCN) {
-        return ELconnectors.get(SCN);
+        return elConnectors.get(SCN);
     }
 
     public Connector getDTconnector(String SCN) { 
-        return DTconnectors.get(SCN); 
+        return dtConnectors.get(SCN);
     }
 
     public Connector getKPIconnector(String SCN) {
-        return KPIconnectors.get(SCN);
+        return kpiConnectors.get(SCN);
     }
 }

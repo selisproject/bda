@@ -23,7 +23,7 @@ public class HBaseConnector implements Connector {
         // Store Connection Parameters.
         this.port = getHBaseConnectionPort(FS);
         this.hostname = getHBaseConnectionURL(FS);
-        this.
+        this.namespace = getHBaseNamespace(FS);
 
         LOGGER.log(Level.INFO, "Initializing HBase Connector...");
 
