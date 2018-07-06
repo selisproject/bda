@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
@@ -47,33 +48,41 @@ public class PubSubSubscriber implements Runnable {
 
             try {
                 pubsub = new PubSub(this.hostname, this.portNumber);
-
-                messageTypeNames = MessageType.getActiveMessageTypeNames();
-
-                for (String messageTypeName : messageTypeNames) {
-                    Subscription subscription = new Subscription(this.authHash);
-
-                    subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
-
-                    pubsub.subscribe(subscription, new Callback() {
-                        @Override
-                        public void onMessage(Message message) {
-                            try {
-                                handleMessage(message);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
+                List<ScnDbInfo> SCNs = new LinkedList<>();
+                try {
+                    SCNs = ScnDbInfo.getScnDbInfo();
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
+                if (!(SCNs.isEmpty())) {
+                    for (ScnDbInfo SCN : SCNs) {
+                        messageTypeNames.addAll(MessageType.getActiveMessageTypeNames(SCN.getSlug()));
+                    }
 
-                LOGGER.log(Level.INFO, 
-                           "SUCCESS: Subscribed to {0} message types", 
-                           messageTypeNames.size());
+                    for (String messageTypeName : messageTypeNames) {
+                        Subscription subscription = new Subscription(this.authHash);
 
+                        subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
+
+                        pubsub.subscribe(subscription, new Callback() {
+                            @Override
+                            public void onMessage(Message message) {
+                                try {
+                                    handleMessage(message);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    }
+
+                    LOGGER.log(Level.INFO,
+                            "SUCCESS: Subscribed to {0} message types",
+                            messageTypeNames.size());
+                }
             } catch (PubSubException ex) {
-                LOGGER.log(Level.WARNING, 
-                           "Could not subscribe, got error: {0}", 
+                LOGGER.log(Level.WARNING,
+                           "Could not subscribe, got error: {0}",
                            ex.getMessage());
                 pubsub.close();
             } catch (Exception e) {

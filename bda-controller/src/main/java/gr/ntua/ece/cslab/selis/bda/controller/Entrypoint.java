@@ -1,6 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
-import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
@@ -62,7 +61,8 @@ public class Entrypoint {
 
     private static void fetch_engines() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
-        Connection conn = BDAdbPooledConnector.getInstance().getBdaConnection();
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getBDAconnector();
+        Connection conn = connector.getConnection();
 
         Statement statement;
         ResultSet engines = null;
@@ -88,12 +88,6 @@ public class Entrypoint {
             e.printStackTrace();
         }
 
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
         LOGGER.log(Level.INFO, "Fetched engines : " + Entrypoint.analyticsComponent.
                 getEngineCatalog().getAllExecutEngines() + "\n");
 
@@ -101,7 +95,8 @@ public class Entrypoint {
 
     private static void fetch_recipes() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
-        Connection conn = BDAdbPooledConnector.getInstance().getBdaConnection();
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getBDAconnector();
+        Connection conn = connector.getConnection();
 
         Statement statement;
         ResultSet recipes = null;
@@ -124,12 +119,6 @@ public class Entrypoint {
                 }
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

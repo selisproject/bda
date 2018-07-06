@@ -38,7 +38,29 @@ public class SystemConnector {
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword()
         );
+    }
 
+    public static SystemConnector getInstance(){
+        if (systemConnector == null){
+            systemConnector = new SystemConnector();
+            systemConnector.initSCNconnections();
+        }
+        return systemConnector;
+    }
+
+    public static void init(String args){
+        // parse configuration
+        configuration = Configuration.parseConfiguration(args);
+        if(configuration==null) {
+            System.exit(1);
+        }
+        if (systemConnector == null) {
+            systemConnector = new SystemConnector();
+            systemConnector.initSCNconnections();
+        }
+    }
+
+    private void initSCNconnections(){
         List<ScnDbInfo> SCNs = new LinkedList<>();
         try {
             SCNs = ScnDbInfo.getScnDbInfo();
@@ -72,22 +94,6 @@ public class SystemConnector {
                     configuration.kpiBackend.getDbPassword()
             ));
         }
-    }
-
-    public static SystemConnector getInstance(){
-        if (systemConnector == null)
-            systemConnector = new SystemConnector();
-        return systemConnector;
-    }
-
-    public static void init(String args){
-        // parse configuration
-        configuration = Configuration.parseConfiguration(args);
-        if(configuration==null) {
-            System.exit(1);
-        }
-        if (systemConnector == null)
-            systemConnector = new SystemConnector();
     }
 
     public void createScnDatabase(String scnSlug, String dbname) 

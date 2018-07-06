@@ -1,6 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.io.Serializable;
 import java.sql.*;
@@ -99,8 +101,9 @@ public class MessageType implements Serializable {
         "VALUES (?, ?, ?, ?) " +
         "RETURNING id;";
 
-    public static List<String> getActiveMessageTypeNames() {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static List<String> getActiveMessageTypeNames(String slug) {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
 
         Vector<String> messageTypeNames = new Vector<String>(10);
 
