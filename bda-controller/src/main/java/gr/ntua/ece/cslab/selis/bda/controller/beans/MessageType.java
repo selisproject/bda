@@ -83,21 +83,21 @@ public class MessageType implements Serializable {
 
     private final static String ACTIVE_MESSAGE_NAMES_QUERY =
         "SELECT name " +
-        "FROM message_type " +
+        "FROM metadata.message_type " +
         "WHERE active = true;";
 
     private final static String GET_MESSAGE_BY_NAME_QUERY =
         "SELECT id, name, description, active, format " +
-        "FROM message_type " +
+        "FROM metadata.message_type " +
         "WHERE name = ?;";
 
     private final static String GET_MESSAGE_BY_ID_QUERY =
             "SELECT * " +
-            "FROM message_type " +
+            "FROM metadata.message_type " +
             "WHERE id = ?;";
 
     private final static String INSERT_MESSAGE_QUERY =
-        "INSERT INTO message_type (name,description,active,format) " +
+        "INSERT INTO metadata.message_type (name,description,active,format) " +
         "VALUES (?, ?, ?, ?) " +
         "RETURNING id;";
 
@@ -182,8 +182,12 @@ public class MessageType implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
-    public void save() throws SQLException {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public void save(String slug) throws SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
         PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE_QUERY);
 
         statement.setString(1, this.name);

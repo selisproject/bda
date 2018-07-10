@@ -23,21 +23,21 @@ public class JobDescription implements Serializable {
 
     private final static String ACTIVE_JOBS_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
-        "FROM jobs " +
+        "FROM metadata.jobs " +
         "WHERE active = true;";
 
     private final static String GET_JOB_BY_ID_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
-        "FROM jobs " +
+        "FROM metadata.jobs " +
         "WHERE id = ?;";
 
     private final static String GET_JOB_BY_MESSAGE_ID_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
-        "FROM jobs " +
+        "FROM metadata.jobs " +
         "WHERE message_type_id = ?;";
 
     private final static String INSERT_JOB_QUERY =
-        "INSERT INTO jobs (name, description, active, message_type_id, recipe_id, job_type) " +
+        "INSERT INTO metadata.jobs (name, description, active, message_type_id, recipe_id, job_type) " +
         "VALUES (?, ?, ?, ?, ?, ?) " +
         "RETURNING id;";
 

@@ -9,7 +9,6 @@ import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
 
 import java.util.HashMap;
 import java.util.List;
-import java.sql.SQLException;
 
 public class StorageBackend {
 
@@ -23,13 +22,8 @@ public class StorageBackend {
         this.DTconnector = ConnectorFactory.getInstance().generateConnector(SystemConnector.getInstance().getDTconnector(SCN));
     }
 
-    public static void createNewScn(String slug, String name, String description, String dbname) 
-        throws SystemConnectorException, SQLException, DatastoreException, UnsupportedOperationException {
-        // 0. Add new entry to `ScnDbInfo` table.
-        ScnDbInfo scn = new ScnDbInfo(slug, name, description, dbname);
-
-        scn.save();
-
+    public static void createNewScn(ScnDbInfo scn) 
+        throws SystemConnectorException, DatastoreException, UnsupportedOperationException {
         // 1. Create database for Dimension Tables, with data/metadata schemas and the database for the EventLog.
         SystemConnector.getInstance().createScnDatabase(scn.getSlug(), scn.getDbName());
         

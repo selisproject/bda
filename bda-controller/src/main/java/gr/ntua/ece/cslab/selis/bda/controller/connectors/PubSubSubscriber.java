@@ -33,6 +33,8 @@ public class PubSubSubscriber implements Runnable {
         this.authHash = authHash;
         this.hostname = hostname;
         this.portNumber = portNumber;
+
+        this.messageTypeNames = new Vector<String>();
     }
 
     public static void reloadMessageTypes() {

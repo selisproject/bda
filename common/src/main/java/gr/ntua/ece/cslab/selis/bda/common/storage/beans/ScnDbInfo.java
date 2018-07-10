@@ -4,12 +4,18 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.sql.*;
+import java.io.Serializable;
 import java.lang.UnsupportedOperationException;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 
-public class ScnDbInfo {
+@XmlRootElement(name = "ScnDbInfo")
+@XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+public class ScnDbInfo implements Serializable {
 
     private int id;
     private String slug;
@@ -65,6 +71,16 @@ public class ScnDbInfo {
 
     public String getDbName() {
         return this.dbname;
+    }
+
+    @Override
+    public String toString() {
+        return "ScnDbInfo {" +
+                "slug='" + slug + "', " +
+                "name='" + name + "', " +
+                "description='" + description + "', " +
+                "dbname='" + dbname + 
+                "}";
     }
 
     public void save() throws SQLException, UnsupportedOperationException {

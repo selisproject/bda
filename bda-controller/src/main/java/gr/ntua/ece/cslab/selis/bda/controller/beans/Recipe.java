@@ -26,21 +26,21 @@ public class Recipe implements Serializable {
 
     private final static String ALL_RECIPES_QUERY = 
         "SELECT * " +
-        "FROM recipes";
+        "FROM metadata.recipes";
 
     private final static String INSERT_RECIPE_QUERY = 
-        "INSERT INTO recipes (name, description, executable_path, engine_id, args) " +
+        "INSERT INTO metadata.recipes (name, description, executable_path, engine_id, args) " +
         "VALUES (?, ?, ?, ? ,?::json) " +
         "RETURNING id";
 
     private final static String GET_RECIPE_BY_ID =
-            "SELECT * FROM recipes WHERE id = ?;";
+            "SELECT * FROM metadata.recipes WHERE id = ?;";
 
     private final static String GET_RECIPE_BY_NAME =
-            "SELECT * FROM recipes WHERE name = ?;";
+            "SELECT * FROM metadata.recipes WHERE name = ?;";
 
     private final static String SET_EXECUTABLE_PATH =
-            "UPDATE recipes SET executable_path = ? WHERE id = ?;";
+            "UPDATE metadata.recipes SET executable_path = ? WHERE id = ?;";
 
     public Recipe() {}
 

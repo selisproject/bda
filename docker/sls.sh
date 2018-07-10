@@ -20,7 +20,6 @@ SELIS_JDK_PULL_IMAGE="openjdk:latest"
 SELIS_POSTGRES_PULL_IMAGE="postgres:latest"
 SELIS_HBASE_PULL_IMAGE="dajobe/hbase:latest"
 SELIS_KEYCLOAK_PULL_IMAGE="jboss/keycloak:latest"
-SELIS_SPARK_PULL_IMAGE="p7hb/docker-spark:latest"
 
 SELIS_BDA_CONTAINER="selis-controller"
 SELIS_HBASE_CONTAINER="selis-hbase"
@@ -94,14 +93,6 @@ then
     echo "Pulling keycloak image..."
 
     docker pull "$SELIS_KEYCLOAK_PULL_IMAGE"
-fi
-
-SELIS_SPARK_IMAGE_ID="$(docker images --quiet "$SELIS_SPARK_PULL_IMAGE")"
-if [ "$SELIS_SPARK_IMAGE_ID" == "" ]
-then
-    echo "Pulling spark image..."
-
-    docker pull "$SELIS_SPARK_PULL_IMAGE"
 fi
 
 ################################################################################
@@ -315,7 +306,6 @@ then
     docker start "$SELIS_SPARK_MASTER_CONTAINER"
     docker start "$SELIS_SPARK_WORKER_CONTAINER"
     docker start "$SELIS_BDA_CONTAINER"
-    docker start "$SELIS_SPARK_CONTAINER"
 fi
 
 
