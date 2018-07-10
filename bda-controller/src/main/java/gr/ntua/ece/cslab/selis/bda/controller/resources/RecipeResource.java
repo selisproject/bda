@@ -35,7 +35,7 @@ public class RecipeResource {
     @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, 
+    public RequestResponse insert(@Context HttpServletResponse response,
                                   @PathParam("slug") String slug,
                                   String m) {
 
@@ -89,6 +89,7 @@ public class RecipeResource {
         String binaryPath = "/uploads/" + recipe_id + "_" + recipe_name;
         saveFile(recipe, binaryPath);
 
+
         Recipe r = Recipe.getRecipeById(slug, recipe_id);
         System.out.println(r.toString());
         r.setExecutable_path(binaryPath);
@@ -99,9 +100,10 @@ public class RecipeResource {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
-                r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
-                new JSONObject(r.getArgs()), r.getExecutable_path());
+
+        //Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
+        //        r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
+        //        new JSONObject(r.getArgs()), r.getExecutable_path());
         return new RequestResponse(status, details);
     }
 

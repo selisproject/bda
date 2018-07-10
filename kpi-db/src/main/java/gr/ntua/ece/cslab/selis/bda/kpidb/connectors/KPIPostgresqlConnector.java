@@ -1,58 +1,27 @@
 package gr.ntua.ece.cslab.selis.bda.kpidb.connectors;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.*;
 
 import java.sql.*;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PostgresqlConnector implements Connector{
+public class KPIPostgresqlConnector implements KPIConnector {
 
-    private String jdbcURL;
-    private String user;
-    private String password;
-    private Connection connection;
+    PostgresqlConnector conn;
 
-    public PostgresqlConnector(String jdbcURL, String user, String password) {
-        this.jdbcURL = jdbcURL;
-        this.user = user;
-        this.password = password;
-
-        try {
-            Class.forName("org.postgresql.Driver");
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return;
-        }
-        System.out.println("PostgreSQL JDBC Driver Registered!");
-
-        try {
-            connection = DriverManager.getConnection(jdbcURL, user, password);
-        } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
-            e.printStackTrace();
-            return;
-        }
-        if (connection == null) {
-            System.out.println("Failed to make connection!");
-        }
-
-        // make sure autocommit is off
-        try {
-            connection.setAutoCommit(false);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public KPIPostgresqlConnector(PostgresqlConnector conn) {
+        this.conn = conn;
     }
 
     @Override
     public void create(KPITable kpi_table) throws Exception {
-        Statement st = connection.createStatement();
+        Statement st = conn.getConnection().createStatement();
         List<KeyValue> columns = kpi_table.getKpi_schema().getColumnTypes();
-        st.addBatch("DROP TABLE IF EXISTS "+kpi_table.getKpi_name()+";");
+        st.addBatch("DROP TABLE IF EXISTS kpi."+kpi_table.getKpi_name()+";");
 
-        String q="CREATE TABLE " + kpi_table.getKpi_name() + " (id SERIAL PRIMARY KEY, timestamp timestamp, ";
+        String q="CREATE TABLE kpi." + kpi_table.getKpi_name() + " (id SERIAL PRIMARY KEY, timestamp timestamp, ";
         for (KeyValue element : columns){
             q+=element.getKey()+" "+element.getValue();
             q+=",";
@@ -60,9 +29,9 @@ public class PostgresqlConnector implements Connector{
         q=q.substring(0, q.length() - 1)+");";
         System.out.println(q);
         st.addBatch(q);
-        st.addBatch("ALTER TABLE " + kpi_table.getKpi_name() + " OWNER TO "+ this.user+";");
+        st.addBatch("ALTER TABLE kpi." + kpi_table.getKpi_name() + " OWNER TO "+ conn.getUsername() +";");
         st.executeBatch();
-        connection.commit();
+        conn.getConnection().commit();
     }
 
     @Override
@@ -70,7 +39,7 @@ public class PostgresqlConnector implements Connector{
         try {
             if (kpi.getEntries().size()>0) {
                 String values = "";
-                String insertTableSQL = "INSERT INTO " + kpi.getKpi_name() + " (";
+                String insertTableSQL = "INSERT INTO kpi." + kpi.getKpi_name() + " (";
                 insertTableSQL +=  "timestamp,";
                 values += "?,";
                 List<KeyValue> types = this.describe(kpi.getKpi_name()).getKpi_schema().getColumnTypes();
@@ -87,7 +56,7 @@ public class PostgresqlConnector implements Connector{
                     }
                 }
                 insertTableSQL = insertTableSQL.substring(0, insertTableSQL.length() - 1) + ") VALUES (" + values.substring(0, values.length() - 1) + ");";
-                PreparedStatement prepst = connection.prepareStatement(insertTableSQL);
+                PreparedStatement prepst = conn.getConnection().prepareStatement(insertTableSQL);
                 prepst.setTimestamp(1, Timestamp.valueOf(kpi.getTimestamp()));
                 int i = 2;
                 for (KeyValue element : kpi.getEntries()) {
@@ -119,11 +88,11 @@ public class PostgresqlConnector implements Connector{
                 prepst.executeUpdate();
             }
             System.out.println("Insert complete");
-            connection.commit();
+            conn.getConnection().commit();
         } catch (SQLException e) {
             System.out.println("Insert failed");
             e.printStackTrace();
-            connection.rollback();
+            conn.getConnection().rollback();
         }
     }
 
@@ -132,10 +101,10 @@ public class PostgresqlConnector implements Connector{
         System.out.println("Enter postgresconnector code");
         List<Tuple> res = new LinkedList<>();
         try {
-            Statement st = connection.createStatement();
+            Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            String sqlQuery = "SELECT * FROM "+ kpi_name;
+            String sqlQuery = "SELECT * FROM kpi."+ kpi_name;
             if (filters.getTuple().size() > 0) {
                 sqlQuery += " WHERE";
                 for (KeyValue filter : filters.getTuple()) {
@@ -159,7 +128,7 @@ public class PostgresqlConnector implements Connector{
             rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            connection.rollback();
+            conn.getConnection().rollback();
         }
         return res;
     }
@@ -168,10 +137,10 @@ public class PostgresqlConnector implements Connector{
     public List<Tuple> getLast(String kpi_name, Integer n) throws Exception {
         List<Tuple> res = new LinkedList<>();
         try {
-            Statement st = connection.createStatement();
+            Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            ResultSet rs = st.executeQuery("SELECT * FROM " + kpi_name + " order by timestamp desc limit "+n+";");
+            ResultSet rs = st.executeQuery("SELECT * FROM kpi." + kpi_name + " order by timestamp desc limit "+n+";");
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             while (rs.next()) {
@@ -186,7 +155,7 @@ public class PostgresqlConnector implements Connector{
             rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            connection.rollback();
+            conn.getConnection().rollback();
         }
         return res;
     }
@@ -196,10 +165,10 @@ public class PostgresqlConnector implements Connector{
         List<String> columnNames = new LinkedList<>();
         List<KeyValue> columnTypes = new LinkedList<>();
         try {
-            Statement st = connection.createStatement();
+            Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            ResultSet rs = st.executeQuery("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = '"+kpi_name+"';");
+            ResultSet rs = st.executeQuery("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = 'kpi."+kpi_name+"';");
             while (rs.next()) {
                 columnNames.add(rs.getString(1));
                 columnTypes.add(new KeyValue(rs.getString(1),rs.getString(2)));
@@ -207,7 +176,7 @@ public class PostgresqlConnector implements Connector{
             rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            connection.rollback();
+            conn.getConnection().rollback();
         }
         return new KPITable(kpi_name, new KPISchema(columnNames, columnTypes));
     }
@@ -216,7 +185,7 @@ public class PostgresqlConnector implements Connector{
     public List<String> list() {
         List<String> tables = new LinkedList<>();
         try {
-            DatabaseMetaData dbm = connection.getMetaData();
+            DatabaseMetaData dbm = conn.getConnection().getMetaData();
             ResultSet rs = dbm.getTables(null, null, "%", new String[] {"TABLE"});
             while (rs.next())
                 if (!rs.getString("TABLE_NAME").equalsIgnoreCase("Events"))
@@ -227,12 +196,4 @@ public class PostgresqlConnector implements Connector{
         return tables;
     }
 
-    @Override
-    public void close() {
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 }

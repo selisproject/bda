@@ -1,19 +1,17 @@
-package gr.ntua.ece.cslab.selis.bda.controller.beans;
+package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
-import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.sql.*;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "MessageType")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
@@ -114,6 +112,7 @@ public class MessageType implements Serializable {
             while (resultSet.next()) {
                 messageTypeNames.addElement(resultSet.getString("name"));
             }
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -141,12 +140,14 @@ public class MessageType implements Serializable {
 
                 msg.id = resultSet.getInt("id");
 
+                connection.close();
                 return msg;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
@@ -170,21 +171,20 @@ public class MessageType implements Serializable {
 
                 msg.id = resultSet.getInt("id");
 
+                connection.close();
                 return msg;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
     public void save(String slug) throws SQLException {
-        PostgresqlConnector connector = (PostgresqlConnector )
-            SystemConnector.getInstance().getDTconnector(slug);
-
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
-
         PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE_QUERY);
 
         statement.setString(1, this.name);
@@ -198,8 +198,9 @@ public class MessageType implements Serializable {
 
         }
 
-        connection.commit();
-
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
+        connection.close();
+        // TODO: Verify if we want autocommit. Set it explicitely.
+        // connection.commit();
     }
 }

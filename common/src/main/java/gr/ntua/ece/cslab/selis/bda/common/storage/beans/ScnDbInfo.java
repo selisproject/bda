@@ -195,7 +195,7 @@ public class ScnDbInfo implements Serializable {
             PreparedStatement statement = connection.prepareStatement(GET_SCN_QUERY);
             ResultSet resultSet = statement.executeQuery();
 
-            if (resultSet.next()) {
+            while (resultSet.next()) {
                 ScnDbInfo scn = new ScnDbInfo(
                         resultSet.getString("slug"),
                         resultSet.getString("name"),

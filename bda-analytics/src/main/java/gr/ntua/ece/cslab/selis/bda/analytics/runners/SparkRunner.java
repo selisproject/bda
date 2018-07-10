@@ -17,17 +17,17 @@ public class SparkRunner extends ArgumentParser implements Runnable {
     String recipe_part;
     KpiDescriptor kpiDescriptor;
     ExecutEngineDescriptor engine;
-    KPIBackend kpidb;
+    //KPIBackend kpidb;
     String message;
 
     public SparkRunner(KpiDescriptor kpi,
                        ExecutEngineDescriptor engine,
                        String message,
-                       KPIBackend kpidb) {
+                       String scnSlug) {
         this.kpiDescriptor = kpi;
         this.engine = engine;
         this.message = message;
-        this.kpidb = kpidb;
+        //this.kpidb = kpidb;
 
         engine_part = "";
         recipe_part = "";

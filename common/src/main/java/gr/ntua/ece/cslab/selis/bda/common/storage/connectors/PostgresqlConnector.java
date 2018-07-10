@@ -9,6 +9,8 @@ public class PostgresqlConnector implements Connector {
     private String password;
     private Connection connection;
 
+    private final static String CHECK_DATABASE_QUERY = "select count(*) as counter from pg_catalog.pg_database where datname = '%s';";
+
     private final static String CREATE_DATABASE_QUERY = "CREATE DATABASE %s WITH OWNER %s;";
 
     private final static String CREATE_DATABASE_SCHEMA_QUERY = "CREATE SCHEMA %s AUTHORIZATION %s;";
@@ -63,7 +65,18 @@ public class PostgresqlConnector implements Connector {
         }
 
         PreparedStatement statement = localConnection.prepareStatement(
-            String.format(CREATE_DATABASE_QUERY, dbname, owner));
+                String.format(CHECK_DATABASE_QUERY, dbname));
+
+        ResultSet rs = statement.executeQuery();
+
+        if (rs.next()){
+            if (rs.getInt("counter")==1){
+                localConnection.close();
+                return jdbcUrl + dbname;
+            }
+        }
+        statement = localConnection.prepareStatement(
+                String.format(CREATE_DATABASE_QUERY, dbname, owner));
 
         statement.executeUpdate();
 

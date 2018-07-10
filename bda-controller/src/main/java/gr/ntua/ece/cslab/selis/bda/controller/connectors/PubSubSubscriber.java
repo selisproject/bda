@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
+import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
@@ -33,8 +34,6 @@ public class PubSubSubscriber implements Runnable {
         this.authHash = authHash;
         this.hostname = hostname;
         this.portNumber = portNumber;
-
-        this.messageTypeNames = new Vector<String>();
     }
 
     public static void reloadMessageTypes() {
@@ -50,6 +49,7 @@ public class PubSubSubscriber implements Runnable {
 
             try {
                 pubsub = new PubSub(this.hostname, this.portNumber);
+                this.messageTypeNames = new Vector<String>();
                 List<ScnDbInfo> SCNs = new LinkedList<>();
                 try {
                     SCNs = ScnDbInfo.getScnDbInfo();
@@ -153,22 +153,22 @@ public class PubSubSubscriber implements Runnable {
         bdamessage.setEntries(entries);
         try {
             // TODO: get scn name
-            message_id = new StorageBackend("").insert(bdamessage);
+            message_id = new StorageBackend("haha").insert(bdamessage);
             LOGGER.info("Subscriber[" + authHash + "], Received and persisted " + messageType + " message.");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        /* TODO: This here...
-        MessageType msgInfo = MessageType.getMessageByName(messageType);
+
+        MessageType msgInfo = MessageType.getMessageByName("haha", messageType);
         try {
-            JobDescription job = JobDescription.getJobByMessageId("slug", msgInfo.getId());
+            JobDescription job = JobDescription.getJobByMessageId("haha", msgInfo.getId());
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], Launching " + job.getName() + " recipe.");
             // TODO: check job.getJob_type()
-            Entrypoint.analyticsComponent.run(job.getRecipeId(), message_id);
+            //(new AnalyticsInstance("haha")).run(job.getRecipeId(), message_id);
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], No recipe found for message " + messageType + ".");
         }
-        */
+
     }
 }

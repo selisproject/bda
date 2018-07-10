@@ -17,11 +17,11 @@ public class RunnerFactory {
 	public Runnable getRunner(KpiDescriptor kpi,
 							  ExecutEngineDescriptor engine,
 							  String message,
-                              KPIBackend kpidb
+                              String scnSlug
 	) {
 		if (engine.isLocal_engine())
-			return new LocalRunner(kpi, engine, message, kpidb);
+			return new LocalRunner(kpi, engine, message, scnSlug);
 		else
-			return new SparkRunner(kpi, engine, message, kpidb);
+			return new SparkRunner(kpi, engine, message, scnSlug);
 	}
 }

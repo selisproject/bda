@@ -61,7 +61,7 @@ public class ConnectorFactory {
                     fs, username, password, owner, dbname);
             } catch (SQLException e) {
                 e.printStackTrace();
-                throw new SystemConnectorException("Could not create Postgresql database.");
+                //throw new SystemConnectorException("Could not create Postgresql database.");
             }
             // 1. Create schemas into the new database. 
             for (String schema : schemas) {

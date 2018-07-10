@@ -87,6 +87,9 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
 
             statement.executeUpdate();
 
+            statement = connection.prepareStatement(INSERT_EXECUTION_ENGINES_QUERY);
+            statement.executeUpdate();
+
             connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
