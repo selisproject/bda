@@ -52,10 +52,7 @@ public class PostgresqlConnector implements Connector {
                                         String owner, String dbname) throws SQLException {
         Connection localConnection = null;
 
-        // TODO: Should move to the one below when all the code is refactored.
-        // String postgresTemplateUrl = jdbcUrl + "template1";
-
-        String postgresTemplateUrl = "jdbc:postgresql://selis-postgres:5432/template1";
+        String postgresTemplateUrl = jdbcUrl + "template1";
 
         try {
             localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
@@ -72,10 +69,7 @@ public class PostgresqlConnector implements Connector {
 
         localConnection.close();
 
-        // TODO: Should move to the one below when all the code is refactored.
-        // return jdbcUrl + dbname;
-
-        return "jdbc:postgresql://selis-postgres:5432/" + dbname;
+        return jdbcUrl + dbname;
     }
 
     public static void createSchema(String jdbcUrl, String username, String password, 

@@ -185,8 +185,11 @@ public class MessageType implements Serializable {
     }
 
     public void save(String slug) throws SQLException {
-        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        PostgresqlConnector connector = (PostgresqlConnector )
+            SystemConnector.getInstance().getDTconnector(slug);
+
         Connection connection = connector.getConnection();
+
         PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE_QUERY);
 
         statement.setString(1, this.name);

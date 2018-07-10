@@ -29,6 +29,7 @@ import java.util.logging.Logger;
  */
 public class HelloWorldTest {
 
+    /*
     Logger LOGGER = Logger.getLogger(HelloWorldTest.class.getCanonicalName());
 
     Configuration configuration;
@@ -80,15 +81,15 @@ public class HelloWorldTest {
             "}";
 
     private static final String DELETE_MSG_TYPE_QUERY =
-            "DELETE FROM message_type " +
+            "DELETE FROM metadata.message_type " +
             "WHERE id = ?;";
 
     private static final String DELETE_RECIPE_QUERY =
-            "DELETE FROM recipes " +
+            "DELETE FROM metadata.recipes " +
             "WHERE id = ?;";
 
     private static final String DELETE_JOB_QUERY =
-            "DELETE FROM jobs " +
+            "DELETE FROM metadata.jobs " +
             "WHERE id = ?;";
 
     private static final String DROP_DATABASE_SCHEMA_QUERY =
@@ -140,7 +141,7 @@ public class HelloWorldTest {
         try {
             statement = conn.createStatement();
 
-            engines = statement.executeQuery("SELECT * FROM execution_engines;");
+            engines = statement.executeQuery("SELECT * FROM metadata.execution_engines;");
 
             if (engines != null) {
                 while (engines.next()) {
@@ -357,7 +358,5 @@ public class HelloWorldTest {
         localConnection.close();
 
     }
-
-
-
+    */
 }

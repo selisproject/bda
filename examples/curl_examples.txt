@@ -1,8 +1,11 @@
+// Create SCN database
+curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @newscn.json http://localhost:9999/api/datastore/create && echo
+
 // Bootstrap dimension tables
-curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @master_data.json http://localhost:9999/api/datastore/boot && echo
+curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @master_data.json http://localhost:9999/api/datastore/scn_slug/boot && echo
 
 // Store message in eventlog
-curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore && echo
+curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore/scn_slug/ && echo
 
 // Create message type to subscribe to
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msgtype.json http://localhost:9999/api/message && echo
@@ -15,10 +18,10 @@ curl -ik -X GET "http://localhost:9999/api/datastore?type=rows&n=-1" && echo
 curl -ik -X GET "http://localhost:9999/api/datastore/select?filters='warehouse_id=1&message_type=stocklevels'" && echo
 
 // Get data from dimension tables
-curl -ik -X GET "http://localhost:9999/api/datastore/dtable?tableName=warehouses&filters='warehouse_id=1'" && echo
+curl -ik -X GET "http://localhost:9999/api/datastore/scn_slug/dtable?tableName=warehouses&filters='warehouse_id=1'" && echo
 
 // Print dimension tables schema
-curl -ik -X GET http://localhost:9999/api/datastore/schema && echo
+curl -ik -X GET http://localhost:9999/api/datastore/scn_slug/schema && echo
 
 // Add new recipe
 curl -ik -X PUT -H "Content-type:application/json" -d @recipe.json http://localhost:9999/api/recipe

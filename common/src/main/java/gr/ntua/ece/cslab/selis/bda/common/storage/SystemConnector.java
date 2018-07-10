@@ -71,13 +71,13 @@ public class SystemConnector {
         }
         for (ScnDbInfo SCN: SCNs){
             elConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                    configuration.storageBackend.getEventLogURL()+SCN.getDbName(),
+                    configuration.storageBackend.getEventLogURL()+SCN.getDbname(),
                     configuration.storageBackend.getDbUsername(),
                     configuration.storageBackend.getDbPassword()
             ));
 
             dtConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                    configuration.storageBackend.getDimensionTablesURL()+SCN.getDbName(),
+                    configuration.storageBackend.getDimensionTablesURL()+SCN.getDbname(),
                     configuration.storageBackend.getDbUsername(),
                     configuration.storageBackend.getDbPassword()
             ));
@@ -89,7 +89,7 @@ public class SystemConnector {
             );*/
 
             kpiConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                    configuration.kpiBackend.getDbUrl()+SCN.getDbName(),
+                    configuration.kpiBackend.getDbUrl()+SCN.getDbname(),
                     configuration.kpiBackend.getDbUsername(),
                     configuration.kpiBackend.getDbPassword()
             ));
@@ -99,8 +99,7 @@ public class SystemConnector {
     public void createScnDatabase(String scnSlug, String dbname) 
         throws SystemConnectorException, UnsupportedOperationException {
 
-        Vector<String> schemas = new Vector<String>(2);
-        schemas.add("data");
+        Vector<String> schemas = new Vector<String>(1);
         schemas.add("metadata");
 
 

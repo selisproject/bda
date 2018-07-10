@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
+import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
@@ -33,6 +34,8 @@ public class PubSubSubscriber implements Runnable {
         this.authHash = authHash;
         this.hostname = hostname;
         this.portNumber = portNumber;
+
+        this.messageTypeNames = new Vector<String>();
     }
 
     public static void reloadMessageTypes() {
@@ -157,12 +160,12 @@ public class PubSubSubscriber implements Runnable {
             e.printStackTrace();
         }
 
-        MessageType msgInfo = MessageType.getMessageByName(messageType);
+        MessageType msgInfo = MessageType.getMessageByName("", messageType);
         try {
-            JobDescription job = JobDescription.getJobByMessageId(msgInfo.getId());
+            JobDescription job = JobDescription.getJobByMessageId("", msgInfo.getId());
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], Launching " + job.getName() + " recipe.");
             // TODO: check job.getJob_type()
-            //Entrypoint.analyticsComponent.run(job.getRecipeId(), message_id);
+            (new AnalyticsInstance("")).run(job.getRecipeId(), message_id);
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], No recipe found for message " + messageType + ".");
         }
