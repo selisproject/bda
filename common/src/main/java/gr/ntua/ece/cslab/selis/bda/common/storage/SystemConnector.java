@@ -99,8 +99,7 @@ public class SystemConnector {
     public void createScnDatabase(String scnSlug, String dbname) 
         throws SystemConnectorException, UnsupportedOperationException {
 
-        Vector<String> schemas = new Vector<String>(2);
-        schemas.add("data");
+        Vector<String> schemas = new Vector<String>(1);
         schemas.add("metadata");
 
         String databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
@@ -120,7 +119,6 @@ public class SystemConnector {
 
         dtConnectors.put(scnSlug, dtConnector);
 
-        /*
         databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
                 configuration.storageBackend.getEventLogURL(),
                 configuration.storageBackend.getDbUsername(),
@@ -137,7 +135,6 @@ public class SystemConnector {
         );
 
         elConnectors.put(scnSlug, elConnector);
-        */
 
         // TODO: create KPI db too
     }

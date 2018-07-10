@@ -27,7 +27,7 @@ public class MessageResource {
         String details = "";
 
         try {
-            m.save();
+            m.save("");
 
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);

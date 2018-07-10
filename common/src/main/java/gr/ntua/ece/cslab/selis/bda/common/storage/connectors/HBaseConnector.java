@@ -113,6 +113,21 @@ public class HBaseConnector implements Connector {
         } finally {
             LOGGER.log(Level.INFO, "HBase namespace created.");
         }
+
+
+        try {
+            HTableDescriptor desc = new HTableDescriptor(dbname + ":Events");
+            desc.addFamily(new HColumnDescriptor("messages"));
+
+            admin.createTable(desc);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Creation of Events table in namespace failed! Check output console.");
+            e.printStackTrace();
+            return null;
+        } finally {
+            LOGGER.log(Level.INFO, "HBase namespace created.");
+        }
+
         return fs + dbname;
     }
 
@@ -120,7 +135,9 @@ public class HBaseConnector implements Connector {
      * Extracts the port from a HBase Connection URL.
      */
     private static String getHBaseConnectionPort(String FS) {
-        String[] tokens = FS.split(":")[-1].split("/");
+        String[] tokens = FS.split(":");
+        
+        tokens = tokens[tokens.length - 1].split("/");
 
         return tokens[0];
     }
@@ -129,7 +146,7 @@ public class HBaseConnector implements Connector {
      * Extracts the host from a HBase Connection URL.
      */
     private static String getHBaseConnectionURL(String FS) {
-        String[] tokens = FS.split("/")[1].split(":");
+        String[] tokens = FS.split("://")[1].split(":");
 
         return tokens[0];
     }
@@ -140,7 +157,7 @@ public class HBaseConnector implements Connector {
     private static String getHBaseNamespace(String FS) {
         String[] tokens = FS.split("/");
 
-        return tokens[-1];
+        return tokens[tokens.length - 1];
     }
 
     public String getNamespace() {

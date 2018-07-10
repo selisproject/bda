@@ -14,6 +14,8 @@ import com.google.common.base.Splitter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.*;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 /**
  * This class holds the REST API of the datastore object.
  * Created by Giannis Giannakopoulos on 10/11/17.
@@ -68,12 +70,15 @@ public class DatastoreResource {
      * @param m the message to insert
      */
     @PUT
+    @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, Message m) {
+    public RequestResponse insert(@Context HttpServletResponse response, 
+                                  @PathParam("slug") String slug,
+                                  Message m) {
         LOGGER.log(Level.INFO, m.toString());
         try {
-            new StorageBackend("").insert(m);
+            new StorageBackend(slug).insert(m);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -93,12 +98,14 @@ public class DatastoreResource {
      * @return a response for the status of bootstrapping
      */
     @POST
-    @Path("boot")
+    @Path("{slug}/boot")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse bootstrap(@Context HttpServletResponse response, MasterData masterData) throws IOException {
+    public RequestResponse bootstrap(@Context HttpServletResponse response,
+                                     @PathParam("slug") String slug,
+                                     MasterData masterData) throws IOException {
         try {
-            new StorageBackend("").init(masterData);
+            new StorageBackend(slug).init(masterData);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -118,16 +125,17 @@ public class DatastoreResource {
      * @return the selected content of the dimension table
      */
     @GET
-    @Path("dtable")
+    @Path("{slug}/dtable")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getTable(
             @QueryParam("tableName") String tableName,
-            @QueryParam("filters") String filters
+            @QueryParam("filters") String filters,
+            @PathParam("slug") String slug
     ) {
         try {
             Map<String,String> map= Splitter.on('&').withKeyValueSeparator("=").split(filters);
             HashMap<String, String> mapfilters = new HashMap<String, String>(map);
-            return new StorageBackend("").select(tableName, mapfilters);
+            return new StorageBackend(slug).select(tableName, mapfilters);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -139,14 +147,14 @@ public class DatastoreResource {
      * @return a list of the dimension tables schemas
      */
     @GET
-    @Path("schema")
+    @Path("{slug}/schema")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<DimensionTable> getSchema() {
+    public List<DimensionTable> getSchema(@PathParam("slug") String slug) {
         try {
-            List<String> tables = new StorageBackend("").listTables();
+            List<String> tables = new StorageBackend(slug).listTables();
             List res = new LinkedList<>();
             for (String table: tables){
-                DimensionTable schema = new StorageBackend("").getSchema(table);
+                DimensionTable schema = new StorageBackend(slug).getSchema(table);
                 LOGGER.log(Level.INFO, "Table: " +table + ", Columns: "+ schema.getSchema().getColumnNames());
                 res.add(schema);
             }
@@ -165,11 +173,13 @@ public class DatastoreResource {
      * @return the denormalized messages
      */
     @GET
+    @Path("{slug}/entries")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getEntries(@QueryParam("type") String type,
-                                    @QueryParam("n") Integer n) {
+                                  @QueryParam("n") Integer n,
+                                  @PathParam("slug") String slug) {
         try {
-            return new StorageBackend("").fetch(type,n);
+            return new StorageBackend(slug).fetch(type,n);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -182,15 +192,16 @@ public class DatastoreResource {
      * @return the denormalized messages
      */
     @GET
-    @Path("select")
+    @Path("{slug}/select")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getSelectedEntries(
-            @QueryParam("filters") String filters
+            @QueryParam("filters") String filters,
+            @PathParam("slug") String slug
     ) {
         try {
             Map<String,String> map= Splitter.on('&').withKeyValueSeparator("=").split(filters);
             HashMap<String, String> mapfilters = new HashMap<String, String>(map);
-            return new StorageBackend("").select(mapfilters);
+            return new StorageBackend(slug).select(mapfilters);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -227,11 +227,11 @@ then
             --name "$SELIS_HBASE_CONTAINER" \
             "$SELIS_HBASE_IMAGE"
 
-        echo "Creating 'Events' table, if it does not exist..."
+        # echo "Creating 'Events' table, if it does not exist..."
 
-        docker exec \
-            selis-hbase \
-            /bootstrap-hbase.d/bootstrap-hbase.sh
+        # docker exec \
+        #     selis-hbase \
+        #     /bootstrap-hbase.d/bootstrap-hbase.sh
     fi
 
    if [ "$2" == "keycloak" ] || [ "$2" == "all" ]
