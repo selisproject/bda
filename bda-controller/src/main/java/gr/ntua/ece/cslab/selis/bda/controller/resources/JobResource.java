@@ -26,21 +26,24 @@ public class JobResource {
      * @param m the job description to insert
      */
     @PUT
+    @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, JobDescription m) {
+    public RequestResponse insert(@Context HttpServletResponse response, 
+                                  @PathParam("slug") String slug,
+                                  JobDescription m) {
         String status = "OK";
         String details = "";
 
         try {
-            m.save();
+            m.save(slug);
             LOGGER.log(Level.INFO, "Inserted job.");
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
 
             MessageType msg = MessageType.getMessageById(m.getMessageTypeId());
-            Recipe r = Recipe.getRecipeById(m.getRecipeId());
+            Recipe r = Recipe.getRecipeById(slug, m.getRecipeId());
             JSONObject msgFormat = new JSONObject(msg.getFormat());
             LOGGER.log(Level.INFO, "Create kpidb table..");
             Entrypoint.analyticsComponent.getKpidb().create(new KPITable(r.getName(),

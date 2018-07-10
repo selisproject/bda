@@ -32,9 +32,12 @@ public class RecipeResource {
      * @param m the job description to insert
      */
     @PUT
+    @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, String m) {
+    public RequestResponse insert(@Context HttpServletResponse response, 
+                                  @PathParam("slug") String slug,
+                                  String m) {
 
         String status = "OK";
         String details = "";
@@ -47,7 +50,7 @@ public class RecipeResource {
                 obj.getJSONObject("args").toString());
 
         try {
-            r.save();
+            r.save(slug);
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
@@ -73,11 +76,12 @@ public class RecipeResource {
     }
 
     @PUT
-    @Path("upload/{id}/{filename}")
+    @Path("{slug}/upload/{id}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public RequestResponse upload(@PathParam("id") int recipe_id,
-                         @PathParam("filename") String recipe_name,
-                         InputStream recipe)  {
+    public RequestResponse upload(@PathParam("slug") String slug,
+                                  @PathParam("id") int recipe_id,
+                                  @PathParam("filename") String recipe_name,
+                                  InputStream recipe)  {
 
         String status = "OK";
         String details = "";
@@ -85,13 +89,13 @@ public class RecipeResource {
         String binaryPath = "/uploads/" + recipe_id + "_" + recipe_name;
         saveFile(recipe, binaryPath);
 
-        Recipe r = Recipe.getRecipeById(recipe_id);
+        Recipe r = Recipe.getRecipeById(slug, recipe_id);
         System.out.println(r.toString());
         r.setExecutable_path(binaryPath);
         System.out.println(r.toString());
 
         try {
-            r.updateBinaryPath();
+            r.updateBinaryPath(slug);
         } catch (SQLException e) {
             e.printStackTrace();
         }

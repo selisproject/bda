@@ -54,6 +54,12 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
             "active          BOOLEAN DEFAULT(true) " +
         ");";
 
+    private final String INSERT_EXECUTION_ENGINES_QUERY = 
+        "INSERT INTO metadata.execution_engines (name, engine_path, local_engine, args) " + 
+        "VALUES ('python3', '/usr/bin/python3', true, '{}'::json); " +
+        "INSERT INTO metadata.execution_engines (name, engine_path, local_engine, args) " +
+        "VALUES ('pyspark', 'spark://selis-spark-master:7077', false, '{}'::json);";
+
     // The constructor creates a connection to the database provided in the 'jdbcURL' parameter.
     // The database should be up and running.
     public DatastorePostgresqlConnector(PostgresqlConnector conn){

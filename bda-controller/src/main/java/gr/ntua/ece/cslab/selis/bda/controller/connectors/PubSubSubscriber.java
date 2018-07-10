@@ -159,14 +159,16 @@ public class PubSubSubscriber implements Runnable {
             e.printStackTrace();
         }
 
+        /* TODO: This here...
         MessageType msgInfo = MessageType.getMessageByName(messageType);
         try {
-            JobDescription job = JobDescription.getJobByMessageId(msgInfo.getId());
+            JobDescription job = JobDescription.getJobByMessageId("slug", msgInfo.getId());
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], Launching " + job.getName() + " recipe.");
             // TODO: check job.getJob_type()
             Entrypoint.analyticsComponent.run(job.getRecipeId(), message_id);
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], No recipe found for message " + messageType + ".");
         }
+        */
     }
 }

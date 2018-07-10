@@ -14,8 +14,8 @@ curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" 
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @job.json http://localhost:9999/api/job && echo
 
 // Get data from eventlog
-curl -ik -X GET "http://localhost:9999/api/datastore?type=rows&n=-1" && echo
-curl -ik -X GET "http://localhost:9999/api/datastore/select?filters='warehouse_id=1&message_type=stocklevels'" && echo
+curl -ik -X GET "http://localhost:9999/api/datastore/scn_slug/?type=rows&n=-1" && echo
+curl -ik -X GET "http://localhost:9999/api/datastore/scn_slug/select?filters='warehouse_id=1&message_type=stocklevels'" && echo
 
 // Get data from dimension tables
 curl -ik -X GET "http://localhost:9999/api/datastore/scn_slug/dtable?tableName=agreements&filters=id=401" && echo
@@ -24,7 +24,7 @@ curl -ik -X GET "http://localhost:9999/api/datastore/scn_slug/dtable?tableName=a
 curl -ik -X GET http://localhost:9999/api/datastore/scn_slug/schema && echo
 
 // Add new recipe
-curl -ik -X PUT -H "Content-type:application/json" -d @recipe.json http://localhost:9999/api/recipe
+curl -ik -X PUT -H "Content-type:application/json" -d @recipe.json http://localhost:9999/api/recipe/scn_slug/
 
 // Upload recipe executable
-curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @recipe.py http://localhost:9999/api/recipe/upload/215/recipe.py
+curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @recipe.py http://localhost:9999/api/recipe/scn_slug/upload/215/recipe.py

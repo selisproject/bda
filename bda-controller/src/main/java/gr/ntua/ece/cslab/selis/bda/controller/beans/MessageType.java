@@ -196,8 +196,8 @@ public class MessageType implements Serializable {
 
         }
 
+        connection.commit();
+
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
-        // TODO: Verify if we want autocommit. Set it explicitely.
-        // connection.commit();
     }
 }

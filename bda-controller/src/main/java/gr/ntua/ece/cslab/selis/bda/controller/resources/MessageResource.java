@@ -20,14 +20,17 @@ public class MessageResource {
      * @param m the message description to insert
      */
     @PUT
+    @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, MessageType m) {
+    public RequestResponse insert(@Context HttpServletResponse response, 
+                                  @PathParam("slug") String slug,
+                                  MessageType m) {
         String status = "OK";
         String details = "";
 
         try {
-            m.save("");
+            m.save(slug);
 
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);

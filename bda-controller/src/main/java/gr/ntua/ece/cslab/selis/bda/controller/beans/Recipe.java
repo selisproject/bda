@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
-import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 import org.json.JSONObject;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -121,8 +122,11 @@ public class Recipe implements Serializable {
                 '}';
     }
 
-    public static List<Recipe> getRecipes() {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static List<Recipe> getRecipes(String slug) {
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
 
         Vector<Recipe> recipes = new Vector<Recipe>(DEFAULT_VECTOR_SIZE);
 
@@ -153,8 +157,11 @@ public class Recipe implements Serializable {
         return recipes;
      }
 
-    public static Recipe getRecipeById(int id) {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static Recipe getRecipeById(String slug, int id) {
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_RECIPE_BY_ID);
@@ -184,8 +191,11 @@ public class Recipe implements Serializable {
     }
 
 
-    public static Recipe getRecipeByName(String name) {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static Recipe getRecipeByName(String slug, String name) {
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_RECIPE_BY_NAME);
@@ -216,9 +226,11 @@ public class Recipe implements Serializable {
     }
 
 
-    public void updateBinaryPath() throws SQLException, UnsupportedOperationException {
-        // The object does not exist, it should be inserted.
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public void updateBinaryPath(String slug) throws SQLException, UnsupportedOperationException {
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
 
         PreparedStatement statement = connection.prepareStatement(SET_EXECUTABLE_PATH);
 
@@ -228,10 +240,13 @@ public class Recipe implements Serializable {
         statement.executeUpdate();
     }
 
-    public void save() throws SQLException, UnsupportedOperationException {
+    public void save(String slug) throws SQLException, UnsupportedOperationException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
-            Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+            PostgresqlConnector connector = (PostgresqlConnector ) 
+                SystemConnector.getInstance().getDTconnector(slug);
+
+            Connection connection = connector.getConnection();
 
             PreparedStatement statement = connection.prepareStatement(INSERT_RECIPE_QUERY);
 
@@ -241,15 +256,13 @@ public class Recipe implements Serializable {
             statement.setInt(4, Integer.valueOf(this.engine_id));
             statement.setString(5, this.args.toString());
 
-
             ResultSet resultSet = statement.executeQuery();
-
-            //connection.commit();
 
             if (resultSet.next()) {
                 this.id = resultSet.getInt("id");
-                System.out.println(this.id);
             }
+
+            connection.commit();
         } else {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");

@@ -173,7 +173,7 @@ public class DatastoreResource {
      * @return the denormalized messages
      */
     @GET
-    @Path("{slug}/entries")
+    @Path("{slug}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getEntries(@QueryParam("type") String type,
                                   @QueryParam("n") Integer n,
