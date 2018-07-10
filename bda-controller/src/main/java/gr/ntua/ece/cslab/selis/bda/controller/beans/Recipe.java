@@ -146,7 +146,6 @@ public class Recipe implements Serializable {
 
                 recipes.addElement(recipe);
             }
-            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -175,17 +174,12 @@ public class Recipe implements Serializable {
 
                 recipe.id = resultSet.getInt("id");
                 recipe.exists = true;
-                connection.close();
                 return recipe;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+
         return null;
     }
 
@@ -212,18 +206,12 @@ public class Recipe implements Serializable {
                 recipe.id = resultSet.getInt("id");
                 recipe.exists = true;
 
-                connection.close();
                 return recipe;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
         return null;
     }
 
@@ -238,8 +226,6 @@ public class Recipe implements Serializable {
         statement.setInt(2, this.id);
 
         statement.executeUpdate();
-
-        connection.close();
     }
 
     public void save() throws SQLException, UnsupportedOperationException {
@@ -264,8 +250,6 @@ public class Recipe implements Serializable {
                 this.id = resultSet.getInt("id");
                 System.out.println(this.id);
             }
-
-            connection.close();
         } else {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");

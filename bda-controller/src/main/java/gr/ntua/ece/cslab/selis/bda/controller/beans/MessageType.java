@@ -114,7 +114,6 @@ public class MessageType implements Serializable {
             while (resultSet.next()) {
                 messageTypeNames.addElement(resultSet.getString("name"));
             }
-            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -141,14 +140,12 @@ public class MessageType implements Serializable {
 
                 msg.id = resultSet.getInt("id");
 
-                connection.close();
                 return msg;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
@@ -171,14 +168,12 @@ public class MessageType implements Serializable {
 
                 msg.id = resultSet.getInt("id");
 
-                connection.close();
                 return msg;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
@@ -202,7 +197,6 @@ public class MessageType implements Serializable {
         }
 
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
-        connection.close();
         // TODO: Verify if we want autocommit. Set it explicitely.
         // connection.commit();
     }

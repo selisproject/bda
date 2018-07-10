@@ -68,15 +68,15 @@ public class SystemConnector {
         }
         for (ScnDbInfo SCN: SCNs){
             elConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                    configuration.storageBackend.getEventLogURL()+SCN.getDbname(),
-                    configuration.storageBackend.getDbUsername(),
-                    configuration.storageBackend.getDbPassword()
+                configuration.storageBackend.getEventLogURL()+SCN.getDbname(),
+                configuration.storageBackend.getDbUsername(),
+                configuration.storageBackend.getDbPassword()
             ));
 
             dtConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                    configuration.storageBackend.getDimensionTablesURL()+SCN.getDbname(),
-                    configuration.storageBackend.getDbUsername(),
-                    configuration.storageBackend.getDbPassword()
+                configuration.storageBackend.getDimensionTablesURL()+SCN.getDbname(),
+                configuration.storageBackend.getDbUsername(),
+                configuration.storageBackend.getDbPassword()
             ));
             /*PostgresqlPooledDataSource.init(
                     configuration.storageBackend.getBdaDatabaseURL(),
@@ -86,9 +86,9 @@ public class SystemConnector {
             );*/
 
             kpiConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                    configuration.kpiBackend.getDbUrl()+SCN.getDbname(),
-                    configuration.kpiBackend.getDbUsername(),
-                    configuration.kpiBackend.getDbPassword()
+                configuration.kpiBackend.getDbUrl()+SCN.getDbname(),
+                configuration.kpiBackend.getDbUsername(),
+                configuration.kpiBackend.getDbPassword()
             ));
         }
     }
