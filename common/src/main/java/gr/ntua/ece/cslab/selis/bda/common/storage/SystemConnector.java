@@ -7,10 +7,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.ConnectorFactory;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Vector;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.lang.UnsupportedOperationException;
@@ -137,6 +134,19 @@ public class SystemConnector {
         elConnectors.put(scnSlug, elConnector);
 
         // TODO: create KPI db too
+    }
+
+    public void destroy(){
+        bdaConnector.close();
+        for (Map.Entry<String, Connector> conn: elConnectors.entrySet()){
+            conn.getValue().close();
+        }
+        for (Map.Entry<String, Connector> conn: dtConnectors.entrySet()){
+            conn.getValue().close();
+        }
+        for (Map.Entry<String, Connector> conn: kpiConnectors.entrySet()){
+            conn.getValue().close();
+        }
     }
 
     public Connector getBDAconnector() {
