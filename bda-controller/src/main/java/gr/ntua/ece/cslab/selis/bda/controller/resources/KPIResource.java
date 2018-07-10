@@ -4,6 +4,7 @@ import com.google.common.base.Splitter;
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
+import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPITable;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
@@ -41,10 +42,11 @@ public class KPIResource {
     }
 
     @GET
-    @Path("{kpiname}/fetch")
+    @Path("{scnSlug}/{kpiname}/fetch")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response getLastKPIs(
             @PathParam("kpiname") String kpiname,
+            @PathParam("scnSlug") String scnSlug,
             @QueryParam("n") Integer n,
             @HeaderParam("Accept") String accepted
     ) {
@@ -53,8 +55,9 @@ public class KPIResource {
         System.out.println(kpiname + "," + n);
 
         try {
-            List<Tuple> results = Entrypoint.analyticsComponent.getKpidb().fetch(kpiname, "rows", n);
-            KPITable table = Entrypoint.analyticsComponent.getKpidb().getSchema(kpiname);
+            KPIBackend kpiBackend = new KPIBackend(scnSlug);
+            List<Tuple> results = kpiBackend.fetch(kpiname, "rows", n);
+            KPITable table = kpiBackend.getSchema(kpiname);
             JSONArray returnResults = new JSONArray();
             for (Tuple tuple : results) {
                 JSONObject row = new JSONObject();
@@ -96,10 +99,11 @@ public class KPIResource {
     }
 
     @GET
-    @Path("{kpiname}/select")
+    @Path("{scnSlug}/{kpiname}/select")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response selectKPIs(
             @PathParam("kpiname") String kpiname,
+            @PathParam("scnSlug") String scnSlug,
             @QueryParam("filters") String filters,
             @HeaderParam("Accept") String accepted
     ) {
@@ -113,8 +117,9 @@ public class KPIResource {
             }
         }
         try {
-            List<Tuple> results = Entrypoint.analyticsComponent.getKpidb().select(kpiname,new Tuple(args));
-            KPITable table = Entrypoint.analyticsComponent.getKpidb().getSchema(kpiname);
+            KPIBackend kpiBackend = new KPIBackend(scnSlug);
+            List<Tuple> results = kpiBackend.select(kpiname,new Tuple(args));
+            KPITable table = kpiBackend.getSchema(kpiname);
             JSONArray returnResults = new JSONArray();
             for (Tuple tuple : results) {
                 JSONObject row = new JSONObject();

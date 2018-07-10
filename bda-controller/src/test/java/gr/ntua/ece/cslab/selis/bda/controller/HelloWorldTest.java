@@ -170,7 +170,7 @@ public class HelloWorldTest {
     }
 
     private void initialize_components() {
-        LOGGER.log(Level.INFO, "Initializing BDADB Connector...");
+        LOGGER.log(Level.INFO, "Initializing BDADB KPIConnector...");
         BDAdbPooledConnector.init(
                 Entrypoint.configuration.storageBackend.getBdaDatabaseURL(),
                 Entrypoint.configuration.storageBackend.getDimensionTablesURL(),
@@ -227,7 +227,7 @@ public class HelloWorldTest {
 
 
         try {
-            PostgresqlConnector.createSchema(configuration.testDb.getDbUrl(),
+            KPIPostgresqlConnector.createSchema(configuration.testDb.getDbUrl(),
                     configuration.testDb.getDbUsername(),
                     configuration.testDb.getDbPassword(),
                     configuration.testDb.getDbUsername(),
@@ -238,14 +238,14 @@ public class HelloWorldTest {
         }
 
 
-        dtConnector = ConnectorFactory.getInstance().generateConnector(
+        dtConnector = KPIConnectorFactory.getInstance().generateConnector(
                 configuration.testDb.getDbUrl(),
                 configuration.testDb.getDbUsername(),
                 configuration.testDb.getDbPassword()
         );
 
         try {
-            PostgresqlConnector.createSchema(configuration.testDb.getDbUrl(),
+            KPIPostgresqlConnector.createSchema(configuration.testDb.getDbUrl(),
                     configuration.testDb.getDbUsername(),
                     configuration.testDb.getDbPassword(),
                     configuration.testDb.getDbUsername(),
@@ -256,14 +256,14 @@ public class HelloWorldTest {
         }
 
 
-        kpiConnector = ConnectorFactory.getInstance().generateConnector(
+        kpiConnector = KPIConnectorFactory.getInstance().generateConnector(
                 configuration.testDb.getDbUrl(),
                 configuration.testDb.getDbUsername(),
                 configuration.testDb.getDbPassword()
         );
 
         DatastoreConnector localDtConnector = gr.ntua.ece.cslab.selis.bda.datastore.connectors.
-                ConnectorFactory.getInstance().generateConnector(dtConnector);
+                KPIConnectorFactory.getInstance().generateConnector(dtConnector);
 
         localDtConnector.createMetaTables();
 */

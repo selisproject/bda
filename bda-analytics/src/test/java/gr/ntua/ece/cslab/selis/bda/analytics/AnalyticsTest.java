@@ -36,7 +36,7 @@ public class AnalyticsTest {
 
 	@Test
 	public void test() {
-		instance.run(1, "\"{\"ena\":1,\"duo\":2}\"");
+		//instance.run(1, "\"{\"ena\":1,\"duo\":2}\"");
 	}
 	//@Test
 	//public void test()

@@ -5,6 +5,7 @@ import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
+import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPISchema;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPITable;
 import org.json.JSONObject;
@@ -46,10 +47,10 @@ public class JobResource {
             Recipe r = Recipe.getRecipeById(scnSlug, m.getRecipeId());
             JSONObject msgFormat = new JSONObject(msg.getFormat());
             LOGGER.log(Level.INFO, "Create kpidb table..");
-            Entrypoint.analyticsComponent.getKpidb().create(new KPITable(r.getName(),
+            (new KPIBackend(scnSlug)).create(new KPITable(r.getName(),
                     new KPISchema(msgFormat)));
-            Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(r.getId(), r.getName(), r.getDescription(),
-                    r.getEngine_id(), new JSONObject(r.getArgs()), r.getExecutable_path());
+            //Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(r.getId(), r.getName(), r.getDescription(),
+            //        r.getEngine_id(), new JSONObject(r.getArgs()), r.getExecutable_path());
 
         } catch (Exception e) {
             e.printStackTrace();

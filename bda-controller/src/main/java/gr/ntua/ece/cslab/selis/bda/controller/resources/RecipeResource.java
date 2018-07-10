@@ -99,9 +99,10 @@ public class RecipeResource {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
-                r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
-                new JSONObject(r.getArgs()), r.getExecutable_path());
+
+        //Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
+        //        r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
+        //        new JSONObject(r.getArgs()), r.getExecutable_path());
         return new RequestResponse(status, details);
     }
 

@@ -38,7 +38,7 @@ public class Entrypoint {
     public static Configuration configuration;
     public static Thread subscriber;
     public static PubSubPublisher publisher;
-    public static AnalyticsInstance analyticsComponent;
+    //public static AnalyticsInstance analyticsComponent;
 
     private static void storageBackendInitialization() {
 /*
@@ -58,7 +58,7 @@ public class Entrypoint {
         );*/
     }
 
-
+/*
     private static void fetch_engines() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getBDAconnector();
@@ -138,7 +138,7 @@ public class Entrypoint {
         fetch_engines();
         fetch_recipes();
     }
-
+*/
     private static void pubSubConnectorsInitialization() {
         LOGGER.log(Level.INFO, "Initializing PubSub subscriber...");
         subscriber = new Thread(new PubSubSubscriber(configuration.subscriber.getAuthHash(),
@@ -204,7 +204,7 @@ public class Entrypoint {
         storageBackendInitialization();
 
         // KPI DB initialization
-        analyticsModuleInitialization();
+        //analyticsModuleInitialization();
 
         // PubSub connectors initialization
         pubSubConnectorsInitialization();
