@@ -1,6 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 import org.json.JSONObject;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -26,21 +28,21 @@ public class Recipe implements Serializable {
 
     private final static String ALL_RECIPES_QUERY = 
         "SELECT * " +
-        "FROM recipes";
+        "FROM metadata.recipes";
 
     private final static String INSERT_RECIPE_QUERY = 
-        "INSERT INTO recipes (name, description, executable_path, engine_id, args) " +
+        "INSERT INTO metadata.recipes (name, description, executable_path, engine_id, args) " +
         "VALUES (?, ?, ?, ? ,?::json) " +
         "RETURNING id";
 
     private final static String GET_RECIPE_BY_ID =
-            "SELECT * FROM recipes WHERE id = ?;";
+            "SELECT * FROM metadata.recipes WHERE id = ?;";
 
     private final static String GET_RECIPE_BY_NAME =
-            "SELECT * FROM recipes WHERE name = ?;";
+            "SELECT * FROM metadata.recipes WHERE name = ?;";
 
     private final static String SET_EXECUTABLE_PATH =
-            "UPDATE recipes SET executable_path = ? WHERE id = ?;";
+            "UPDATE metadata.recipes SET executable_path = ? WHERE id = ?;";
 
     public Recipe() {}
 
@@ -121,8 +123,9 @@ public class Recipe implements Serializable {
                 '}';
     }
 
-    public static List<Recipe> getRecipes() {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static List<Recipe> getRecipes(String slug) {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
 
         Vector<Recipe> recipes = new Vector<Recipe>(DEFAULT_VECTOR_SIZE);
 
@@ -154,8 +157,9 @@ public class Recipe implements Serializable {
         return recipes;
      }
 
-    public static Recipe getRecipeById(int id) {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static Recipe getRecipeById(String slug, int id) {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_RECIPE_BY_ID);
@@ -190,8 +194,9 @@ public class Recipe implements Serializable {
     }
 
 
-    public static Recipe getRecipeByName(String name) {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static Recipe getRecipeByName(String slug, String name) {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_RECIPE_BY_NAME);
@@ -228,9 +233,10 @@ public class Recipe implements Serializable {
     }
 
 
-    public void updateBinaryPath() throws SQLException, UnsupportedOperationException {
+    public void updateBinaryPath(String slug) throws SQLException, UnsupportedOperationException {
         // The object does not exist, it should be inserted.
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
 
         PreparedStatement statement = connection.prepareStatement(SET_EXECUTABLE_PATH);
 
@@ -242,10 +248,11 @@ public class Recipe implements Serializable {
         connection.close();
     }
 
-    public void save() throws SQLException, UnsupportedOperationException {
+    public void save(String slug) throws SQLException, UnsupportedOperationException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
-            Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+            PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+            Connection connection = connector.getConnection();
 
             PreparedStatement statement = connection.prepareStatement(INSERT_RECIPE_QUERY);
 

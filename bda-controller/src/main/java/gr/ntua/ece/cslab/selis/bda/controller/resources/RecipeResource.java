@@ -34,7 +34,10 @@ public class RecipeResource {
     @PUT
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, String m) {
+    @Path("{scnSlug}")
+    public RequestResponse insert(@Context HttpServletResponse response,
+                                  @PathParam("scnSlug") String scnSlug,
+                                  String m) {
 
         String status = "OK";
         String details = "";
@@ -47,7 +50,7 @@ public class RecipeResource {
                 obj.getJSONObject("args").toString());
 
         try {
-            r.save();
+            r.save(scnSlug);
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
@@ -73,10 +76,11 @@ public class RecipeResource {
     }
 
     @PUT
-    @Path("upload/{id}/{filename}")
+    @Path("{scnSlug}/upload/{id}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public RequestResponse upload(@PathParam("id") int recipe_id,
                          @PathParam("filename") String recipe_name,
+                         @PathParam("scnSlug") String scnSlug,
                          InputStream recipe)  {
 
         String status = "OK";
@@ -85,13 +89,13 @@ public class RecipeResource {
         String binaryPath = "/uploads/" + recipe_id + "_" + recipe_name;
         saveFile(recipe, binaryPath);
 
-        Recipe r = Recipe.getRecipeById(recipe_id);
+        Recipe r = Recipe.getRecipeById(scnSlug, recipe_id);
         System.out.println(r.toString());
         r.setExecutable_path(binaryPath);
         System.out.println(r.toString());
 
         try {
-            r.updateBinaryPath();
+            r.updateBinaryPath(scnSlug);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -1,6 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.sql.*;
 import java.util.List;
@@ -23,21 +25,21 @@ public class JobDescription implements Serializable {
 
     private final static String ACTIVE_JOBS_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
-        "FROM jobs " +
+        "FROM metadata.jobs " +
         "WHERE active = true;";
 
     private final static String GET_JOB_BY_ID_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
-        "FROM jobs " +
+        "FROM metadata.jobs " +
         "WHERE id = ?;";
 
     private final static String GET_JOB_BY_MESSAGE_ID_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
-        "FROM jobs " +
+        "FROM metadata.jobs " +
         "WHERE message_type_id = ?;";
 
     private final static String INSERT_JOB_QUERY =
-        "INSERT INTO jobs (name, description, active, message_type_id, recipe_id, job_type) " +
+        "INSERT INTO metadata.jobs (name, description, active, message_type_id, recipe_id, job_type) " +
         "VALUES (?, ?, ?, ?, ?, ?) " +
         "RETURNING id;";
 
@@ -115,8 +117,9 @@ public class JobDescription implements Serializable {
                 '}';
     }
 
-    public static List<JobDescription> getActiveJobs() {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static List<JobDescription> getActiveJobs(String slug) {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
 
         Vector<JobDescription> jobs = new Vector<JobDescription>(DEFAULT_VECTOR_SIZE);
 
@@ -147,8 +150,9 @@ public class JobDescription implements Serializable {
         return jobs;
      }
 
-    public static JobDescription getJobById(int id) throws SQLException {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static JobDescription getJobById(String slug, int id) throws SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_JOB_BY_ID_QUERY);
@@ -179,8 +183,9 @@ public class JobDescription implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
-    public static JobDescription getJobByMessageId(int id) throws SQLException {
-        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+    public static JobDescription getJobByMessageId(String slug, int id) throws SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(GET_JOB_BY_MESSAGE_ID_QUERY);
@@ -212,10 +217,11 @@ public class JobDescription implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
-    public void save() throws SQLException, UnsupportedOperationException {
+    public void save(String slug) throws SQLException, UnsupportedOperationException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
-            Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
+            PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+            Connection connection = connector.getConnection();
 
             PreparedStatement statement = connection.prepareStatement(INSERT_JOB_QUERY);
 

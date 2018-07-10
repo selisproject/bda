@@ -22,12 +22,14 @@ public class MessageResource {
     @PUT
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, MessageType m) {
+    @Path("{scnSlug}")
+    public RequestResponse insert(@Context HttpServletResponse response, MessageType m,
+                                  @PathParam("scnSlug") String scnSlug) {
         String status = "OK";
         String details = "";
 
         try {
-            m.save();
+            m.save(scnSlug);
 
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);

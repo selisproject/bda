@@ -14,6 +14,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnecto
 import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.MessageResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.RecipeResource;
+import gr.ntua.ece.cslab.selis.bda.datastore.connectors.DatastoreConnector;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -217,9 +218,9 @@ public class HelloWorldTest {
 */
     @org.junit.Before
     public void setUp() throws Exception {
-        //SystemConnector.init("/code/conf/bda.properties");
+        SystemConnector.init("/code/conf/bda.properties");
 
-        configuration = Configuration.parseConfiguration("/code/conf/bda.properties");
+        /*configuration = Configuration.parseConfiguration("/code/conf/bda.properties");
 
 
         LOGGER.log(Level.INFO, "About to create schemas in test database");
@@ -261,7 +262,11 @@ public class HelloWorldTest {
                 configuration.testDb.getDbPassword()
         );
 
+        DatastoreConnector localDtConnector = gr.ntua.ece.cslab.selis.bda.datastore.connectors.
+                ConnectorFactory.getInstance().generateConnector(dtConnector);
 
+        localDtConnector.createMetaTables();
+*/
 //        messageResource = new MessageResource();
   //    recipeResource = new RecipeResource();
      //   jobResource = new JobResource();
@@ -350,29 +355,7 @@ public class HelloWorldTest {
         statement.executeUpdate();
 
         localConnection.close();
-/*
-        LOGGER.log(Level.INFO, "Delete job from database");
-        execute_delete(DELETE_JOB_QUERY, jobDescription.getId());
 
-        LOGGER.log(Level.INFO, "Delete test message type from database");
-        execute_delete(DELETE_MSG_TYPE_QUERY, msgType.getId());
-
-        LOGGER.log(Level.INFO, "Delete recipe from database");
-        execute_delete(DELETE_RECIPE_QUERY, recipe.getId());
-
-        List<String> files = new ArrayList<>();
-        files.add("/uploads/" + recipe.getId() + "_recipe.py");
-        files.add("/results/recipe.out");
-        files.add("/results/recipe.err");
-        destroy_fs_data(files);
-        LOGGER.log(Level.INFO, "Test data deleted");
-
-
-        LOGGER.log(Level.INFO, "Closing connections...");
-        BDAdbPooledConnector.getInstance().getBdaConnection().close();
-        BDAdbPooledConnector.getInstance().getLabConnection().close();
-        Entrypoint.analyticsComponent.getKpidb().stop();
-  */
     }
 
 
