@@ -103,6 +103,7 @@ public class SystemConnector {
         schemas.add("data");
         schemas.add("metadata");
 
+
         String databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
             configuration.storageBackend.getDimensionTablesURL(),
             configuration.storageBackend.getDbPrivilegedUsername(),
@@ -138,6 +139,25 @@ public class SystemConnector {
         elConnectors.put(scnSlug, elConnector);
 
         // TODO: create KPI db too
+        schemas = new Vector<>(1);
+        schemas.add("kpi");
+
+        databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
+                configuration.kpiBackend.getDbUrl(),
+                configuration.kpiBackend.getDbUsername(),
+                configuration.kpiBackend.getDbPassword(),
+                configuration.kpiBackend.getDbUsername(),
+                dbname,
+                schemas
+        );
+
+        Connector kpiConnector = ConnectorFactory.getInstance().generateConnector(
+                databaseUrl,
+                configuration.kpiBackend.getDbUsername(),
+                configuration.kpiBackend.getDbPassword()
+        );
+
+        kpiConnectors.put(scnSlug, kpiConnector);
     }
 
     public Connector getBDAconnector() {

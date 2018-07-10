@@ -1,8 +1,12 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
-import com.sun.source.tree.EmptyStatementTree;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.Connector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.ConnectorFactory;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
@@ -10,17 +14,10 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnecto
 import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.MessageResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.RecipeResource;
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.Tuple;
-import org.eclipse.jetty.server.HttpChannel;
-import org.eclipse.jetty.server.HttpOutput;
-import org.eclipse.jetty.server.Response;
 import org.json.JSONObject;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +30,8 @@ public class HelloWorldTest {
 
     Logger LOGGER = Logger.getLogger(HelloWorldTest.class.getCanonicalName());
 
+    Configuration configuration;
+    Connector dtConnector, kpiConnector;
     MessageType msgType;
     Recipe recipe;
     JobDescription jobDescription;
@@ -91,6 +90,9 @@ public class HelloWorldTest {
             "DELETE FROM jobs " +
             "WHERE id = ?;";
 
+    private static final String DROP_DATABASE_SCHEMA_QUERY =
+            "DROP SCHEMA IF EXISTS %s CASCADE;";
+    /*
     private void execute_delete(String query, int id) {
         Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
@@ -212,27 +214,66 @@ public class HelloWorldTest {
             theDir.delete();
         }
     }
-
+*/
     @org.junit.Before
     public void setUp() throws Exception {
-        Entrypoint.configuration = Configuration.
-                parseConfiguration("/code/conf/bda.properties");
+        //SystemConnector.init("/code/conf/bda.properties");
 
-        initialize_components();
+        configuration = Configuration.parseConfiguration("/code/conf/bda.properties");
 
 
-        messageResource = new MessageResource();
-        recipeResource = new RecipeResource();
-        jobResource = new JobResource();
+        LOGGER.log(Level.INFO, "About to create schemas in test database");
 
-        msgType = messageTypeFromString(MSG_TYPE_STRING);
+
+        try {
+            PostgresqlConnector.createSchema(configuration.testDb.getDbUrl(),
+                    configuration.testDb.getDbUsername(),
+                    configuration.testDb.getDbPassword(),
+                    configuration.testDb.getDbUsername(),
+                    "metadata");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SystemConnectorException("Could not create Postgresql schema.");
+        }
+
+
+        dtConnector = ConnectorFactory.getInstance().generateConnector(
+                configuration.testDb.getDbUrl(),
+                configuration.testDb.getDbUsername(),
+                configuration.testDb.getDbPassword()
+        );
+
+        try {
+            PostgresqlConnector.createSchema(configuration.testDb.getDbUrl(),
+                    configuration.testDb.getDbUsername(),
+                    configuration.testDb.getDbPassword(),
+                    configuration.testDb.getDbUsername(),
+                    "kpi");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SystemConnectorException("Could not create Postgresql schema.");
+        }
+
+
+        kpiConnector = ConnectorFactory.getInstance().generateConnector(
+                configuration.testDb.getDbUrl(),
+                configuration.testDb.getDbUsername(),
+                configuration.testDb.getDbPassword()
+        );
+
+
+//        messageResource = new MessageResource();
+  //    recipeResource = new RecipeResource();
+     //   jobResource = new JobResource();
+
+    //    msgType = messageTypeFromString(MSG_TYPE_STRING);
 
     }
 
     @org.junit.Test
     public void test() throws Exception {
 
-        LOGGER.log(Level.INFO, "About to insert new messageType...");
+        /*LOGGER.log(Level.INFO, "About to insert new messageType...");
         messageResource.insert(null , msgType);
         msgType = MessageType.getMessageByName(msgType.getName());
         LOGGER.log(Level.INFO, "Inserted : \t" + msgType.toString());
@@ -278,12 +319,38 @@ public class HelloWorldTest {
             i++;
         }
 
-
+*/
     }
 
     @org.junit.After
     public void tearDown() throws Exception {
 
+        Connection localConnection = null;
+
+        try {
+            localConnection = DriverManager.getConnection(
+                    configuration.testDb.getDbUrl(),
+                    configuration.testDb.getDbUsername(),
+                    configuration.testDb.getDbPassword()
+            );
+        } catch (SQLException e) {
+            System.out.println("Connection Failed! Check output console");
+            e.printStackTrace();
+            throw e;
+        }
+
+        PreparedStatement statement = localConnection.prepareStatement(
+                String.format(DROP_DATABASE_SCHEMA_QUERY, "metadata"));
+
+        statement.executeUpdate();
+
+        statement = localConnection.prepareStatement(
+                String.format(DROP_DATABASE_SCHEMA_QUERY, "kpi"));
+
+        statement.executeUpdate();
+
+        localConnection.close();
+/*
         LOGGER.log(Level.INFO, "Delete job from database");
         execute_delete(DELETE_JOB_QUERY, jobDescription.getId());
 
@@ -305,7 +372,7 @@ public class HelloWorldTest {
         BDAdbPooledConnector.getInstance().getBdaConnection().close();
         BDAdbPooledConnector.getInstance().getLabConnection().close();
         Entrypoint.analyticsComponent.getKpidb().stop();
-        
+  */
     }
 
 

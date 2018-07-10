@@ -41,7 +41,7 @@ public class Entrypoint {
     public static AnalyticsInstance analyticsComponent;
 
     private static void storageBackendInitialization() {
-
+/*
         LOGGER.log(Level.INFO, "Initializing Postgresql connection pool ...");
         PostgresqlPooledDataSource.init(
             configuration.storageBackend.getBdaDatabaseURL(),
@@ -55,7 +55,7 @@ public class Entrypoint {
             configuration.storageBackend.getDimensionTablesURL(),
             configuration.storageBackend.getDbUsername(),
             configuration.storageBackend.getDbPassword()
-        );
+        );*/
     }
 
 
