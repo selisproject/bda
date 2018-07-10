@@ -25,7 +25,7 @@ public class StorageBackend {
     public static void createNewScn(ScnDbInfo scn) 
         throws SystemConnectorException, DatastoreException, UnsupportedOperationException {
         // 1. Create database for Dimension Tables, with data/metadata schemas and the database for the EventLog.
-        SystemConnector.getInstance().createScnDatabase(scn.getSlug(), scn.getDbName());
+        SystemConnector.getInstance().createScnDatabase(scn.getSlug(), scn.getDbname());
         
         // 2. Create metadata tables for new SCN.
         DatastoreConnector localDtConnector = ConnectorFactory.getInstance().generateConnector(

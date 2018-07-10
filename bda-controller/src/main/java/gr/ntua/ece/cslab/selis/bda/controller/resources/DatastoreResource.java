@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
@@ -20,6 +21,47 @@ import java.util.logging.Logger;
 @Path("datastore")
 public class DatastoreResource {
     private final static Logger LOGGER = Logger.getLogger(DatastoreResource.class.getCanonicalName());
+
+    /**
+     * Create new SCN databases/schemas/tables.
+     * @param m an SCN description.
+     */
+    @POST
+    @Path("create")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public RequestResponse createNewScn(@Context HttpServletResponse response, ScnDbInfo scn) {
+        LOGGER.log(Level.INFO, scn.toString());
+
+        try {
+            scn.save();
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return new RequestResponse("ERROR", "Could not register new SCN.");
+        }
+
+        try {
+            StorageBackend.createNewScn(scn);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return new RequestResponse("ERROR", "Could not create new SCN.");
+        }
+
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        try {
+            if (response != null) {
+                response.flushBuffer();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new RequestResponse("OK", "");
+    }
 
     /**
      * Message insertion method

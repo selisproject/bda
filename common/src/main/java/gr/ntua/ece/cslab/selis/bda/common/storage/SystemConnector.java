@@ -71,13 +71,13 @@ public class SystemConnector {
         }
         for (ScnDbInfo SCN: SCNs){
             elConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                    configuration.storageBackend.getEventLogURL()+SCN.getDbName(),
+                    configuration.storageBackend.getEventLogURL()+SCN.getDbname(),
                     configuration.storageBackend.getDbUsername(),
                     configuration.storageBackend.getDbPassword()
             ));
 
             dtConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                    configuration.storageBackend.getDimensionTablesURL()+SCN.getDbName(),
+                    configuration.storageBackend.getDimensionTablesURL()+SCN.getDbname(),
                     configuration.storageBackend.getDbUsername(),
                     configuration.storageBackend.getDbPassword()
             ));
@@ -89,7 +89,7 @@ public class SystemConnector {
             );*/
 
             kpiConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                    configuration.kpiBackend.getDbUrl()+SCN.getDbName(),
+                    configuration.kpiBackend.getDbUrl()+SCN.getDbname(),
                     configuration.kpiBackend.getDbUsername(),
                     configuration.kpiBackend.getDbPassword()
             ));
@@ -120,6 +120,7 @@ public class SystemConnector {
 
         dtConnectors.put(scnSlug, dtConnector);
 
+        /*
         databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
                 configuration.storageBackend.getEventLogURL(),
                 configuration.storageBackend.getDbUsername(),
@@ -136,6 +137,7 @@ public class SystemConnector {
         );
 
         elConnectors.put(scnSlug, elConnector);
+        */
 
         // TODO: create KPI db too
     }

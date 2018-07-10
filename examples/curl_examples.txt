@@ -1,3 +1,6 @@
+// Create SCN database
+curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @newscn.json http://localhost:9999/api/datastore/create && echo
+
 // Bootstrap dimension tables
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @master_data.json http://localhost:9999/api/datastore/boot && echo
 

@@ -1,5 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
@@ -70,7 +72,7 @@ public class Entrypoint {
         try {
             statement = conn.createStatement();
 
-            engines = statement.executeQuery("SELECT * FROM execution_engines;");
+            engines = statement.executeQuery("SELECT * FROM metadata.execution_engines;");
 
             if (engines != null) {
                 while (engines.next()) {
@@ -104,7 +106,7 @@ public class Entrypoint {
         try {
             statement = conn.createStatement();
 
-            recipes = statement.executeQuery("SELECT * FROM recipes;");
+            recipes = statement.executeQuery("SELECT * FROM metadata.recipes;");
 
             if (recipes != null) {
                 while (recipes.next()) {
@@ -204,7 +206,7 @@ public class Entrypoint {
         storageBackendInitialization();
 
         // KPI DB initialization
-        analyticsModuleInitialization();
+        // analyticsModuleInitialization();
 
         // PubSub connectors initialization
         pubSubConnectorsInitialization();
@@ -215,15 +217,19 @@ public class Entrypoint {
         // testKeycloakAuthentication();
 
         // Create folders for uploaded recipes and recipe results
-        create_folders();
+        // create_folders();
 
         /*
         try {
-            StorageBackend.createNewScn(
+            ScnDbInfo scn = new ScnDbInfo(
                 "scn_slug", "scn_name", "scn_desc", "scn_db"
             );
+            scn.save();
+
+            StorageBackend.createNewScn(scn);
         } catch (Exception e) {
             System.out.println("Sometimes ...");
+            e.printStackTrace();
         }
         */
 

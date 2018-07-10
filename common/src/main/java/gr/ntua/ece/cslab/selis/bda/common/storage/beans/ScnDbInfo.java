@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class ScnDbInfo implements Serializable {
 
-    private int id;
+    private transient int id;
     private String slug;
     private String name;
     private String description;
@@ -69,8 +69,24 @@ public class ScnDbInfo implements Serializable {
         return this.description;
     }
 
-    public String getDbName() {
+    public String getDbname() {
         return this.dbname;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setDbname(String dbname) {
+        this.dbname = dbname;
     }
 
     @Override
