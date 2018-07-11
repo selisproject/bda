@@ -1,30 +1,32 @@
-// Create SCN database
+// 1. Create SCN database
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @newscn.json http://localhost:9999/api/datastore/create && echo
 
-// Bootstrap dimension tables
-curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @master_data.json http://localhost:9999/api/datastore/scn_slug/boot && echo
+// 2. Bootstrap dimension tables
+curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @master_data.json http://localhost:9999/api/datastore/{scn_slug}/boot && echo
 
+// 3. Create message type to subscribe to (returns message_id)
+curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msgtype.json http://localhost:9999/api/message/{scn_slug} && echo
+
+// 4. Add new recipe (returns recipe_id)
+curl -ik -X PUT -H "Content-type:application/json" -d @recipe.json http://localhost:9999/api/recipe/{scn_slug}/
+
+// 5. Upload recipe executable
+curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @recipe.py http://localhost:9999/api/recipe/{scn_slug}/upload/{recipe_id}/recipe.py
+
+// 6. Create a new job (message-triggered or cron)
+curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @job.json http://localhost:9999/api/job/{scn_slug} && echo
+
+// Extras
 // Store message in eventlog
-curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore/scn_slug/ && echo
-
-// Create message type to subscribe to
-curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msgtype.json http://localhost:9999/api/message && echo
-
-// Create a new job (message-triggered or cron)
-curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @job.json http://localhost:9999/api/job && echo
+curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore/{scn_slug}/ && echo
 
 // Get data from eventlog
-curl -ik -X GET "http://localhost:9999/api/datastore/scn_slug/?type=rows&n=-1" && echo
-curl -ik -X GET "http://localhost:9999/api/datastore/scn_slug/select?filters='warehouse_id=1&message_type=stocklevels'" && echo
+curl -ik -X GET "http://localhost:9999/api/datastore/{scn_slug}/?type=rows&n=-1" && echo
+curl -ik -X GET "http://localhost:9999/api/datastore/{scn_slug}/select?filters=warehouse_id=1&message_type=stocklevels" && echo
 
 // Get data from dimension tables
-curl -ik -X GET "http://localhost:9999/api/datastore/scn_slug/dtable?tableName=agreements&filters=id=401" && echo
+curl -ik -X GET "http://localhost:9999/api/datastore/{scn_slug}/dtable?tableName=agreements&filters=id=401" && echo
 
 // Print dimension tables schema
-curl -ik -X GET http://localhost:9999/api/datastore/scn_slug/schema && echo
+curl -ik -X GET http://localhost:9999/api/datastore/{scn_slug}/schema && echo
 
-// Add new recipe
-curl -ik -X PUT -H "Content-type:application/json" -d @recipe.json http://localhost:9999/api/recipe/scn_slug/
-
-// Upload recipe executable
-curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @recipe.py http://localhost:9999/api/recipe/scn_slug/upload/215/recipe.py
