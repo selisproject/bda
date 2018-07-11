@@ -256,13 +256,18 @@ public class Recipe implements Serializable {
             statement.setInt(4, Integer.valueOf(this.engine_id));
             statement.setString(5, this.args.toString());
 
-            ResultSet resultSet = statement.executeQuery();
+            try {
+                ResultSet resultSet = statement.executeQuery();
 
-            if (resultSet.next()) {
-                this.id = resultSet.getInt("id");
+                if (resultSet.next()) {
+                    this.id = resultSet.getInt("id");
+                }
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
             }
-
-            connection.commit();
         } else {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");

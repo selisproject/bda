@@ -224,7 +224,6 @@ public class JobDescription implements Serializable {
     public void save(String slug) throws SQLException, UnsupportedOperationException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
-
             PostgresqlConnector connector = (PostgresqlConnector ) 
                 SystemConnector.getInstance().getDTconnector(slug);
 
@@ -239,13 +238,18 @@ public class JobDescription implements Serializable {
             statement.setInt(5, this.recipeId);
             statement.setString(6, this.job_type);
 
-            ResultSet resultSet = statement.executeQuery();
+            try {
+                ResultSet resultSet = statement.executeQuery();
 
-            if (resultSet.next()) {
-                this.id = resultSet.getInt("id");
+                if (resultSet.next()) {
+                    this.id = resultSet.getInt("id");
+                }
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
             }
-
-            connection.commit();
         } else {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");
