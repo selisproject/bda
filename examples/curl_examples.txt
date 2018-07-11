@@ -8,10 +8,10 @@ curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json"
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore/scn_slug/ && echo
 
 // Create message type to subscribe to
-curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msgtype.json http://localhost:9999/api/message && echo
+curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msgtype.json http://localhost:9999/api/message/scn_slug/ && echo
 
 // Create a new job (message-triggered or cron)
-curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @job.json http://localhost:9999/api/job && echo
+curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @job.json http://localhost:9999/api/job/scn_slug/ && echo
 
 // Get data from eventlog
 curl -ik -X GET "http://localhost:9999/api/datastore/scn_slug/?type=rows&n=-1" && echo

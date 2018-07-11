@@ -192,13 +192,18 @@ public class MessageType implements Serializable {
         statement.setBoolean(3, this.active);
         statement.setString(4, this.format);
 
-        ResultSet resultSet = statement.executeQuery();
-        if (resultSet.next()) {
-            this.id = resultSet.getInt("id");
+        try {
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                this.id = resultSet.getInt("id");
 
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
         }
-
-        connection.commit();
 
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
     }
