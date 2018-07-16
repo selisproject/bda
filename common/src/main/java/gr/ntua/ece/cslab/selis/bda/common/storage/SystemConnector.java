@@ -155,7 +155,43 @@ public class SystemConnector {
         kpiConnectors.put(scnSlug, kpiConnector);
     }
 
-    public void destroy(){
+    public void destroyScnDatabase(String scnSlug, String dbname)
+            throws UnsupportedOperationException, SystemConnectorException {
+
+        getDTconnector(scnSlug).close();
+        getELconnector(scnSlug).close();
+        getKPIconnector(scnSlug).close();
+
+        ConnectorFactory.dropDatabase(
+                configuration.storageBackend.getDimensionTablesURL(),
+                configuration.storageBackend.getDbPrivilegedUsername(),
+                configuration.storageBackend.getDbPrivilegedPassword(),
+                configuration.storageBackend.getDbUsername(),
+                dbname
+        );
+        dtConnectors.remove(scnSlug);
+
+        ConnectorFactory.dropDatabase(
+                configuration.storageBackend.getEventLogURL(),
+                configuration.storageBackend.getDbUsername(),
+                configuration.storageBackend.getDbPassword(),
+                configuration.storageBackend.getDbUsername(),
+                dbname
+        );
+        elConnectors.remove(scnSlug);
+
+        // TODO: This comment should be removed when separate database names will be used
+        /*ConnectorFactory.dropDatabase(
+                configuration.kpiBackend.getDbUrl(),
+                configuration.storageBackend.getDbPrivilegedUsername(),
+                configuration.storageBackend.getDbPrivilegedPassword(),
+                configuration.kpiBackend.getDbUsername(),
+                dbname
+        );*/
+        kpiConnectors.remove(scnSlug);
+    }
+
+    public void close(){
         bdaConnector.close();
         for (Map.Entry<String, Connector> conn: elConnectors.entrySet()){
             conn.getValue().close();

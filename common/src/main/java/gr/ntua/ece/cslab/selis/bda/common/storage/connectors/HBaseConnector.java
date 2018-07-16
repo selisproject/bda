@@ -64,14 +64,6 @@ public class HBaseConnector implements Connector {
         return connection;
     }
 
-    public void close(){
-        try {
-            connection.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    };
-
     public static String createNamespace(String fs, String username, String password, String dbname) {
         // Initialize HBase Configuration.
         Configuration conf = HBaseConfiguration.create();
@@ -120,6 +112,7 @@ public class HBaseConnector implements Connector {
             desc.addFamily(new HColumnDescriptor("messages"));
 
             admin.createTable(desc);
+            admin.close();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of Events table in namespace failed! Check output console.");
             e.printStackTrace();
@@ -129,6 +122,61 @@ public class HBaseConnector implements Connector {
         }
 
         return fs + dbname;
+    }
+
+    public static void dropNamespace(String fs, String username, String password, String dbname) {
+        // Initialize HBase Configuration.
+        Configuration conf = HBaseConfiguration.create();
+        conf.set("hbase.zookeeper.property.clientPort",getHBaseConnectionPort(fs));
+        conf.set("hbase.zookeeper.quorum", getHBaseConnectionURL(fs));
+
+        // Check HBase Availability.
+        try {
+            HBaseAdmin.checkHBaseAvailable(conf);
+        } catch (ServiceException e) {
+            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
+            e.printStackTrace();
+            return;
+        }
+
+        // Initialize HBase Admin Connection.
+        Admin admin;
+        try {
+            admin = ConnectionFactory.createConnection(conf).getAdmin();
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
+            e.printStackTrace();
+            return;
+        } finally {
+            LOGGER.log(Level.INFO, "HBase Admin connection initialized.");
+        }
+
+        // Delete HBase table and namespace
+        try {
+            TableName table = TableName.valueOf(dbname + ":Events");
+            admin.disableTable(table);
+            admin.deleteTable(table);
+            admin.deleteNamespace(dbname);
+            admin.close();
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Destroy of namespace failed! Check output console.");
+            e.printStackTrace();
+            return;
+        } finally {
+            LOGGER.log(Level.INFO, "HBase namespace deleted.");
+        }
+    }
+
+    public void close(){
+        try {
+            connection.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

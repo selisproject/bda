@@ -1,6 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.Connector;
+
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,5 +18,5 @@ public interface DatastoreConnector {
     List<Tuple> get(String args, HashMap<String,String> args2) throws Exception;
     DimensionTable describe(String args) throws Exception;
     List<String> list();
-    void createMetaTables() throws DatastoreException, UnsupportedOperationException;
+    void createMetaTables() throws DatastoreException, UnsupportedOperationException, SQLException;
 }

@@ -79,6 +79,31 @@ public class ConnectorFactory {
         return databaseUrl;
     }
 
+    /** Destroys a database. **/
+    public static void dropDatabase(String fs, String username,
+                                      String password, String owner, String dbname)
+            throws UnsupportedOperationException, SystemConnectorException {
+
+        int connectorType = ConnectorFactory.getConnectorType(fs);
+
+        if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
+            throw new UnsupportedOperationException("Dropping a database in HDFS is not supported.");
+        } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
+            HBaseConnector.dropNamespace(fs, username, password, dbname);
+        } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
+            try {
+                PostgresqlConnector.dropDatabase(fs, username, password, owner, dbname);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                throw new SystemConnectorException("Could not drop Postgresql database.");
+            }
+        } else {
+            throw new UnsupportedOperationException("Dropping a database in local FS is not supported.");
+        }
+
+        return;
+    }
+
     public static int getConnectorType(String fs) {
         if (fs.contains("hdfs")) {
             return ConnectorFactory.CONNECTOR_HDFS_TYPE;

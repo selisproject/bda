@@ -26,7 +26,7 @@ public class DatastoreResource {
 
     /**
      * Create new SCN databases/schemas/tables.
-     * @param m an SCN description.
+     * @param scn an SCN description.
      */
     @POST
     @Path("create")
@@ -68,6 +68,48 @@ public class DatastoreResource {
         }
 
         return new RequestResponse(status, details);
+    }
+
+    /**
+     * Destroy an SCN's databases/schemas/tables.
+     * @param scnId an SCN id.
+     */
+    @POST
+    @Path("destroy")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public RequestResponse createNewScn(@Context HttpServletResponse response,
+            @QueryParam("scnId") Integer scnId) {
+
+        try {
+            ScnDbInfo scn = ScnDbInfo.getScnDbInfoById(scnId);
+            StorageBackend.destroyScn(scn);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return new RequestResponse("ERROR", "Could not destroy SCN databases.");
+        }
+
+        try {
+            ScnDbInfo.destroy(scnId);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return new RequestResponse("ERROR", "Could not destroy SCN.");
+        }
+
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        try {
+            if (response != null) {
+                response.flushBuffer();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new RequestResponse("OK", "");
     }
 
     /**

@@ -21,7 +21,7 @@ curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" 
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore/{scn_slug}/ && echo
 
 // Get data from eventlog
-curl -ik -X GET "http://localhost:9999/api/datastore/{scn_slug}/?type=rows&n=-1" && echo
+curl -ik -X GET "http://localhost:9999/api/datastore/{scn_slug}/entries?type=rows&n=-1" && echo
 curl -ik -X GET "http://localhost:9999/api/datastore/{scn_slug}/select?filters=warehouse_id=1&message_type=stocklevels" && echo
 
 // Get data from dimension tables

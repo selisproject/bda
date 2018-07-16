@@ -148,7 +148,7 @@ public class Entrypoint {
             LOGGER.log(Level.INFO,"Terminating server");
             server.destroy();
             subscriber.interrupt();
-            SystemConnector.getInstance().destroy();
+            SystemConnector.getInstance().close();
         }
     }
 }

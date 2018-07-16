@@ -13,6 +13,8 @@ public class PostgresqlConnector implements Connector {
 
     private final static String CREATE_DATABASE_QUERY = "CREATE DATABASE %s WITH OWNER %s;";
 
+    private final static String DROP_DATABASE_QUERY = "DROP DATABASE %s;";
+
     private final static String CREATE_DATABASE_SCHEMA_QUERY = "CREATE SCHEMA %s AUTHORIZATION %s;";
  
     // The method creates a connection to the database provided in the 'jdbcURL' parameter.
@@ -99,6 +101,28 @@ public class PostgresqlConnector implements Connector {
 
         PreparedStatement statement = localConnection.prepareStatement(
             String.format(CREATE_DATABASE_SCHEMA_QUERY, schema, owner));
+
+        statement.executeUpdate();
+
+        localConnection.close();
+    }
+
+    public static void dropDatabase(String jdbcUrl, String username, String password,
+                        String owner, String dbname) throws SQLException {
+        Connection localConnection = null;
+
+        String postgresTemplateUrl = jdbcUrl + "template1";
+
+        try {
+            localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
+        } catch (SQLException e) {
+            System.out.println("Connection Failed! Check output console");
+            e.printStackTrace();
+            throw e;
+        }
+
+        PreparedStatement statement = localConnection.prepareStatement(
+                String.format(DROP_DATABASE_QUERY, dbname));
 
         statement.executeUpdate();
 

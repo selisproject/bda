@@ -66,7 +66,7 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
         this.conn=conn;
     }
 
-    public void createMetaTables() throws DatastoreException, UnsupportedOperationException {
+    public void createMetaTables() throws DatastoreException, UnsupportedOperationException, SQLException {
         Connection connection = conn.getConnection();
 
         try {
@@ -77,9 +77,8 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
 
             connection.commit();
         } catch (SQLException e) {
-            connection.rollback();
-
             e.printStackTrace();
+            connection.rollback();
             throw new DatastoreException("Could not create table `message_type`.");
         }
 

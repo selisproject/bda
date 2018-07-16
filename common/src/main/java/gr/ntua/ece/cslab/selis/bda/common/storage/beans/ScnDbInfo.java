@@ -42,6 +42,9 @@ public class ScnDbInfo implements Serializable {
         "VALUES (?, ?, ?, ?) " +
         "RETURNING id;";
 
+    private final static String DELETE_SCN_QUERY =
+            "DELETE FROM scn_db_info WHERE id = ?;";
+
     private boolean exists = false;
 
     public ScnDbInfo() { }
@@ -124,7 +127,26 @@ public class ScnDbInfo implements Serializable {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");
         }
-     }
+    }
+
+    public static void destroy(int id) throws SQLException, UnsupportedOperationException {
+        PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
+        Connection connection = connector.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(DELETE_SCN_QUERY);
+            statement.setInt(1, id);
+
+            statement.executeUpdate();
+            connection.commit();
+            return;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            connection.rollback();
+        }
+
+        throw new SQLException("ScnDbInfo object not found.");
+    }
 
     public static ScnDbInfo getScnDbInfoById(int id) throws SQLException {
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();

@@ -7,6 +7,7 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.DatastoreConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.connectors.ConnectorFactory;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,9 +23,9 @@ public class StorageBackend {
         this.DTconnector = ConnectorFactory.getInstance().generateConnector(SystemConnector.getInstance().getDTconnector(SCN));
     }
 
-    public static void createNewScn(ScnDbInfo scn) 
-        throws SystemConnectorException, DatastoreException, UnsupportedOperationException {
-        // 1. Create database for Dimension Tables, with data/metadata schemas and the database for the EventLog.
+    public static void createNewScn(ScnDbInfo scn)
+            throws SystemConnectorException, DatastoreException, UnsupportedOperationException, SQLException {
+        // 1. Create database for Dimension Tables (with data/metadata schemas), the EventLog and the KPIdb.
         SystemConnector.getInstance().createScnDatabase(scn.getSlug(), scn.getDbname());
         
         // 2. Create metadata tables for new SCN.
@@ -32,6 +33,12 @@ public class StorageBackend {
             SystemConnector.getInstance().getDTconnector(scn.getSlug()));
 
         localDtConnector.createMetaTables();
+    }
+
+    public static void destroyScn(ScnDbInfo scn)
+            throws UnsupportedOperationException, SystemConnectorException {
+        // Destroy the databases of the Dimension Tables, the EventLog and the KPIdb.
+        SystemConnector.getInstance().destroyScnDatabase(scn.getSlug(), scn.getDbname());
     }
 
     /** Initialize the eventLog and dimension tables in the underlying FS Using the masterData.
