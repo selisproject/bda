@@ -32,6 +32,8 @@ public class MessageResource {
         try {
             m.save(slug);
 
+            details = Integer.toString(m.getId());
+
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
@@ -39,10 +41,11 @@ public class MessageResource {
         } catch (Exception e) {
             e.printStackTrace();
 
-            status = "ERROR";
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
+
+            return new RequestResponse("ERROR", "Could not insert new Message Type.");
         }
 
         try {

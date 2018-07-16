@@ -40,6 +40,8 @@ public class JobResource {
         try {
             m.save(slug);
 
+            details = Integer.toString(m.getId());
+
             LOGGER.log(Level.INFO, "Inserted job.");
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);

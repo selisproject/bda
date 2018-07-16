@@ -35,8 +35,13 @@ public class DatastoreResource {
     public RequestResponse createNewScn(@Context HttpServletResponse response, ScnDbInfo scn) {
         LOGGER.log(Level.INFO, scn.toString());
 
+        String status = "OK";
+        String details = "";
+
         try {
             scn.save();
+
+            details = Integer.toString(scn.getId());
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -62,7 +67,7 @@ public class DatastoreResource {
             e.printStackTrace();
         }
 
-        return new RequestResponse("OK", "");
+        return new RequestResponse(status, details);
     }
 
     /**

@@ -13,7 +13,7 @@ curl -ik -X PUT -H "Content-type:application/json" -d @recipe.json http://localh
 // 5. Upload recipe executable
 curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @recipe.py http://localhost:9999/api/recipe/{scn_slug}/upload/{recipe_id}/recipe.py
 
-// 6. Create a new job (message-triggered or cron)
+// 6. Create a new job (message-triggered or cron) (returns job_id)
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @job.json http://localhost:9999/api/job/{scn_slug} && echo
 
 // Extras

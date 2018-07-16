@@ -41,6 +41,7 @@ public class RecipeResource {
 
         String status = "OK";
         String details = "";
+
         JSONObject obj = new JSONObject(m);
 
         Recipe r = new Recipe(obj.getString("name"),
@@ -51,6 +52,9 @@ public class RecipeResource {
 
         try {
             r.save(slug);
+
+            details = Integer.toString(r.getId());
+
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
