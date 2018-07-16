@@ -12,11 +12,11 @@ import java.lang.UnsupportedOperationException;
 public class Recipe implements Serializable {
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
-    private int id;
+    private transient int id;
     private String name;
     private String description;
-    private String executable_path;
-    private int engine_id;
+    private String executablePath;
+    private int engineId;
     private String args;
 
     private boolean exists = false;
@@ -41,11 +41,11 @@ public class Recipe implements Serializable {
 
     public Recipe() {}
 
-    public Recipe(String name, String description, String executable_path, int engine_id, String args) {
+    public Recipe(String name, String description, String executablePath, int engineId, String args) {
         this.name = name;
         this.description = description;
-        this.executable_path = executable_path;
-        this.engine_id = engine_id;
+        this.executablePath = executablePath;
+        this.engineId = engineId;
         this.args = args;
     }
 
@@ -73,20 +73,20 @@ public class Recipe implements Serializable {
         this.description = description;
     }
 
-    public String getExecutable_path() {
-        return executable_path;
+    public String getExecutablePath() {
+        return executablePath;
     }
 
-    public void setExecutable_path(String executable_path) {
-        this.executable_path = executable_path;
+    public void setExecutablePath(String executablePath) {
+        this.executablePath = executablePath;
     }
 
-    public int getEngine_id() {
-        return engine_id;
+    public int getEngineId() {
+        return engineId;
     }
 
-    public void setEngine_id(int engine_id) {
-        this.engine_id = engine_id;
+    public void setEngineId(int engineId) {
+        this.engineId = engineId;
     }
 
     public String getArgs() {
@@ -111,8 +111,8 @@ public class Recipe implements Serializable {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", executable_path='" + executable_path + '\'' +
-                ", engine_id=" + engine_id +
+                ", executablePath='" + executablePath + '\'' +
+                ", engineId=" + engineId +
                 ", args=" + args +
                 ", exists=" + exists +
                 '}';
@@ -233,7 +233,7 @@ public class Recipe implements Serializable {
 
         PreparedStatement statement = connection.prepareStatement(SET_EXECUTABLE_PATH);
 
-        statement.setString(1, this.executable_path);
+        statement.setString(1, this.executablePath);
         statement.setInt(2, this.id);
 
         statement.executeUpdate();
@@ -252,8 +252,8 @@ public class Recipe implements Serializable {
 
             statement.setString(1, this.name);
             statement.setString(2, this.description);
-            statement.setString(3, this.executable_path);
-            statement.setInt(4, Integer.valueOf(this.engine_id));
+            statement.setString(3, this.executablePath);
+            statement.setInt(4, Integer.valueOf(this.engineId));
             statement.setString(5, this.args.toString());
 
             try {

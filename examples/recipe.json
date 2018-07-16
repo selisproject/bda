@@ -1,8 +1,8 @@
 {
   "name" : "recipe",
   "description" : "recipe",
-  "executable_path" : "",
-  "engine_id" : 1,
+  "executablePath" : "easy",
+  "engineId" : 1,
   "args" : {
  		"intarg" : 1,
 		"strarg" : "string"

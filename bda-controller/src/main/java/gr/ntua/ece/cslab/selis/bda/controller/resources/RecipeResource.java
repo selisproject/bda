@@ -46,8 +46,8 @@ public class RecipeResource {
 
         Recipe r = new Recipe(obj.getString("name"),
                 obj.getString("description"),
-                obj.getString("executable_path"),
-                obj.getInt("engine_id"),
+                obj.getString("executablePath"),
+                obj.getInt("engineId"),
                 obj.getJSONObject("args").toString());
 
         try {
@@ -96,7 +96,7 @@ public class RecipeResource {
 
         Recipe r = Recipe.getRecipeById(slug, recipe_id);
         System.out.println(r.toString());
-        r.setExecutable_path(binaryPath);
+        r.setExecutablePath(binaryPath);
         System.out.println(r.toString());
 
         try {
