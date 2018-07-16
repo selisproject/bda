@@ -1,7 +1,11 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
-public class ConnectorFactory {
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.Connector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HBaseConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.LocalFSConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
+public class ConnectorFactory {
     private static ConnectorFactory connFactory;
 
     private ConnectorFactory() {}
@@ -14,20 +18,17 @@ public class ConnectorFactory {
 
     /** Depending on the FS string format initialize a connector from a different class.
      *  Connectors are implemented for four different filesystems: local, HBase, HDFS, PostgreSQL. **/
-    public Connector generateConnector(String FS, String Username, String Password){
-        Connector connector;
-        if (FS.contains("hdfs")){
-            connector = new HDFSConnector(FS);
+    public DatastoreConnector generateConnector(Connector conn){
+        DatastoreConnector connector = null;
+        if ( conn instanceof HBaseConnector ){
+            connector = new DatastoreHBaseConnector( (HBaseConnector) conn);
         }
-        else if (FS.contains("hbase")){
-            connector = new HBaseConnector(FS, Username, Password);
+        else if (conn instanceof PostgresqlConnector) {
+            connector = new DatastorePostgresqlConnector( (PostgresqlConnector) conn);
         }
-        else if (FS.contains("jdbc:postgresql")) {
-            connector = new PostgresqlConnector(FS, Username, Password);
+        else if (conn instanceof LocalFSConnector) {
+            connector = new DatastoreLocalFSConnector( (LocalFSConnector) conn);
         }
-        else
-            connector = new LocalFSConnector(FS);
         return connector;
     }
-
 }

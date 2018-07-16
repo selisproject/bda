@@ -12,7 +12,7 @@ import org.junit.Test;
 
 
 public class AnalyticsTest {
-	AnalyticsInstance instance;
+	/*AnalyticsInstance instance;
 
 	@Before
 	public void setUp() throws Exception {
@@ -36,8 +36,8 @@ public class AnalyticsTest {
 
 	@Test
 	public void test() {
-		instance.run(1, "\"{\"ena\":1,\"duo\":2}\"");
-	}
+		//instance.run(1, "\"{\"ena\":1,\"duo\":2}\"");
+	}*/
 	//@Test
 	//public void test()
 	//{

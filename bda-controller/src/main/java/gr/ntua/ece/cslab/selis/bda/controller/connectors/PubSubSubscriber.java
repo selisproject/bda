@@ -1,6 +1,9 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
+import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
@@ -46,33 +49,42 @@ public class PubSubSubscriber implements Runnable {
 
             try {
                 pubsub = new PubSub(this.hostname, this.portNumber);
-
-                messageTypeNames = MessageType.getActiveMessageTypeNames();
-
-                for (String messageTypeName : messageTypeNames) {
-                    Subscription subscription = new Subscription(this.authHash);
-
-                    subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
-
-                    pubsub.subscribe(subscription, new Callback() {
-                        @Override
-                        public void onMessage(Message message) {
-                            try {
-                                handleMessage(message);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
+                this.messageTypeNames = new Vector<String>();
+                List<ScnDbInfo> SCNs = new LinkedList<>();
+                try {
+                    SCNs = ScnDbInfo.getScnDbInfo();
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
+                if (!(SCNs.isEmpty())) {
+                    for (ScnDbInfo SCN : SCNs) {
+                        messageTypeNames.addAll(MessageType.getActiveMessageTypeNames(SCN.getSlug()));
+                    }
 
-                LOGGER.log(Level.INFO, 
-                           "SUCCESS: Subscribed to {0} message types", 
-                           messageTypeNames.size());
+                    for (String messageTypeName : messageTypeNames) {
+                        Subscription subscription = new Subscription(this.authHash);
 
+                        subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
+
+                        pubsub.subscribe(subscription, new Callback() {
+                            @Override
+                            public void onMessage(Message message) {
+                                try {
+                                    handleMessage(message);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    }
+
+                    LOGGER.log(Level.INFO,
+                            "SUCCESS: Subscribed to {0} message types",
+                            messageTypeNames.size());
+                }
             } catch (PubSubException ex) {
-                LOGGER.log(Level.WARNING, 
-                           "Could not subscribe, got error: {0}", 
+                LOGGER.log(Level.WARNING,
+                           "Could not subscribe, got error: {0}",
                            ex.getMessage());
                 pubsub.close();
             } catch (Exception e) {
@@ -140,20 +152,23 @@ public class PubSubSubscriber implements Runnable {
         }
         bdamessage.setEntries(entries);
         try {
-            message_id = Entrypoint.datastore.insert(bdamessage);
+            // TODO: get scn name
+            message_id = new StorageBackend("haha").insert(bdamessage);
             LOGGER.info("Subscriber[" + authHash + "], Received and persisted " + messageType + " message.");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        MessageType msgInfo = MessageType.getMessageByName(messageType);
+
+        MessageType msgInfo = MessageType.getMessageByName("haha", messageType);
         try {
-            JobDescription job = JobDescription.getJobByMessageId(msgInfo.getId());
+            JobDescription job = JobDescription.getJobByMessageId("haha", msgInfo.getId());
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], Launching " + job.getName() + " recipe.");
             // TODO: check job.getJob_type()
-            Entrypoint.analyticsComponent.run(job.getRecipeId(), message_id);
+            (new AnalyticsInstance("haha")).run(job.getRecipeId(), message_id);
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], No recipe found for message " + messageType + ".");
         }
+
     }
 }

@@ -1,4 +1,4 @@
-package gr.ntua.ece.cslab.selis.bda.controller;
+package gr.ntua.ece.cslab.selis.bda.common;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 /**
  * This class holds all the configuration options used by the Big Data Analytics component as a whole
  * (including the various subsystems).
- * Created by Giannis Giannakopoulos on 10/6/17.
  */
 public class Configuration {
     private static Logger LOGGER =Logger.getLogger(Configuration.class.getCanonicalName());
@@ -19,6 +18,7 @@ public class Configuration {
     public final PubSubSubscriber subscriber;
     public final AuthClientBackend authClientBackend;
     public final KPIBackend kpiBackend;
+    public final TestDB testDb;
 
     public class Server {
         private String address;
@@ -39,6 +39,7 @@ public class Configuration {
         // TODO: Should add username/password for every StorageBackend.
         //       Modify Constructor accordingly.
         private String eventLogURL, dimensionTablesURL, bdaDatabaseURL, dbUsername, dbPassword;
+        private String dbPrivilegedUsername, dbPrivilegedPassword;
 
         public StorageBackend() {
         }
@@ -58,6 +59,10 @@ public class Configuration {
         public String getDbUsername() { return dbUsername; }
 
         public String getDbPassword() { return dbPassword; }
+
+        public String getDbPrivilegedUsername() { return dbPrivilegedUsername; }
+
+        public String getDbPrivilegedPassword() { return dbPrivilegedPassword; }
     }
     public class ExecutionEngine {
         private String SparkMasterURL, SparkExecutionMode;
@@ -107,6 +112,16 @@ public class Configuration {
 
     }
 
+    public class TestDB {
+        private String dbUrl, dbUsername, dbPassword;
+
+        public String getDbUrl() { return dbUrl; }
+
+        public String getDbUsername() { return dbUsername; }
+
+        public String getDbPassword() { return dbPassword; }
+    }
+
     public Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
@@ -114,6 +129,7 @@ public class Configuration {
         this.authClientBackend = new AuthClientBackend();
         this.kpiBackend = new KPIBackend();
         this.execEngine = new ExecutionEngine();
+        this.testDb = new TestDB();
     }
 
     /**
@@ -144,6 +160,8 @@ public class Configuration {
         // Dimension Tables Configuration.
         conf.storageBackend.dbUsername = properties.getProperty("backend.db.dimension.username");
         conf.storageBackend.dbPassword = properties.getProperty("backend.db.dimension.password");
+        conf.storageBackend.dbPrivilegedUsername = properties.getProperty("backend.db.dimension.privileged_username");
+        conf.storageBackend.dbPrivilegedPassword = properties.getProperty("backend.db.dimension.privileged_password");
         conf.storageBackend.dimensionTablesURL = properties.getProperty("backend.db.dimension.url");
 
         // BDA Database Configuration.
@@ -186,6 +204,11 @@ public class Configuration {
         // Execution engine configuration
         conf.execEngine.SparkMasterURL = properties.getProperty("spark.master.url");
         conf.execEngine.SparkExecutionMode = properties.getProperty("spark.execution.mode");
+
+        conf.testDb.dbUrl = properties.getProperty("test.db.url");
+        conf.testDb.dbUsername = properties.getProperty("test.db.username");
+        conf.testDb.dbPassword = properties.getProperty("test.db.password");
+
         return conf;
 
     }

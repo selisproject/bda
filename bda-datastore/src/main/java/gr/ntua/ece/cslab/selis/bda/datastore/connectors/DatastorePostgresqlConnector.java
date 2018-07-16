@@ -1,6 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+import gr.ntua.ece.cslab.selis.bda.datastore.DatastoreException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -8,44 +10,121 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class PostgresqlConnector implements Connector {
+public class DatastorePostgresqlConnector implements DatastoreConnector {
 
-    private String jdbcURL;
-    private String user;
-    private String password;
-    private Connection connection;
+    PostgresqlConnector conn;
+
+    private final String CREATE_MESSAGE_TYPES_TABLE_QUERY = 
+        "CREATE TABLE metadata.message_type ( " +
+            "id          SERIAL PRIMARY KEY, " +
+            "name        VARCHAR(64) NOT NULL UNIQUE, " +
+            "description VARCHAR(256), " +
+            "active      BOOLEAN DEFAULT(true), " +
+            "format      VARCHAR " +
+        ");";
+
+    private final String CREATE_EXECUTION_ENGINES_TABLE_QUERY = 
+        "CREATE TABLE metadata.execution_engines ( " +
+            "id              SERIAL PRIMARY KEY, " +
+            "name            VARCHAR(64) NOT NULL UNIQUE, " +
+            "engine_path     TEXT, " +
+            "local_engine    BOOLEAN DEFAULT(true), " +
+            "args            JSONB " +
+        ");";
+
+
+    private final String CREATE_RECIPES_TABLE_QUERY = 
+        "CREATE TABLE metadata.recipes ( " +
+            "id                  SERIAL PRIMARY KEY, " +
+            "name                VARCHAR(64) NOT NULL UNIQUE, " +
+            "description         VARCHAR(256), " +
+            "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
+            "engine_id           INTEGER REFERENCES metadata.execution_engines(id), " +
+            "args                JSONB " +
+        ");";
+
+    private final String CREATE_JOBS_TABLE_QUERY = 
+        "CREATE TABLE metadata.jobs ( " +
+            "id              SERIAL PRIMARY KEY, " +
+            "name            VARCHAR(64) NOT NULL UNIQUE, " +
+            "description     VARCHAR(256), " +
+            "message_type_id INTEGER REFERENCES metadata.message_type(id), " +
+            "recipe_id       INTEGER REFERENCES metadata.recipes(id), " +
+            "job_type        VARCHAR(20), " +
+            "active          BOOLEAN DEFAULT(true) " +
+        ");";
+
+    private final String INSERT_EXECUTION_ENGINES_QUERY = 
+        "INSERT INTO metadata.execution_engines (name, engine_path, local_engine, args) " + 
+        "VALUES ('python3', '/usr/bin/python3', true, '{}'::json); " +
+        "INSERT INTO metadata.execution_engines (name, engine_path, local_engine, args) " +
+        "VALUES ('pyspark', 'spark://selis-spark-master:7077', false, '{}'::json);";
 
     // The constructor creates a connection to the database provided in the 'jdbcURL' parameter.
     // The database should be up and running.
-    public PostgresqlConnector(String jdbcURL, String Username, String Password){
-        this.jdbcURL = jdbcURL;
-        this.user = Username;
-        this.password = Password;
-        try {
-            Class.forName("org.postgresql.Driver");
+    public DatastorePostgresqlConnector(PostgresqlConnector conn){
+        this.conn=conn;
+    }
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return;
-        }
-        System.out.println("PostgreSQL JDBC Driver Registered!");
+    public void createMetaTables() throws DatastoreException, UnsupportedOperationException, SQLException {
+        Connection connection = conn.getConnection();
 
         try {
-            connection = DriverManager.getConnection(jdbcURL, user, password);
-        } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
-            e.printStackTrace();
-            return;
-        }
-        if (connection == null) {
-            System.out.println("Failed to make connection!");
-        }
+            PreparedStatement statement = connection.prepareStatement(
+                CREATE_MESSAGE_TYPES_TABLE_QUERY);
 
-        // make sure autocommit is off
-        try {
-            connection.setAutoCommit(false);
+            statement.executeUpdate();
+
+            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
+            connection.rollback();
+            throw new DatastoreException("Could not create table `message_type`.");
+        }
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                CREATE_EXECUTION_ENGINES_TABLE_QUERY);
+
+            statement.executeUpdate();
+
+            statement = connection.prepareStatement(INSERT_EXECUTION_ENGINES_QUERY);
+            statement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+
+            e.printStackTrace();
+            throw new DatastoreException("Could not create table `execution_engines`.");
+        }
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                CREATE_RECIPES_TABLE_QUERY);
+
+            statement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+
+            e.printStackTrace();
+            throw new DatastoreException("Could not create table `recipes`.");
+        }
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                CREATE_JOBS_TABLE_QUERY);
+
+            statement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+
+            e.printStackTrace();
+            throw new DatastoreException("Could not create table `jobs`.");
         }
     }
 
@@ -111,7 +190,7 @@ public class PostgresqlConnector implements Connector {
     // Create dimension table and populate it
     public void put(MasterData masterData) throws Exception {
         try {
-            Statement st = connection.createStatement();
+            Statement st = conn.getConnection().createStatement();
             for (DimensionTable table: masterData.getTables()) {
                 List<KeyValue> columns = table.getSchema().getColumnTypes();
                 String primaryKey = table.getSchema().getPrimaryKey();
@@ -127,7 +206,7 @@ public class PostgresqlConnector implements Connector {
                 q=q.substring(0, q.length() - 1)+");";
                 System.out.println(q);
                 st.addBatch(q);
-                st.addBatch("ALTER TABLE " + table.getName() + " OWNER TO "+ this.user+";");
+                st.addBatch("ALTER TABLE " + table.getName() + " OWNER TO "+ conn.getUsername()+";");
                 st.executeBatch();
 
                 // fill-in column values
@@ -141,7 +220,7 @@ public class PostgresqlConnector implements Connector {
                     }
                     insertTableSQL = insertTableSQL.substring(0, insertTableSQL.length() - 1) + ") VALUES (" + values.substring(0, values.length() - 1) + ");";
 
-                    PreparedStatement prepst = connection.prepareStatement(insertTableSQL);
+                    PreparedStatement prepst = conn.getConnection().prepareStatement(insertTableSQL);
                     for (Tuple tuple : data) {
                         int i = 1;
                         for (KeyValue element : tuple.getTuple()) {
@@ -190,12 +269,12 @@ public class PostgresqlConnector implements Connector {
                     }
                     prepst.executeBatch();
                 }
-                connection.commit();
+                conn.getConnection().commit();
             }
         } catch (SQLException e) {
             System.out.println("Failed creation");
             e.printStackTrace();
-            connection.rollback();
+            conn.getConnection().rollback();
         }
     }
 
@@ -249,7 +328,7 @@ public class PostgresqlConnector implements Connector {
             throw new java.lang.UnsupportedOperationException("The EventLog is not set up in Postgres and can not be queried.");
         }
         try {
-            Statement st = connection.createStatement();
+            Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
             String q = "SELECT * FROM "+tablename+" WHERE ";
@@ -271,7 +350,7 @@ public class PostgresqlConnector implements Connector {
             rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            connection.rollback();
+            conn.getConnection().rollback();
         }
         return res;
     }
@@ -283,7 +362,7 @@ public class PostgresqlConnector implements Connector {
         List<String> columnNames = new LinkedList<>();
         List<KeyValue> columnTypes = new LinkedList<>();
         try {
-            Statement st = connection.createStatement();
+            Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
             ResultSet rs = st.executeQuery("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = '"+args+"';");
@@ -294,7 +373,7 @@ public class PostgresqlConnector implements Connector {
             rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            connection.rollback();
+            conn.getConnection().rollback();
         }
         return new DimensionTable(args,
                 new DimensionTableSchema(columnNames, columnTypes, ""),
@@ -305,7 +384,7 @@ public class PostgresqlConnector implements Connector {
     public List<String> list() {
         List<String> tables = new LinkedList<>();
         try {
-            DatabaseMetaData dbm = connection.getMetaData();
+            DatabaseMetaData dbm = conn.getConnection().getMetaData();
             ResultSet rs = dbm.getTables(null, null, "%", new String[] {"TABLE"});
             while (rs.next())
                 if (!rs.getString("TABLE_NAME").equalsIgnoreCase("Events"))
@@ -314,13 +393,5 @@ public class PostgresqlConnector implements Connector {
             e.printStackTrace();
         }
         return tables;
-    }
-
-    public void close(){
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 }

@@ -1,13 +1,12 @@
-package gr.ntua.ece.cslab.selis.bda.controller.beans;
+package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
+import java.io.Serializable;
 import java.sql.*;
 import java.util.List;
 import java.util.Vector;
-import java.io.Serializable;
-import java.lang.UnsupportedOperationException;
 
 public class JobDescription implements Serializable {
     private final static int DEFAULT_VECTOR_SIZE = 10;
@@ -21,10 +20,6 @@ public class JobDescription implements Serializable {
     private String job_type;
 
     private boolean exists = false;
-
-    private final static String JOBS_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
-        "FROM metadata.jobs";
 
     private final static String ACTIVE_JOBS_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
@@ -120,47 +115,8 @@ public class JobDescription implements Serializable {
                 '}';
     }
 
-    public static List<JobDescription> getJobs(String slug) throws SQLException {
-
-        PostgresqlConnector connector = (PostgresqlConnector ) 
-            SystemConnector.getInstance().getDTconnector(slug);
-
-        Connection connection = connector.getConnection();
-
-        Vector<JobDescription> jobs = new Vector<JobDescription>(DEFAULT_VECTOR_SIZE);
-
-        try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(JOBS_QUERY);
-
-            while (resultSet.next()) {
-                JobDescription job = new JobDescription(
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("active"),
-                    resultSet.getInt("message_type_id"),
-                    resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type")
-                );
-
-                job.id = resultSet.getInt("id");
-                job.exists = true;
-
-                jobs.addElement(job);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw e;
-        }
-
-        return jobs;
-     }
-
-    public static List<JobDescription> getActiveJobs(String slug) throws SQLException {
-
-        PostgresqlConnector connector = (PostgresqlConnector ) 
-            SystemConnector.getInstance().getDTconnector(slug);
-
+    public static List<JobDescription> getActiveJobs(String slug) {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
 
         Vector<JobDescription> jobs = new Vector<JobDescription>(DEFAULT_VECTOR_SIZE);
@@ -184,19 +140,16 @@ public class JobDescription implements Serializable {
 
                 jobs.addElement(job);
             }
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            throw e;
         }
 
         return jobs;
      }
 
     public static JobDescription getJobById(String slug, int id) throws SQLException {
-
-        PostgresqlConnector connector = (PostgresqlConnector ) 
-            SystemConnector.getInstance().getDTconnector(slug);
-
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
 
         try {
@@ -218,20 +171,18 @@ public class JobDescription implements Serializable {
                 job.id = resultSet.getInt("id");
                 job.exists = true;
 
+                connection.close();
                 return job;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
     public static JobDescription getJobByMessageId(String slug, int id) throws SQLException {
-
-        PostgresqlConnector connector = (PostgresqlConnector ) 
-            SystemConnector.getInstance().getDTconnector(slug);
-
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
 
         try {
@@ -253,21 +204,21 @@ public class JobDescription implements Serializable {
                 job.id = resultSet.getInt("id");
                 job.exists = true;
 
+                connection.close();
                 return job;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
     public void save(String slug) throws SQLException, UnsupportedOperationException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
-            PostgresqlConnector connector = (PostgresqlConnector ) 
-                SystemConnector.getInstance().getDTconnector(slug);
-
+            PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
             Connection connection = connector.getConnection();
 
             PreparedStatement statement = connection.prepareStatement(INSERT_JOB_QUERY);
@@ -279,18 +230,16 @@ public class JobDescription implements Serializable {
             statement.setInt(5, this.recipeId);
             statement.setString(6, this.job_type);
 
-            try {
-                ResultSet resultSet = statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
 
-                if (resultSet.next()) {
-                    this.id = resultSet.getInt("id");
-                }
+            // TODO: Verify if we want autocommit. Set it explicitely.
+            // connection.commit();
 
-                connection.commit();
-            } catch (SQLException e) {
-                connection.rollback();
-                throw e;
+            if (resultSet.next()) {
+                this.id = resultSet.getInt("id");
             }
+
+            connection.close();
         } else {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");

@@ -10,6 +10,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.logging.Logger;
+import java.util.List;
+import java.util.LinkedList;
 
 @Path("message")
 public class MessageResource {
@@ -20,14 +22,19 @@ public class MessageResource {
      * @param m the message description to insert
      */
     @PUT
+    @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, MessageType m) {
+    public RequestResponse insert(@Context HttpServletResponse response, 
+                                  @PathParam("slug") String slug,
+                                  MessageType m) {
         String status = "OK";
         String details = "";
 
         try {
-            m.save();
+            m.save(slug);
+
+            details = Integer.toString(m.getId());
 
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
@@ -36,10 +43,11 @@ public class MessageResource {
         } catch (Exception e) {
             e.printStackTrace();
 
-            status = "ERROR";
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
+
+            return new RequestResponse("ERROR", "Could not insert new Message Type.");
         }
 
         try {
@@ -51,5 +59,23 @@ public class MessageResource {
         }
 
         return new RequestResponse(status, details);
+    }
+
+    /**
+     * Returns all the registered message types.
+     */
+    @GET
+    @Path("{slug}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<MessageType> getMessageTypeView(@PathParam("slug") String slug) {
+        List<MessageType> messageTypes = new LinkedList<MessageType>();
+
+        try {
+            messageTypes = MessageType.getMessageTypes(slug);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return messageTypes;
     }
 }

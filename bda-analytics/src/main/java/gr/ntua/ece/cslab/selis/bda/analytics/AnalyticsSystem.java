@@ -6,10 +6,11 @@ public class AnalyticsSystem {
 
 	public static AnalyticsInstance getInstance(String kpidbURL, String username,
 												String password) {
-		if (system == null) {
+		/*if (system == null) {
 			system = new AnalyticsInstance(kpidbURL, username, password);
 		}
-		return system;
+		return system;*/
+		return null;
 	}
 
 	public static AnalyticsInstance getInstance() {

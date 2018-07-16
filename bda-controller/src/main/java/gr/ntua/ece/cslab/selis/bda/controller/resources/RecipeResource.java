@@ -15,39 +15,42 @@ import javax.ws.rs.core.MediaType;
 import java.io.*;
 import java.sql.SQLException;
 import java.util.logging.Logger;
+import java.util.List;
+import java.util.LinkedList;
 
 
 @Path("recipe")
 public class RecipeResource {
     private final static Logger LOGGER = Logger.getLogger(RecipeResource.class.getCanonicalName());
 
-    @GET
-    @Path("check")
-    public String checker () {
-        System.out.println("mpla");
-        return "mpla";
-    }
     /**
      * Job description insert method
      * @param m the job description to insert
      */
     @PUT
+    @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, String m) {
+    public RequestResponse insert(@Context HttpServletResponse response,
+                                  @PathParam("slug") String slug,
+                                  String m) {
 
         String status = "OK";
         String details = "";
+
         JSONObject obj = new JSONObject(m);
 
         Recipe r = new Recipe(obj.getString("name"),
                 obj.getString("description"),
-                obj.getString("executable_path"),
-                obj.getInt("engine_id"),
+                obj.getString("executablePath"),
+                obj.getInt("engineId"),
                 obj.getJSONObject("args").toString());
 
         try {
-            r.save();
+            r.save(slug);
+
+            details = Integer.toString(r.getId());
+
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
@@ -73,11 +76,12 @@ public class RecipeResource {
     }
 
     @PUT
-    @Path("upload/{id}/{filename}")
+    @Path("{slug}/upload/{id}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public RequestResponse upload(@PathParam("id") int recipe_id,
-                         @PathParam("filename") String recipe_name,
-                         InputStream recipe)  {
+    public RequestResponse upload(@PathParam("slug") String slug,
+                                  @PathParam("id") int recipe_id,
+                                  @PathParam("filename") String recipe_name,
+                                  InputStream recipe)  {
 
         String status = "OK";
         String details = "";
@@ -85,21 +89,42 @@ public class RecipeResource {
         String binaryPath = "/uploads/" + recipe_id + "_" + recipe_name;
         saveFile(recipe, binaryPath);
 
-        Recipe r = Recipe.getRecipeById(recipe_id);
+
+        Recipe r = Recipe.getRecipeById(slug, recipe_id);
         System.out.println(r.toString());
-        r.setExecutable_path(binaryPath);
+        r.setExecutablePath(binaryPath);
         System.out.println(r.toString());
 
         try {
-            r.updateBinaryPath();
+            r.updateBinaryPath(slug);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
-                r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
-                new JSONObject(r.getArgs()), r.getExecutable_path());
+
+        //Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
+        //        r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
+        //        new JSONObject(r.getArgs()), r.getExecutable_path());
         return new RequestResponse(status, details);
     }
+
+    /**
+     * Returns all the registered recipes.
+     */
+    @GET
+    @Path("{slug}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<Recipe> getRecipesView(@PathParam("slug") String slug) {
+        List<Recipe> recipes = new LinkedList<Recipe>();
+
+        try {
+            recipes = Recipe.getRecipes(slug);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return recipes;
+    }
+
 
     private void saveFile(InputStream uploadedInputStream, String serverLocation) {
 
@@ -118,4 +143,5 @@ public class RecipeResource {
         }
 
     }
+
 }

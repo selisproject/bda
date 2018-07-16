@@ -25,11 +25,11 @@ public class LocalRunner extends ArgumentParser implements Runnable {
     public LocalRunner(KpiDescriptor kpi,
                     ExecutEngineDescriptor engine,
                     String message,
-                    KPIBackend kpidb) {
+                    String SCNslug) {
         this.kpiDescriptor = kpi;
         this.engine = engine;
         this.message = message;
-        this.kpidb = kpidb;
+        this.kpidb = new KPIBackend(SCNslug);
 
         engine_part = "";
         recipe_part = "";
@@ -92,7 +92,10 @@ public class LocalRunner extends ArgumentParser implements Runnable {
             entries.add(new KeyValue(key, msg.getJSONObject("payload").get(key).toString()));
         }
         entries.add(new KeyValue("result", (new JSONObject(result)).toString()));
-        kpidb.insert(new KPI(kpiDescriptor.getName(), (new Timestamp(System.currentTimeMillis())).toString(), entries));
+
+        this.kpidb.insert(
+                new KPI(kpiDescriptor.getName(),
+                        (new Timestamp(System.currentTimeMillis())).toString(), entries));
 
     }
 }

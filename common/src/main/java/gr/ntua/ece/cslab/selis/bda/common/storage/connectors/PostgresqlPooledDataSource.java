@@ -1,13 +1,15 @@
-package gr.ntua.ece.cslab.selis.bda.controller.connectors;
+package gr.ntua.ece.cslab.selis.bda.common.storage.connectors;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class BDAdbConnector {
 
-    private static BDAdbConnector dataSource = null;
+public class PostgresqlPooledDataSource {
+
+    private static PostgresqlPooledDataSource dataSource = null;
 
     private static HikariConfig bdaDataSourceConfig = null;
     private static HikariConfig labDataSourceConfig = null;
@@ -15,7 +17,7 @@ public class BDAdbConnector {
     private HikariDataSource bdaPooledDataSource = null;
     private HikariDataSource labPooledDataSource = null;
 
-    private BDAdbConnector() {
+    private PostgresqlPooledDataSource() {
         this.bdaPooledDataSource = new HikariDataSource(bdaDataSourceConfig);
         this.labPooledDataSource = new HikariDataSource(labDataSourceConfig);
     }
@@ -34,9 +36,9 @@ public class BDAdbConnector {
         labDataSourceConfig.setPassword(password);
     }
 
-    public static BDAdbConnector getInstance() {
+    public static PostgresqlPooledDataSource getInstance() {
         if (dataSource == null) {
-            dataSource = new BDAdbConnector();
+            dataSource = new PostgresqlPooledDataSource();
         }
 
         return dataSource;
@@ -45,13 +47,12 @@ public class BDAdbConnector {
     public Connection getBdaConnection() {
         Connection connection = null;
 
-        while (connection == null) {
-            try {
-                connection = this.bdaPooledDataSource.getConnection();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        try {
+            connection = this.bdaPooledDataSource.getConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
         return connection;
     }
 
@@ -66,6 +67,4 @@ public class BDAdbConnector {
 
         return connection;
     }
-
-
 }

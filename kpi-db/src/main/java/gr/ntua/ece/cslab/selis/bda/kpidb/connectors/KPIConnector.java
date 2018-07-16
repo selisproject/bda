@@ -7,7 +7,7 @@ import gr.ntua.ece.cslab.selis.bda.kpidb.beans.Tuple;
 
 import java.util.List;
 
-public interface Connector {
+public interface KPIConnector {
     /*
         Method create will be used upon KPI initilization
         in order to create the corresponding table in the KPIDB
@@ -41,9 +41,5 @@ public interface Connector {
      */
     List<String> list();
 
-    /*
-        Close connection to KPI DB
-     */
-    void close();
 
 }

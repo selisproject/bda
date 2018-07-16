@@ -1,25 +1,24 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
-import com.sun.source.tree.EmptyStatementTree;
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.Connector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.ConnectorFactory;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.BDAdbConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.MessageResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.RecipeResource;
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
-import gr.ntua.ece.cslab.selis.bda.kpidb.beans.Tuple;
-import org.eclipse.jetty.server.HttpChannel;
-import org.eclipse.jetty.server.HttpOutput;
-import org.eclipse.jetty.server.Response;
+import gr.ntua.ece.cslab.selis.bda.datastore.connectors.DatastoreConnector;
 import org.json.JSONObject;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,8 +29,11 @@ import java.util.logging.Logger;
  */
 public class HelloWorldTest {
 
+    /*
     Logger LOGGER = Logger.getLogger(HelloWorldTest.class.getCanonicalName());
 
+    Configuration configuration;
+    Connector dtConnector, kpiConnector;
     MessageType msgType;
     Recipe recipe;
     JobDescription jobDescription;
@@ -79,19 +81,22 @@ public class HelloWorldTest {
             "}";
 
     private static final String DELETE_MSG_TYPE_QUERY =
-            "DELETE FROM message_type " +
+            "DELETE FROM metadata.message_type " +
             "WHERE id = ?;";
 
     private static final String DELETE_RECIPE_QUERY =
-            "DELETE FROM recipes " +
+            "DELETE FROM metadata.recipes " +
             "WHERE id = ?;";
 
     private static final String DELETE_JOB_QUERY =
-            "DELETE FROM jobs " +
+            "DELETE FROM metadata.jobs " +
             "WHERE id = ?;";
 
+    private static final String DROP_DATABASE_SCHEMA_QUERY =
+            "DROP SCHEMA IF EXISTS %s CASCADE;";
+    /*
     private void execute_delete(String query, int id) {
-        Connection connection = BDAdbConnector.getInstance().getBdaConnection();
+        Connection connection = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         try {
             PreparedStatement statement = connection.prepareStatement(query);
@@ -128,7 +133,7 @@ public class HelloWorldTest {
 
     private void fetch_engines() {
         LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
-        Connection conn = BDAdbConnector.getInstance().getBdaConnection();
+        Connection conn = BDAdbPooledConnector.getInstance().getBdaConnection();
 
         Statement statement;
         ResultSet engines = null;
@@ -136,7 +141,7 @@ public class HelloWorldTest {
         try {
             statement = conn.createStatement();
 
-            engines = statement.executeQuery("SELECT * FROM execution_engines;");
+            engines = statement.executeQuery("SELECT * FROM metadata.execution_engines;");
 
             if (engines != null) {
                 while (engines.next()) {
@@ -166,8 +171,8 @@ public class HelloWorldTest {
     }
 
     private void initialize_components() {
-        LOGGER.log(Level.INFO, "Initializing BDADB Connector...");
-        BDAdbConnector.init(
+        LOGGER.log(Level.INFO, "Initializing BDADB KPIConnector...");
+        BDAdbPooledConnector.init(
                 Entrypoint.configuration.storageBackend.getBdaDatabaseURL(),
                 Entrypoint.configuration.storageBackend.getDimensionTablesURL(),
                 Entrypoint.configuration.storageBackend.getDbUsername(),
@@ -214,24 +219,67 @@ public class HelloWorldTest {
 
     @org.junit.Before
     public void setUp() throws Exception {
-        Entrypoint.configuration = Configuration.
-                parseConfiguration("/code/conf/bda.properties");
+        SystemConnector.init("/code/conf/bda.properties");
 
-        initialize_components();
+        /*configuration = Configuration.parseConfiguration("/code/conf/bda.properties");
 
 
-        messageResource = new MessageResource();
-        recipeResource = new RecipeResource();
-        jobResource = new JobResource();
+        LOGGER.log(Level.INFO, "About to create schemas in test database");
 
-        msgType = messageTypeFromString(MSG_TYPE_STRING);
+
+        try {
+            KPIPostgresqlConnector.createSchema(configuration.testDb.getDbUrl(),
+                    configuration.testDb.getDbUsername(),
+                    configuration.testDb.getDbPassword(),
+                    configuration.testDb.getDbUsername(),
+                    "metadata");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SystemConnectorException("Could not create Postgresql schema.");
+        }
+
+
+        dtConnector = KPIConnectorFactory.getInstance().generateConnector(
+                configuration.testDb.getDbUrl(),
+                configuration.testDb.getDbUsername(),
+                configuration.testDb.getDbPassword()
+        );
+
+        try {
+            KPIPostgresqlConnector.createSchema(configuration.testDb.getDbUrl(),
+                    configuration.testDb.getDbUsername(),
+                    configuration.testDb.getDbPassword(),
+                    configuration.testDb.getDbUsername(),
+                    "kpi");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SystemConnectorException("Could not create Postgresql schema.");
+        }
+
+
+        kpiConnector = KPIConnectorFactory.getInstance().generateConnector(
+                configuration.testDb.getDbUrl(),
+                configuration.testDb.getDbUsername(),
+                configuration.testDb.getDbPassword()
+        );
+
+        DatastoreConnector localDtConnector = gr.ntua.ece.cslab.selis.bda.datastore.connectors.
+                KPIConnectorFactory.getInstance().generateConnector(dtConnector);
+
+        localDtConnector.createMetaTables();
+
+//        messageResource = new MessageResource();
+  //    recipeResource = new RecipeResource();
+     //   jobResource = new JobResource();
+
+    //    msgType = messageTypeFromString(MSG_TYPE_STRING);
 
     }
 
     @org.junit.Test
     public void test() throws Exception {
 
-        LOGGER.log(Level.INFO, "About to insert new messageType...");
+        /*LOGGER.log(Level.INFO, "About to insert new messageType...");
         messageResource.insert(null , msgType);
         msgType = MessageType.getMessageByName(msgType.getName());
         LOGGER.log(Level.INFO, "Inserted : \t" + msgType.toString());
@@ -283,30 +331,32 @@ public class HelloWorldTest {
     @org.junit.After
     public void tearDown() throws Exception {
 
-        LOGGER.log(Level.INFO, "Delete job from database");
-        execute_delete(DELETE_JOB_QUERY, jobDescription.getId());
+        Connection localConnection = null;
 
-        LOGGER.log(Level.INFO, "Delete test message type from database");
-        execute_delete(DELETE_MSG_TYPE_QUERY, msgType.getId());
+        try {
+            localConnection = DriverManager.getConnection(
+                    configuration.testDb.getDbUrl(),
+                    configuration.testDb.getDbUsername(),
+                    configuration.testDb.getDbPassword()
+            );
+        } catch (SQLException e) {
+            System.out.println("Connection Failed! Check output console");
+            e.printStackTrace();
+            throw e;
+        }
 
-        LOGGER.log(Level.INFO, "Delete recipe from database");
-        execute_delete(DELETE_RECIPE_QUERY, recipe.getId());
+        PreparedStatement statement = localConnection.prepareStatement(
+                String.format(DROP_DATABASE_SCHEMA_QUERY, "metadata"));
 
-        List<String> files = new ArrayList<>();
-        files.add("/uploads/" + recipe.getId() + "_recipe.py");
-        files.add("/results/recipe.out");
-        files.add("/results/recipe.err");
-        destroy_fs_data(files);
-        LOGGER.log(Level.INFO, "Test data deleted");
+        statement.executeUpdate();
 
+        statement = localConnection.prepareStatement(
+                String.format(DROP_DATABASE_SCHEMA_QUERY, "kpi"));
 
-        LOGGER.log(Level.INFO, "Closing connections...");
-        BDAdbConnector.getInstance().getBdaConnection().close();
-        BDAdbConnector.getInstance().getLabConnection().close();
-        Entrypoint.analyticsComponent.getKpidb().stop();
-        
+        statement.executeUpdate();
+
+        localConnection.close();
+
     }
-
-
-
+    */
 }

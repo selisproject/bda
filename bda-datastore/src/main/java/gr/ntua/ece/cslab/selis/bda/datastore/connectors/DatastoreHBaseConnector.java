@@ -1,9 +1,10 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import com.google.protobuf.ServiceException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HBaseConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
-import org.apache.hadoop.conf.Configuration;
+import gr.ntua.ece.cslab.selis.bda.datastore.DatastoreException;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.*;
@@ -16,58 +17,25 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class HBaseConnector implements Connector {
+public class DatastoreHBaseConnector implements DatastoreConnector {
     // TODO: Should setup connection using username/password.
 
     private final static Logger LOGGER = Logger.getLogger(HBaseConnector.class.getCanonicalName());
 
-    private String port;
-    private String hostname;
-    private Connection connection;
+    HBaseConnector conn;
+    TableName tableName;
 
-    public HBaseConnector(String FS, String username, String password) {
-        LOGGER.log(Level.INFO, "Initializing HBase Connector...");
+    public DatastoreHBaseConnector(HBaseConnector conn) {
+        this.conn = conn;
+        this.tableName = TableName.valueOf(conn.getNamespace()+":Events");
+    }
 
-        // Store Connection Parameters.
-        this.port = getHBaseConnectionPort(FS);
-        this.hostname = getHBaseConnectionURL(FS);
-
-        // Initialize HBase Configuration.
-        Configuration conf = HBaseConfiguration.create();
-
-        conf.set("hbase.zookeeper.property.clientPort", this.port);
-        conf.set("hbase.zookeeper.quorum", this.hostname);
-        conf.set("hbase.client.keyvalue.maxsize","0");
-
-        // Check HBase Availability.
-        try {
-            HBaseAdmin.checkHBaseAvailable(conf);
-        } catch (ServiceException e) {
-            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return;
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return;
-        }
-
-        // Initialize HBase Connection.
-        this.connection = null;
-        try {
-            this.connection = ConnectionFactory.createConnection(conf);
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Connection Failed! Check output console.");
-            e.printStackTrace();
-            return;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase connection initialized.");
-        }
+    public void createMetaTables() throws DatastoreException, UnsupportedOperationException {
+        throw new java.lang.UnsupportedOperationException("Creating Metadata tables in HBase is not supported.");
     }
 
     public String put(Message row) throws IOException {
-        Admin admin = connection.getAdmin();
-        TableName tableName = TableName.valueOf("Events");
+        Admin admin = conn.getConnection().getAdmin();
         String rowkey = null;
         if (!admin.tableExists(tableName)) {
             HTableDescriptor desc = new HTableDescriptor(tableName);
@@ -75,7 +43,7 @@ public class HBaseConnector implements Connector {
             admin.createTable(desc);
         }
         else {
-            Table table = connection.getTable(tableName);
+            Table table = conn.getConnection().getTable(tableName);
             Long timestamp = Timestamp.valueOf(LocalDateTime.now()).getTime();
             String topic="";
             for (KeyValue fields: row.getEntries()){
@@ -98,8 +66,7 @@ public class HBaseConnector implements Connector {
 
     public List<Tuple> getLast(Integer args) throws IOException {
         List<Tuple> res = new LinkedList<>();
-        TableName tableName = TableName.valueOf("Events");
-        Table table = connection.getTable(tableName);
+        Table table = conn.getConnection().getTable(tableName);
         Scan s = new Scan();
         s.addFamily(Bytes.toBytes("messages"));
         s.setReversed(true);
@@ -122,8 +89,7 @@ public class HBaseConnector implements Connector {
 
     public List<Tuple> getFrom(Integer args) throws IOException {
         List<Tuple> res = new LinkedList<>();
-        TableName tableName = TableName.valueOf("Events");
-        Table table = connection.getTable(tableName);
+        Table table = conn.getConnection().getTable(tableName);
         Scan s = new Scan();
         s.addFamily(Bytes.toBytes("messages"));
         s.setTimeRange(Timestamp.valueOf(LocalDateTime.now().minusDays(args)).getTime(),Timestamp.valueOf(LocalDateTime.now()).getTime());
@@ -143,12 +109,9 @@ public class HBaseConnector implements Connector {
 
     public List<Tuple> get(String tablename, HashMap<String,String> filters) throws IOException {
         List<Tuple> res = new LinkedList<>();
-        if (tablename=="")
-            tablename = "Events";
-        else
+        if (!(tablename ==""))
             throw new java.lang.UnsupportedOperationException("Cannot query a dimension table. HBase contains only the EventLog.");
-        TableName tableName = TableName.valueOf(tablename);
-        Table table = connection.getTable(tableName);
+        Table table = conn.getConnection().getTable(tableName);
         Scan s = new Scan();
         s.setReversed(true);
         s.addFamily(Bytes.toBytes("messages"));
@@ -193,29 +156,4 @@ public class HBaseConnector implements Connector {
         throw new java.lang.UnsupportedOperationException("HBase only contains the EventLog table.");
     }
 
-    public void close(){
-        try {
-            connection.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    };
-
-    /**
-     * Extracts the port from a HBase Connection URL.
-     */
-    private String getHBaseConnectionPort(String FS) {
-        String[] tokens = FS.split(":");
-
-        return tokens[1];
-    }
-
-    /**
-     * Extracts the host from a HBase Connection URL.
-     */
-    private String getHBaseConnectionURL(String FS) {
-        String[] tokens = FS.split(":");
-
-        return tokens[0];
-    }
 }

@@ -1,13 +1,14 @@
-package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
+package gr.ntua.ece.cslab.selis.bda.common.storage.connectors;
 
-import java.sql.*;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
-import com.zaxxer.hikari.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 
+public class BDAdbPooledConnector {
 
-public class PostgresqlPooledDataSource {
-
-    private static PostgresqlPooledDataSource dataSource = null;
+    private static BDAdbPooledConnector dataSource = null;
 
     private static HikariConfig bdaDataSourceConfig = null;
     private static HikariConfig labDataSourceConfig = null;
@@ -15,7 +16,7 @@ public class PostgresqlPooledDataSource {
     private HikariDataSource bdaPooledDataSource = null;
     private HikariDataSource labPooledDataSource = null;
 
-    private PostgresqlPooledDataSource() {
+    private BDAdbPooledConnector() {
         this.bdaPooledDataSource = new HikariDataSource(bdaDataSourceConfig);
         this.labPooledDataSource = new HikariDataSource(labDataSourceConfig);
     }
@@ -34,9 +35,9 @@ public class PostgresqlPooledDataSource {
         labDataSourceConfig.setPassword(password);
     }
 
-    public static PostgresqlPooledDataSource getInstance() {
+    public static BDAdbPooledConnector getInstance() {
         if (dataSource == null) {
-            dataSource = new PostgresqlPooledDataSource();
+            dataSource = new BDAdbPooledConnector();
         }
 
         return dataSource;
@@ -45,12 +46,13 @@ public class PostgresqlPooledDataSource {
     public Connection getBdaConnection() {
         Connection connection = null;
 
-        try {
-            connection = this.bdaPooledDataSource.getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        while (connection == null) {
+            try {
+                connection = this.bdaPooledDataSource.getConnection();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
-
         return connection;
     }
 
@@ -65,4 +67,6 @@ public class PostgresqlPooledDataSource {
 
         return connection;
     }
+
+
 }

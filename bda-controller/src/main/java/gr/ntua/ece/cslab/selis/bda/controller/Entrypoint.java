@@ -1,11 +1,9 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
-import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
-import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsSystem;
-import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
-import gr.ntua.ece.cslab.selis.bda.datastore.connectors.PostgresqlPooledDataSource;
-
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -13,16 +11,11 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import org.json.JSONObject;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,123 +29,6 @@ public class Entrypoint {
     public static Configuration configuration;
     public static Thread subscriber;
     public static PubSubPublisher publisher;
-    public static StorageBackend datastore;
-    public static AnalyticsInstance analyticsComponent;
-
-    private static void storageBackendInitialization() {
-        LOGGER.log(Level.INFO, "Initializing storage backend...");
-        datastore = new StorageBackend(
-            configuration.storageBackend.getEventLogURL(),
-            configuration.storageBackend.getDimensionTablesURL(),
-            configuration.storageBackend.getDbUsername(),
-            configuration.storageBackend.getDbPassword());
-
-        LOGGER.log(Level.INFO, "Initializing Postgresql connection pool ...");
-        PostgresqlPooledDataSource.init(
-            configuration.storageBackend.getBdaDatabaseURL(),
-            configuration.storageBackend.getDimensionTablesURL(),
-            configuration.storageBackend.getDbUsername(),
-            configuration.storageBackend.getDbPassword()
-        );
-
-        BDAdbConnector.init(
-            configuration.storageBackend.getBdaDatabaseURL(),
-            configuration.storageBackend.getDimensionTablesURL(),
-            configuration.storageBackend.getDbUsername(),
-            configuration.storageBackend.getDbPassword()
-        );
-    }
-
-
-    private static void fetch_engines() {
-        LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
-        Connection conn = BDAdbConnector.getInstance().getBdaConnection();
-
-        Statement statement;
-        ResultSet engines = null;
-
-        try {
-            statement = conn.createStatement();
-
-            engines = statement.executeQuery("SELECT * FROM execution_engines;");
-
-            if (engines != null) {
-                while (engines.next()) {
-                    Entrypoint.analyticsComponent.getEngineCatalog().addNewExecutEngine(
-                            engines.getInt("id"),
-                            engines.getString("name"),
-                            engines.getString("engine_path"),
-                            engines.getBoolean("local_engine"),
-                            new JSONObject(engines.getString("args"))
-                    );
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        LOGGER.log(Level.INFO, "Fetched engines : " + Entrypoint.analyticsComponent.
-                getEngineCatalog().getAllExecutEngines() + "\n");
-
-    }
-
-    private static void fetch_recipes() {
-        LOGGER.log(Level.INFO, "Fetch execution engines for analytics module.");
-        Connection conn = BDAdbConnector.getInstance().getBdaConnection();
-
-        Statement statement;
-        ResultSet recipes = null;
-
-        try {
-            statement = conn.createStatement();
-
-            recipes = statement.executeQuery("SELECT * FROM recipes;");
-
-            if (recipes != null) {
-                while (recipes.next()) {
-                    Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
-                            recipes.getInt("id"),
-                            recipes.getString("name"),
-                            recipes.getString("description"),
-                            recipes.getInt("engine_id"),
-                            new JSONObject(recipes.getString("args")),
-                            recipes.getString("executable_path")
-                    );
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        LOGGER.log(Level.INFO, "Fetched recipes : " + Entrypoint.analyticsComponent.
-                getKpiCatalog().getAllKpis() + "\n");
-
-    }
-
-    private static void analyticsModuleInitialization() {
-        LOGGER.log(Level.INFO, "Initializing Analytics SubModule...");
-        analyticsComponent = AnalyticsSystem.getInstance(
-            configuration.kpiBackend.getDbUrl(),
-            configuration.kpiBackend.getDbUsername(),
-            configuration.kpiBackend.getDbPassword()
-        );
-        fetch_engines();
-        fetch_recipes();
-    }
 
     private static void pubSubConnectorsInitialization() {
         LOGGER.log(Level.INFO, "Initializing PubSub subscriber...");
@@ -213,11 +89,7 @@ public class Entrypoint {
             System.exit(1);
         }
 
-        // Datastore module initialization
-        storageBackendInitialization();
-
-        // KPI DB initialization
-        analyticsModuleInitialization();
+        SystemConnector.init(args[0]);
 
         // PubSub connectors initialization
         pubSubConnectorsInitialization();
@@ -229,6 +101,20 @@ public class Entrypoint {
 
         // Create folders for uploaded recipes and recipe results
         create_folders();
+
+        /*
+        try {
+            ScnDbInfo scn = new ScnDbInfo(
+                "scn_slug", "scn_name", "scn_desc", "scn_db"
+            );
+            scn.save();
+
+            StorageBackend.createNewScn(scn);
+        } catch (Exception e) {
+            System.out.println("Sometimes ...");
+            e.printStackTrace();
+        }
+        */
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -262,6 +148,7 @@ public class Entrypoint {
             LOGGER.log(Level.INFO,"Terminating server");
             server.destroy();
             subscriber.interrupt();
+            SystemConnector.getInstance().close();
         }
     }
 }

@@ -1,6 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
+import gr.ntua.ece.cslab.selis.bda.datastore.DatastoreException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.LocalFSConnector;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import java.io.*;
@@ -9,21 +11,22 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class LocalFSConnector implements Connector {
-    private String FS;
+public class DatastoreLocalFSConnector implements DatastoreConnector {
+
+    LocalFSConnector conn;
 
     // The constructor creates the filesystem folder using the 'FS' parameter.
     // If this folder exists, it should be initially empty (before the bootstraping).
-    public LocalFSConnector(String FS){
-        File fs = new File(FS);
-        if (!fs.exists())
-            fs.mkdir();
-        this.FS = FS;
+    public DatastoreLocalFSConnector(LocalFSConnector conn){
+        this.conn=conn;
     }
 
+    public void createMetaTables() throws DatastoreException, UnsupportedOperationException {
+        throw new java.lang.UnsupportedOperationException("Creating Metadata tables in local FS is not supported.");
+    }
     // Used to initialize or append a message in the EventLog which is a csv file
     public String put(Message row) throws Exception {
-        File evlog = new File(FS + "/EventLog.csv");
+        File evlog = new File(conn.getFS() + "/EventLog.csv");
         FileWriter fw;
         BufferedWriter bw;
         if (!evlog.exists()) {
@@ -38,7 +41,7 @@ public class LocalFSConnector implements Connector {
         }
         else {
             // Append message in csv
-            BufferedReader reader = new BufferedReader(new FileReader(FS + "/EventLog.csv"));
+            BufferedReader reader = new BufferedReader(new FileReader(conn.getFS() + "/EventLog.csv"));
             String[] fields = reader.readLine().split("\t");
             reader.close();
             fw = new FileWriter(evlog, true);
@@ -70,7 +73,7 @@ public class LocalFSConnector implements Connector {
     public void put(MasterData masterData) throws Exception {
         for (DimensionTable table: masterData.getTables()) {
             String output = table.getName() + ".csv"; // save in csv
-            FileWriter fw = new FileWriter(FS + '/' + output);
+            FileWriter fw = new FileWriter(conn.getFS() + '/' + output);
             BufferedWriter bw = new BufferedWriter(fw);
 
             List<Tuple> data = table.getData();
@@ -93,7 +96,7 @@ public class LocalFSConnector implements Connector {
     // get last num rows from EventLog
     public List<Tuple> getLast(Integer num) throws IOException {
         List<Tuple> res = new LinkedList<>();
-        File file = new File(FS + "/EventLog.csv");
+        File file = new File(conn.getFS() + "/EventLog.csv");
         List<String> fields = describe("").getSchema().getColumnNames();
         LineNumberReader lnr;
 
@@ -141,7 +144,7 @@ public class LocalFSConnector implements Connector {
             if ((pos == -1) && !(table.matches("") && flt.getKey().equalsIgnoreCase("key")))
                 throw new Exception("Column not found in the table.");
             else if ((pos == -1) && (table.matches("") && flt.getKey().equalsIgnoreCase("key"))){
-                try (Stream<String> lines = Files.lines(Paths.get(FS + "/EventLog.csv"))) {
+                try (Stream<String> lines = Files.lines(Paths.get(conn.getFS() + "/EventLog.csv"))) {
                     line = lines.skip(Long.parseLong(flt.getValue())-1).findFirst().get();
                 }
                 String[] values = line.split("\t");
@@ -158,7 +161,7 @@ public class LocalFSConnector implements Connector {
         int counter = 0;
         if (table.matches(""))
             table = "EventLog";
-        ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(FS + "/" + table + ".csv"));
+        ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(conn.getFS() + "/" + table + ".csv"));
         // Read the table line by line and filter the specified column. In the eventLog only the last 1000 rows are searched.
         while((line = reader.readLine()) != null && (!table.equals("EventLog") || counter < 1000)) {
             String[] values = line.split("\t");
@@ -182,9 +185,9 @@ public class LocalFSConnector implements Connector {
     public DimensionTable describe(String args) throws IOException {
         String table;
         if (args.matches(""))
-            table = FS + "/EventLog.csv";
+            table = conn.getFS() + "/EventLog.csv";
         else
-            table = FS + "/" + args + ".csv";
+            table = conn.getFS() + "/" + args + ".csv";
         BufferedReader reader = new BufferedReader(new FileReader(table));
         String[] fields = reader.readLine().split("\t");
         reader.close();
@@ -195,13 +198,11 @@ public class LocalFSConnector implements Connector {
 
     // List dimension tables in FS
     public List<String> list() {
-        File folder = new File(FS);
+        File folder = new File(conn.getFS());
         File[] dimensiontables = folder.listFiles((dir, name) -> (!name.contains("EventLog")));
         List<String> tables = new LinkedList<>();
         for (File file: dimensiontables)
             tables.add(file.getName().split("\\.")[0]);
         return tables;
     }
-
-    public void close(){}
 }

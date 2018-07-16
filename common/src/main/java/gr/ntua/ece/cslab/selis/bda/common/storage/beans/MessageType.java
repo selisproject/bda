@@ -1,9 +1,11 @@
-package gr.ntua.ece.cslab.selis.bda.controller.beans;
+package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
-import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.sql.*;
 import java.util.List;
@@ -11,15 +13,10 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 @XmlRootElement(name = "MessageType")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class MessageType implements Serializable {
     private final static Logger LOGGER = Logger.getLogger(MessageType.class.getCanonicalName());
-    private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private transient Integer id;
     private String name;
@@ -82,10 +79,6 @@ public class MessageType implements Serializable {
                 '}';
     }
 
-    private final static String MESSAGE_TYPES_QUERY =
-        "SELECT id, name, description, active, format " +
-        "FROM metadata.message_type;";
-
     private final static String ACTIVE_MESSAGE_NAMES_QUERY =
         "SELECT name " +
         "FROM metadata.message_type " +
@@ -106,38 +99,6 @@ public class MessageType implements Serializable {
         "VALUES (?, ?, ?, ?) " +
         "RETURNING id;";
 
-    public static List<MessageType> getMessageTypes(String slug) throws SQLException {
-        PostgresqlConnector connector = (PostgresqlConnector ) 
-            SystemConnector.getInstance().getDTconnector(slug);
-
-        Connection connection = connector.getConnection();
-
-        Vector<MessageType> messageTypes = new Vector<MessageType>(DEFAULT_VECTOR_SIZE);
-
-        try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(MESSAGE_TYPES_QUERY);
-
-            while (resultSet.next()) {
-                MessageType messageType = new MessageType(
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("active"),
-                    resultSet.getString("format")
-                );
-
-                messageType.id = resultSet.getInt("id");
-
-                messageTypes.addElement(messageType);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw e;
-        }
-
-        return messageTypes;
-     }
-
     public static List<String> getActiveMessageTypeNames(String slug) {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
@@ -151,6 +112,7 @@ public class MessageType implements Serializable {
             while (resultSet.next()) {
                 messageTypeNames.addElement(resultSet.getString("name"));
             }
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -178,12 +140,14 @@ public class MessageType implements Serializable {
 
                 msg.id = resultSet.getInt("id");
 
+                connection.close();
                 return msg;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
@@ -207,21 +171,20 @@ public class MessageType implements Serializable {
 
                 msg.id = resultSet.getInt("id");
 
+                connection.close();
                 return msg;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        connection.close();
         throw new SQLException("JobDescription object not found.");
     }
 
     public void save(String slug) throws SQLException {
-        PostgresqlConnector connector = (PostgresqlConnector )
-            SystemConnector.getInstance().getDTconnector(slug);
-
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
-
         PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE_QUERY);
 
         statement.setString(1, this.name);
@@ -229,19 +192,15 @@ public class MessageType implements Serializable {
         statement.setBoolean(3, this.active);
         statement.setString(4, this.format);
 
-        try {
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                this.id = resultSet.getInt("id");
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            this.id = resultSet.getInt("id");
 
-            }
-
-            connection.commit();
-        } catch (SQLException e) {
-            connection.rollback();
-            throw e;
         }
 
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
+        connection.close();
+        // TODO: Verify if we want autocommit. Set it explicitely.
+        // connection.commit();
     }
 }
