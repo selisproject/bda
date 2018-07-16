@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class MessageType implements Serializable {
     private final static Logger LOGGER = Logger.getLogger(MessageType.class.getCanonicalName());
+    private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private transient Integer id;
     private String name;
@@ -81,6 +82,10 @@ public class MessageType implements Serializable {
                 '}';
     }
 
+    private final static String MESSAGE_TYPES_QUERY =
+        "SELECT id, name, description, active, format " +
+        "FROM metadata.message_type;";
+
     private final static String ACTIVE_MESSAGE_NAMES_QUERY =
         "SELECT name " +
         "FROM metadata.message_type " +
@@ -100,6 +105,38 @@ public class MessageType implements Serializable {
         "INSERT INTO metadata.message_type (name,description,active,format) " +
         "VALUES (?, ?, ?, ?) " +
         "RETURNING id;";
+
+    public static List<MessageType> getMessageTypes(String slug) throws SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        Vector<MessageType> messageTypes = new Vector<MessageType>(DEFAULT_VECTOR_SIZE);
+
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(MESSAGE_TYPES_QUERY);
+
+            while (resultSet.next()) {
+                MessageType messageType = new MessageType(
+                    resultSet.getString("name"),
+                    resultSet.getString("description"),
+                    resultSet.getBoolean("active"),
+                    resultSet.getString("format")
+                );
+
+                messageType.id = resultSet.getInt("id");
+
+                messageTypes.addElement(messageType);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        return messageTypes;
+     }
 
     public static List<String> getActiveMessageTypeNames(String slug) {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);

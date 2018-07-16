@@ -148,6 +148,24 @@ public class DatastoreResource {
     }
 
     /**
+     * Returns all the registered SCNs.
+     */
+    @GET
+    @Path("scns")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<ScnDbInfo> getScnDbInfoView() {
+        List<ScnDbInfo> scns = new LinkedList<ScnDbInfo>();
+
+        try {
+            scns = ScnDbInfo.getScnDbInfo();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return scns;
+    }
+
+    /**
      * Returns the schema of all dimension tables
      * @return a list of the dimension tables schemas
      */
@@ -167,8 +185,8 @@ public class DatastoreResource {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new LinkedList<>();
 
+        return new LinkedList<>();
     }
 
     /**
@@ -178,7 +196,7 @@ public class DatastoreResource {
      * @return the denormalized messages
      */
     @GET
-    @Path("{slug}")
+    @Path("{slug}/entries")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getEntries(@QueryParam("type") String type,
                                   @QueryParam("n") Integer n,

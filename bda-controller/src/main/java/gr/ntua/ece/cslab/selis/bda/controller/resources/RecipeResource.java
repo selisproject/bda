@@ -15,18 +15,14 @@ import javax.ws.rs.core.MediaType;
 import java.io.*;
 import java.sql.SQLException;
 import java.util.logging.Logger;
+import java.util.List;
+import java.util.LinkedList;
 
 
 @Path("recipe")
 public class RecipeResource {
     private final static Logger LOGGER = Logger.getLogger(RecipeResource.class.getCanonicalName());
 
-    @GET
-    @Path("check")
-    public String checker () {
-        System.out.println("mpla");
-        return "mpla";
-    }
     /**
      * Job description insert method
      * @param m the job description to insert
@@ -111,6 +107,25 @@ public class RecipeResource {
         return new RequestResponse(status, details);
     }
 
+    /**
+     * Returns all the registered recipes.
+     */
+    @GET
+    @Path("{slug}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<Recipe> getRecipesView(@PathParam("slug") String slug) {
+        List<Recipe> recipes = new LinkedList<Recipe>();
+
+        try {
+            recipes = Recipe.getRecipes(slug);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return recipes;
+    }
+
+
     private void saveFile(InputStream uploadedInputStream, String serverLocation) {
 
         try {
@@ -128,4 +143,5 @@ public class RecipeResource {
         }
 
     }
+
 }

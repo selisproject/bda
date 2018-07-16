@@ -17,6 +17,8 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.List;
+import java.util.LinkedList;
 
 @Path("job")
 public class JobResource {
@@ -24,7 +26,6 @@ public class JobResource {
 
     /**
      * Job description insert method
-     * @param m the job description to insert
      */
     @PUT
     @Path("{slug}")
@@ -74,5 +75,23 @@ public class JobResource {
         }
 
         return new RequestResponse(status, details);
+    }
+
+    /**
+     * Returns all the registered jobs.
+     */
+    @GET
+    @Path("{slug}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<JobDescription> getJobsView(@PathParam("slug") String slug) {
+        List<JobDescription> jobs = new LinkedList<JobDescription>();
+
+        try {
+            jobs = JobDescription.getJobs(slug);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return jobs;
     }
 }

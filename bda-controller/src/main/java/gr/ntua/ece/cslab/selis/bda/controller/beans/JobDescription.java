@@ -22,6 +22,10 @@ public class JobDescription implements Serializable {
 
     private boolean exists = false;
 
+    private final static String JOBS_QUERY =
+        "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
+        "FROM metadata.jobs";
+
     private final static String ACTIVE_JOBS_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
         "FROM metadata.jobs " +
@@ -116,7 +120,43 @@ public class JobDescription implements Serializable {
                 '}';
     }
 
-    public static List<JobDescription> getActiveJobs(String slug) {
+    public static List<JobDescription> getJobs(String slug) throws SQLException {
+
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        Vector<JobDescription> jobs = new Vector<JobDescription>(DEFAULT_VECTOR_SIZE);
+
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(JOBS_QUERY);
+
+            while (resultSet.next()) {
+                JobDescription job = new JobDescription(
+                    resultSet.getString("name"),
+                    resultSet.getString("description"),
+                    resultSet.getBoolean("active"),
+                    resultSet.getInt("message_type_id"),
+                    resultSet.getInt("recipe_id"),
+                    resultSet.getString("job_type")
+                );
+
+                job.id = resultSet.getInt("id");
+                job.exists = true;
+
+                jobs.addElement(job);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        return jobs;
+     }
+
+    public static List<JobDescription> getActiveJobs(String slug) throws SQLException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -146,6 +186,7 @@ public class JobDescription implements Serializable {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
 
         return jobs;

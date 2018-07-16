@@ -30,3 +30,14 @@ curl -ik -X GET "http://localhost:9999/api/datastore/{scn_slug}/dtable?tableName
 // Print dimension tables schema
 curl -ik -X GET http://localhost:9999/api/datastore/{scn_slug}/schema && echo
 
+// Get registered SCNs
+curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/datastore/scns
+
+// Get Jobs
+curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/job/{scn_slug}/
+
+// Get MessageTypes
+curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/message/{scn_slug}/
+
+// Get Recipes
+curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/recipe/{scn_slug}/

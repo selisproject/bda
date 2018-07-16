@@ -10,6 +10,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.logging.Logger;
+import java.util.List;
+import java.util.LinkedList;
 
 @Path("message")
 public class MessageResource {
@@ -57,5 +59,23 @@ public class MessageResource {
         }
 
         return new RequestResponse(status, details);
+    }
+
+    /**
+     * Returns all the registered message types.
+     */
+    @GET
+    @Path("{slug}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<MessageType> getMessageTypeView(@PathParam("slug") String slug) {
+        List<MessageType> messageTypes = new LinkedList<MessageType>();
+
+        try {
+            messageTypes = MessageType.getMessageTypes(slug);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return messageTypes;
     }
 }

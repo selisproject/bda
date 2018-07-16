@@ -118,7 +118,7 @@ public class Recipe implements Serializable {
                 '}';
     }
 
-    public static List<Recipe> getRecipes(String slug) {
+    public static List<Recipe> getRecipes(String slug) throws SQLException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -149,6 +149,7 @@ public class Recipe implements Serializable {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
 
         return recipes;
