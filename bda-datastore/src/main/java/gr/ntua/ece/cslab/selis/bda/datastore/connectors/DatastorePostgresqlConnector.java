@@ -77,6 +77,8 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
 
             connection.commit();
         } catch (SQLException e) {
+            connection.rollback();
+
             e.printStackTrace();
             throw new DatastoreException("Could not create table `message_type`.");
         }
@@ -92,6 +94,8 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
 
             connection.commit();
         } catch (SQLException e) {
+            connection.rollback();
+
             e.printStackTrace();
             throw new DatastoreException("Could not create table `execution_engines`.");
         }
@@ -104,6 +108,8 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
 
             connection.commit();
         } catch (SQLException e) {
+            connection.rollback();
+
             e.printStackTrace();
             throw new DatastoreException("Could not create table `recipes`.");
         }
@@ -116,6 +122,8 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
 
             connection.commit();
         } catch (SQLException e) {
+            connection.rollback();
+
             e.printStackTrace();
             throw new DatastoreException("Could not create table `jobs`.");
         }
