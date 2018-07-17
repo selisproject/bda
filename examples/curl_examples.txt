@@ -33,6 +33,9 @@ curl -ik -X GET http://localhost:9999/api/datastore/{scn_slug}/schema && echo
 // Get registered SCNs
 curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/datastore/scns
 
+// Remove an SCN
+curl -ik -X POST -H "Accept:application/json" http://localhost:9999/api/datastore/destroy?scnId=1 && echo
+
 // Get Jobs
 curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/job/{scn_slug}/
 
