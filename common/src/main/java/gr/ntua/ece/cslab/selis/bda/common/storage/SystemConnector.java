@@ -180,14 +180,13 @@ public class SystemConnector {
         );
         elConnectors.remove(scnSlug);
 
-        // TODO: This comment should be removed when separate database names will be used
-        /*ConnectorFactory.dropDatabase(
+        ConnectorFactory.dropDatabase(
                 configuration.kpiBackend.getDbUrl(),
                 configuration.storageBackend.getDbPrivilegedUsername(),
                 configuration.storageBackend.getDbPrivilegedPassword(),
                 configuration.kpiBackend.getDbUsername(),
                 dbname
-        );*/
+        );
         kpiConnectors.remove(scnSlug);
     }
 
