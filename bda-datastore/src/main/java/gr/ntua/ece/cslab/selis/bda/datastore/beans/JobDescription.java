@@ -1,4 +1,4 @@
-package gr.ntua.ece.cslab.selis.bda.controller.beans;
+package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
@@ -8,8 +8,11 @@ import java.util.List;
 import java.util.Vector;
 import java.io.Serializable;
 import java.lang.UnsupportedOperationException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JobDescription implements Serializable {
+    private final static Logger LOGGER = Logger.getLogger(JobDescription.class.getCanonicalName());
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private transient int id;
@@ -21,6 +24,17 @@ public class JobDescription implements Serializable {
     private String job_type;
 
     private boolean exists = false;
+
+    private final static String CREATE_JOBS_TABLE_QUERY =
+        "CREATE TABLE metadata.jobs ( " +
+        "id              SERIAL PRIMARY KEY, " +
+        "name            VARCHAR(64) NOT NULL UNIQUE, " +
+        "description     VARCHAR(256), " +
+        "message_type_id INTEGER REFERENCES metadata.message_type(id), " +
+        "recipe_id       INTEGER REFERENCES metadata.recipes(id), " +
+        "job_type        VARCHAR(20), " +
+        "active          BOOLEAN DEFAULT(true) " +
+        ");";
 
     private final static String JOBS_QUERY =
         "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
@@ -296,4 +310,23 @@ public class JobDescription implements Serializable {
             throw new UnsupportedOperationException("Operation not implemented.");
         }
      }
+
+    public static void createTable(String slug) throws SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(CREATE_JOBS_TABLE_QUERY);
+
+        try {
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        }
+
+        LOGGER.log(Level.INFO, "SUCCESS: Create jobs table in metadata schema.");
+    }
 }

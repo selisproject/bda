@@ -1,4 +1,4 @@
-package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
+package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
@@ -7,18 +7,32 @@ import java.io.Serializable;
 import java.sql.*;
 import java.util.List;
 import java.util.Vector;
+import java.lang.UnsupportedOperationException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Recipe implements Serializable {
+    private final static Logger LOGGER = Logger.getLogger(Recipe.class.getCanonicalName());
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
-    private int id;
+    private transient int id;
     private String name;
     private String description;
-    private String executable_path;
-    private int engine_id;
+    private String executablePath;
+    private int engineId;
     private String args;
 
     private boolean exists = false;
+
+    private final static String CREATE_RECIPES_TABLE_QUERY =
+        "CREATE TABLE metadata.recipes ( " +
+        "id                  SERIAL PRIMARY KEY, " +
+        "name                VARCHAR(64) NOT NULL UNIQUE, " +
+        "description         VARCHAR(256), " +
+        "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
+        "engine_id           INTEGER REFERENCES metadata.execution_engines(id), " +
+        "args                JSONB " +
+        ");";
 
     private final static String ALL_RECIPES_QUERY = 
         "SELECT * " +
@@ -30,21 +44,21 @@ public class Recipe implements Serializable {
         "RETURNING id";
 
     private final static String GET_RECIPE_BY_ID =
-            "SELECT * FROM metadata.recipes WHERE id = ?;";
+         "SELECT * FROM metadata.recipes WHERE id = ?;";
 
     private final static String GET_RECIPE_BY_NAME =
-            "SELECT * FROM metadata.recipes WHERE name = ?;";
+         "SELECT * FROM metadata.recipes WHERE name = ?;";
 
     private final static String SET_EXECUTABLE_PATH =
-            "UPDATE metadata.recipes SET executable_path = ? WHERE id = ?;";
+         "UPDATE metadata.recipes SET executable_path = ? WHERE id = ?;";
 
     public Recipe() {}
 
-    public Recipe(String name, String description, String executable_path, int engine_id, String args) {
+    public Recipe(String name, String description, String executablePath, int engineId, String args) {
         this.name = name;
         this.description = description;
-        this.executable_path = executable_path;
-        this.engine_id = engine_id;
+        this.executablePath = executablePath;
+        this.engineId = engineId;
         this.args = args;
     }
 
@@ -72,20 +86,20 @@ public class Recipe implements Serializable {
         this.description = description;
     }
 
-    public String getExecutable_path() {
-        return executable_path;
+    public String getExecutablePath() {
+        return executablePath;
     }
 
-    public void setExecutable_path(String executable_path) {
-        this.executable_path = executable_path;
+    public void setExecutablePath(String executablePath) {
+        this.executablePath = executablePath;
     }
 
-    public int getEngine_id() {
-        return engine_id;
+    public int getEngineId() {
+        return engineId;
     }
 
-    public void setEngine_id(int engine_id) {
-        this.engine_id = engine_id;
+    public void setEngineId(int engineId) {
+        this.engineId = engineId;
     }
 
     public String getArgs() {
@@ -110,15 +124,18 @@ public class Recipe implements Serializable {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", executable_path='" + executable_path + '\'' +
-                ", engine_id=" + engine_id +
+                ", executablePath='" + executablePath + '\'' +
+                ", engineId=" + engineId +
                 ", args=" + args +
                 ", exists=" + exists +
                 '}';
     }
 
-    public static List<Recipe> getRecipes(String slug) {
-        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+    public static List<Recipe> getRecipes(String slug) throws SQLException {
+
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
         Connection connection = connector.getConnection();
 
         Vector<Recipe> recipes = new Vector<Recipe>(DEFAULT_VECTOR_SIZE);
@@ -143,16 +160,18 @@ public class Recipe implements Serializable {
 
                 recipes.addElement(recipe);
             }
-            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
 
         return recipes;
      }
 
     public static Recipe getRecipeById(String slug, int id) {
-        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
         Connection connection = connector.getConnection();
 
         try {
@@ -173,25 +192,21 @@ public class Recipe implements Serializable {
 
                 recipe.id = resultSet.getInt("id");
                 recipe.exists = true;
-                //connection.close();
                 return recipe;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-/*
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-*/
+
         return null;
     }
 
 
     public static Recipe getRecipeByName(String slug, String name) {
-        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
         Connection connection = connector.getConnection();
 
         try {
@@ -213,66 +228,83 @@ public class Recipe implements Serializable {
                 recipe.id = resultSet.getInt("id");
                 recipe.exists = true;
 
-                connection.close();
                 return recipe;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
         return null;
     }
 
 
     public void updateBinaryPath(String slug) throws SQLException, UnsupportedOperationException {
-        // The object does not exist, it should be inserted.
-        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+
+        PostgresqlConnector connector = (PostgresqlConnector ) 
+            SystemConnector.getInstance().getDTconnector(slug);
+
         Connection connection = connector.getConnection();
 
         PreparedStatement statement = connection.prepareStatement(SET_EXECUTABLE_PATH);
 
-        statement.setString(1, this.executable_path);
+        statement.setString(1, this.executablePath);
         statement.setInt(2, this.id);
 
         statement.executeUpdate();
-
-        connection.close();
     }
 
     public void save(String slug) throws SQLException, UnsupportedOperationException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
-            PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+
+            PostgresqlConnector connector = (PostgresqlConnector ) 
+                SystemConnector.getInstance().getDTconnector(slug);
+
             Connection connection = connector.getConnection();
 
             PreparedStatement statement = connection.prepareStatement(INSERT_RECIPE_QUERY);
 
             statement.setString(1, this.name);
             statement.setString(2, this.description);
-            statement.setString(3, this.executable_path);
-            statement.setInt(4, Integer.valueOf(this.engine_id));
+            statement.setString(3, this.executablePath);
+            statement.setInt(4, Integer.valueOf(this.engineId));
             statement.setString(5, this.args.toString());
 
+            try {
+                ResultSet resultSet = statement.executeQuery();
 
-            ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    this.id = resultSet.getInt("id");
+                }
 
-            //connection.commit();
-
-            if (resultSet.next()) {
-                this.id = resultSet.getInt("id");
-                System.out.println(this.id);
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
             }
-
-            connection.close();
         } else {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");
         }
      }
+
+    public static void createTable(String slug) throws SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(CREATE_RECIPES_TABLE_QUERY);
+
+        try {
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        }
+
+        LOGGER.log(Level.INFO, "SUCCESS: Create recipes table in metadata schema.");
+    }
 
 }

@@ -108,20 +108,25 @@ public class ScnDbInfo implements Serializable {
             PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
             Connection connection = connector.getConnection();
 
-            PreparedStatement statement = connection.prepareStatement(INSERT_SCN_QUERY);
+            try {
+                PreparedStatement statement = connection.prepareStatement(INSERT_SCN_QUERY);
 
-            statement.setString(1, this.slug);
-            statement.setString(2, this.name);
-            statement.setString(3, this.description);
-            statement.setString(4, this.dbname);
+                statement.setString(1, this.slug);
+                statement.setString(2, this.name);
+                statement.setString(3, this.description);
+                statement.setString(4, this.dbname);
 
-            ResultSet resultSet = statement.executeQuery();
+                ResultSet resultSet = statement.executeQuery();
 
-            connection.commit();
+                connection.commit();
 
-            if (resultSet.next()) {
-                this.id     = resultSet.getInt("id");
-                this.exists = true;
+                if (resultSet.next()) {
+                    this.id = resultSet.getInt("id");
+                    this.exists = true;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                connection.rollback();
             }
         } else {
             // The object exists, it should be updated.

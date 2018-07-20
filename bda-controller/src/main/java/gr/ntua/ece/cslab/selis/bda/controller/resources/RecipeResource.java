@@ -1,11 +1,9 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 
-import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
-import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletResponse;

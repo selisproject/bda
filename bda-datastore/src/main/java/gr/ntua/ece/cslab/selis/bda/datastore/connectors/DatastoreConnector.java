@@ -18,5 +18,4 @@ public interface DatastoreConnector {
     List<Tuple> get(String args, HashMap<String,String> args2) throws Exception;
     DimensionTable describe(String args) throws Exception;
     List<String> list();
-    void createMetaTables() throws DatastoreException, UnsupportedOperationException, SQLException;
 }

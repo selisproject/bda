@@ -7,7 +7,7 @@ import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutEngineCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.runners.RunnerFactory;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
-import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 import org.apache.hadoop.service.Service;
 import org.json.JSONObject;
@@ -73,9 +73,9 @@ public class AnalyticsInstance {
                 recipe.getName(),
                 recipe.getDescription(),
                 new Executable(
-                        recipe.getEngine_id(),
+                        recipe.getEngineId(),
                         new JSONObject(recipe.getArgs()),
-                        recipe.getExecutable_path()
+                        recipe.getExecutablePath()
                 )
         );
 

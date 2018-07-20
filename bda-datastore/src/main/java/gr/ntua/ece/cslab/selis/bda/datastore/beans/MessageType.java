@@ -1,7 +1,6 @@
-package gr.ntua.ece.cslab.selis.bda.controller.beans;
+package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
-import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.BDAdbPooledConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.io.Serializable;
@@ -82,6 +81,15 @@ public class MessageType implements Serializable {
                 '}';
     }
 
+    private final static String CREATE_MESSAGE_TYPES_TABLE_QUERY =
+        "CREATE TABLE metadata.message_type ( " +
+        "id          SERIAL PRIMARY KEY, " +
+        "name        VARCHAR(64) NOT NULL UNIQUE, " +
+        "description VARCHAR(256), " +
+        "active      BOOLEAN DEFAULT(true), " +
+        "format      VARCHAR " +
+        ");";
+
     private final static String MESSAGE_TYPES_QUERY =
         "SELECT id, name, description, active, format " +
         "FROM metadata.message_type;";
@@ -97,9 +105,9 @@ public class MessageType implements Serializable {
         "WHERE name = ?;";
 
     private final static String GET_MESSAGE_BY_ID_QUERY =
-            "SELECT * " +
-            "FROM metadata.message_type " +
-            "WHERE id = ?;";
+        "SELECT * " +
+        "FROM metadata.message_type " +
+        "WHERE id = ?;";
 
     private final static String INSERT_MESSAGE_QUERY =
         "INSERT INTO metadata.message_type (name,description,active,format) " +
@@ -243,5 +251,24 @@ public class MessageType implements Serializable {
         }
 
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
+    }
+
+    public static void createTable(String slug) throws SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(CREATE_MESSAGE_TYPES_TABLE_QUERY);
+
+        try {
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        }
+
+        LOGGER.log(Level.INFO, "SUCCESS: Create message_type table in metadata schema.");
     }
 }

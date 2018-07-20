@@ -24,15 +24,14 @@ public class StorageBackend {
     }
 
     public static void createNewScn(ScnDbInfo scn)
-            throws SystemConnectorException, DatastoreException, UnsupportedOperationException, SQLException {
-        // 1. Create database for Dimension Tables (with data/metadata schemas), the EventLog and the KPIdb.
+            throws SystemConnectorException, UnsupportedOperationException, SQLException {
+        // 1. Create databases for the Dimension Tables (with data/metadata schemas), the EventLog and the KPIdb.
         SystemConnector.getInstance().createScnDatabase(scn.getSlug(), scn.getDbname());
-        
-        // 2. Create metadata tables for new SCN.
-        DatastoreConnector localDtConnector = ConnectorFactory.getInstance().generateConnector(
-            SystemConnector.getInstance().getDTconnector(scn.getSlug()));
 
-        localDtConnector.createMetaTables();
+        // 2. Create metadata tables for new SCN.
+        MessageType.createTable(scn.getSlug());
+        Recipe.createTable(scn.getSlug());
+        JobDescription.createTable(scn.getSlug());
     }
 
     public static void destroyScn(ScnDbInfo scn)
