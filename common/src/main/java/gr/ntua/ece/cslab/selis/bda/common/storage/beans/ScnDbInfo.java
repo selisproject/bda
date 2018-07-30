@@ -22,6 +22,9 @@ public class ScnDbInfo implements Serializable {
     private String name;
     private String description;
     private String dbname;
+    private transient String dtDbname;
+    private transient String elDbname;
+    private transient String kpiDbname;
 
     private final static String GET_SCN_QUERY =
             "SELECT id, slug, name, description, dbname " +
@@ -54,6 +57,9 @@ public class ScnDbInfo implements Serializable {
         this.name = name;
         this.description = description;
         this.dbname = dbname;
+        this.dtDbname = dbname + "_dt";
+        this.elDbname = dbname + "_el";
+        this.kpiDbname = dbname + "_kpi";
     }
 
     public int getId() {
@@ -92,6 +98,18 @@ public class ScnDbInfo implements Serializable {
         this.dbname = dbname;
     }
 
+    public String getDtDbname() { return dtDbname; }
+
+    public void setDtDbname(String dtDbname) { this.dtDbname = dtDbname; }
+
+    public String getElDbname() { return elDbname; }
+
+    public void setElDbname(String elDbname) { this.elDbname = elDbname; }
+
+    public String getKpiDbname() { return kpiDbname; }
+
+    public void setKpiDbname(String kpiDbname) { this.kpiDbname = kpiDbname; }
+
     @Override
     public String toString() {
         return "ScnDbInfo {" +
@@ -122,6 +140,9 @@ public class ScnDbInfo implements Serializable {
 
                 if (resultSet.next()) {
                     this.id = resultSet.getInt("id");
+                    this.dtDbname = dbname + "_dt";
+                    this.elDbname = dbname + "_el";
+                    this.kpiDbname = dbname + "_kpi";
                     this.exists = true;
                 }
             } catch (SQLException e) {

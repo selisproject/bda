@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
@@ -9,6 +10,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import com.google.common.base.Splitter;
 import java.util.logging.Level;
@@ -53,7 +55,17 @@ public class DatastoreResource {
             StorageBackend.createNewScn(scn);
         } catch (Exception e) {
             e.printStackTrace();
-
+            LOGGER.log(Level.INFO, "Clearing SCN registry and databases after failure.");
+            try {
+                StorageBackend.destroyScn(scn);
+            } catch (Exception e1) {
+            }
+            try {
+                ScnDbInfo.destroy(scn.getId());
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Could not clear SCN registry, after databases creation failed!");
+            }
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return new RequestResponse("ERROR", "Could not create new SCN.");
         }
@@ -78,7 +90,7 @@ public class DatastoreResource {
     @Path("destroy")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse createNewScn(@Context HttpServletResponse response,
+    public RequestResponse destroyScn(@Context HttpServletResponse response,
             @QueryParam("scnId") Integer scnId) {
 
         try {

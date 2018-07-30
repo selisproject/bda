@@ -61,15 +61,17 @@ public class ConnectorFactory {
                     fs, username, password, owner, dbname);
             } catch (SQLException e) {
                 e.printStackTrace();
-                //throw new SystemConnectorException("Could not create Postgresql database.");
+                throw new SystemConnectorException("Could not create Postgresql database.");
             }
-            // 1. Create schemas into the new database. 
-            for (String schema : schemas) {
-                try {
-                    PostgresqlConnector.createSchema(databaseUrl, username, password, owner, schema);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    throw new SystemConnectorException("Could not create Postgresql schema.");
+            // 1. Create schemas into the new database.
+            if (!(schemas==null)) {
+                for (String schema : schemas) {
+                    try {
+                        PostgresqlConnector.createSchema(databaseUrl, username, password, owner, schema);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        throw new SystemConnectorException("Could not create Postgresql schema.");
+                    }
                 }
             }
         } else {

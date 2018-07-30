@@ -26,7 +26,7 @@ public class StorageBackend {
     public static void createNewScn(ScnDbInfo scn)
             throws SystemConnectorException, UnsupportedOperationException, SQLException {
         // 1. Create databases for the Dimension Tables (with data/metadata schemas), the EventLog and the KPIdb.
-        SystemConnector.getInstance().createScnDatabase(scn.getSlug(), scn.getDbname());
+        SystemConnector.getInstance().createScnDatabase(scn);
 
         // 2. Create metadata tables for new SCN.
         MessageType.createTable(scn.getSlug());
@@ -37,7 +37,7 @@ public class StorageBackend {
     public static void destroyScn(ScnDbInfo scn)
             throws UnsupportedOperationException, SystemConnectorException {
         // Destroy the databases of the Dimension Tables, the EventLog and the KPIdb.
-        SystemConnector.getInstance().destroyScnDatabase(scn.getSlug(), scn.getDbname());
+        SystemConnector.getInstance().destroyScnDatabase(scn);
     }
 
     /** Initialize the eventLog and dimension tables in the underlying FS Using the masterData.

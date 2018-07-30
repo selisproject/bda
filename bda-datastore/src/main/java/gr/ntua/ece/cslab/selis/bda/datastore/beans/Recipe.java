@@ -30,7 +30,7 @@ public class Recipe implements Serializable {
         "name                VARCHAR(64) NOT NULL UNIQUE, " +
         "description         VARCHAR(256), " +
         "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
-        "engine_id           INTEGER REFERENCES metadata.execution_engines(id), " +
+        "engine_id           INTEGER NOT NULL, " +
         "args                JSONB " +
         ");";
 
