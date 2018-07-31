@@ -1,6 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
-import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
@@ -16,8 +15,6 @@ import com.google.common.base.Splitter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.*;
-import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 /**
  * This class holds the REST API of the datastore object.
  * Created by Giannis Giannakopoulos on 10/11/17.
@@ -162,7 +159,7 @@ public class DatastoreResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse bootstrap(@Context HttpServletResponse response,
                                      @PathParam("slug") String slug,
-                                     MasterData masterData) throws IOException {
+                                     MasterData masterData) {
         try {
             new StorageBackend(slug).init(masterData);
         } catch (Exception e) {
@@ -229,7 +226,7 @@ public class DatastoreResource {
     public List<DimensionTable> getSchema(@PathParam("slug") String slug) {
         try {
             List<String> tables = new StorageBackend(slug).listTables();
-            List res = new LinkedList<>();
+            List<DimensionTable> res = new LinkedList<>();
             for (String table: tables){
                 DimensionTable schema = new StorageBackend(slug).getSchema(table);
                 LOGGER.log(Level.INFO, "Table: " +table + ", Columns: "+ schema.getSchema().getColumnNames());
@@ -260,7 +257,7 @@ public class DatastoreResource {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new LinkedList();
+        return new LinkedList<>();
     }
 
     /**
