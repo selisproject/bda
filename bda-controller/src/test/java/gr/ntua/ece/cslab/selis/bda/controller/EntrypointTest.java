@@ -1,32 +1,23 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
-import gr.ntua.ece.cslab.selis.bda.common.storage.TestConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.AbstractTestConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.controller.resources.DatastoreResource;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.MessageResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.RecipeResource;
-import org.json.JSONObject;
 
+import org.json.JSONObject;
 import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class EntrypointTest {
-
-
+public class EntrypointTest extends AbstractTestConnector  {
     Logger LOGGER = Logger.getLogger(EntrypointTest.class.getCanonicalName());
-
-    MessageType msgType;
-    Recipe recipe;
-    JobDescription jobDescription;
-
-    MessageResource messageResource;
-    RecipeResource recipeResource;
-    JobResource jobResource;
-
 
     private static final String MSG_TYPE_STRING =
             "{" +
@@ -87,44 +78,29 @@ public class EntrypointTest {
                 obj.getJSONObject("args").toString());
     }
 
-
-    public static void create_folders() {
-
-        File theDir = new File("/testuploads/");
-        if (!theDir.exists()) {
-            theDir.mkdir();
-        }
-        theDir = new File("/testresults/");
-        if (!theDir.exists()) {
-            theDir.mkdir();
-        }
-
-    }
-
-    private void destroy_folders() {
-
-        File theDir = new File("/testuploads/");
-        if (theDir.exists()) {
-            theDir.delete();
-        }
-        theDir = new File("/testresults/");
-        if (theDir.exists()) {
-            theDir.delete();
-        }
-    }
-
-
     @org.junit.Before
     public void setUp() {
-        TestConnector.init("../conf/bda.properties");
-        LOGGER.log(Level.INFO, "Creating folders for uploaded recipes and recipe results");
-        create_folders();
+        super.setUp();
+    }
+
+    @org.junit.After
+    public void tearDown(){
+        super.tearDown();
     }
 
     @org.junit.Test
     public void test() throws Exception {
+        MessageResource messageResource = new MessageResource();
+        RecipeResource recipeResource = new RecipeResource();
+        JobResource jobResource = new JobResource();
+        DatastoreResource datastoreResource = new DatastoreResource();
         String SCNslug = "testll";
-        // TODO: Create SCN
+
+        ScnDbInfo scnDbInfo = new ScnDbInfo(SCNslug,"LLtest","","lltestdb");
+        datastoreResource.createNewScn(null, scnDbInfo);
+
+        // TODO: bootstrap
+        //datastoreResource.bootstrap(null, SCNslug, )
 
         LOGGER.log(Level.INFO, "About to insert new messageType...");
         MessageType msgType = messageTypeFromString(MSG_TYPE_STRING);
@@ -132,9 +108,9 @@ public class EntrypointTest {
         msgType = MessageType.getMessageByName(SCNslug, msgType.getName());
         LOGGER.log(Level.INFO, "Inserted : \t" + msgType.toString());
 
-        LOGGER.log(Level.INFO, "About to insert new recipe...");
+        /*LOGGER.log(Level.INFO, "About to insert new recipe...");
         recipeResource.insert(null, SCNslug, RECIPE_STRING);
-        recipe = Recipe.getRecipeByName(SCNslug, recipeFromString(RECIPE_STRING).getName());
+        Recipe recipe = Recipe.getRecipeByName(SCNslug, recipeFromString(RECIPE_STRING).getName());
         LOGGER.log(Level.INFO, "Inserted : \t" + recipe.toString());
 
         LOGGER.log(Level.INFO, "About to upload recipe file...");
@@ -142,7 +118,7 @@ public class EntrypointTest {
         recipeResource.upload(SCNslug, recipe.getId(), recipe.getName() + ".py", uploadedFile);
         LOGGER.log(Level.INFO, "File uploaded");
 
-        jobDescription = new JobDescription("recipe_job", "recipe_job", true,
+        JobDescription jobDescription = new JobDescription("recipe_job", "recipe_job", true,
             msgType.getId(), recipe.getId(), "");
 
         LOGGER.log(Level.INFO, "About to insert new job...");
@@ -162,8 +138,7 @@ public class EntrypointTest {
         catch (Exception e) {
             System.out.println(e);
         }
-        // TODO: Get res from kpidb
-        /*List<Tuple> results = Entrypoint.analyticsComponent.getKpidb().fetch(recipe.getName(), "rows", 1);
+        List<Tuple> results = Entrypoint.analyticsComponent.getKpidb().fetch(recipe.getName(), "rows", 1);
         LOGGER.log(Level.INFO, "KPIDB entry:" );
         int i = 0;
         for (Tuple t : results) {
@@ -174,14 +149,7 @@ public class EntrypointTest {
             i++;
         }*/
 
-        // TODO: Destroy SCN
-    }
-
-    @org.junit.After
-    public void tearDown(){
-        TestConnector.getInstance().close();
-        destroy_folders();
-        // TODO: Destroy BDA test db
+        datastoreResource.destroyScn(null, scnDbInfo.getId());
     }
 
 }

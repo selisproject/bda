@@ -50,6 +50,9 @@ public class DatastoreResource {
 
         try {
             StorageBackend.createNewScn(scn);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.INFO, "Clearing SCN registry and databases after failure.");
@@ -67,7 +70,6 @@ public class DatastoreResource {
             return new RequestResponse("ERROR", "Could not create new SCN.");
         }
 
-        response.setStatus(HttpServletResponse.SC_CREATED);
         try {
             if (response != null) {
                 response.flushBuffer();
@@ -102,6 +104,9 @@ public class DatastoreResource {
 
         try {
             ScnDbInfo.destroy(scnId);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -109,7 +114,6 @@ public class DatastoreResource {
             return new RequestResponse("ERROR", "Could not destroy SCN.");
         }
 
-        response.setStatus(HttpServletResponse.SC_CREATED);
         try {
             if (response != null) {
                 response.flushBuffer();

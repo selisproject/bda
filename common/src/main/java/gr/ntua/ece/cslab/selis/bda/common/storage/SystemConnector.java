@@ -4,7 +4,6 @@ import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.ConnectorFactory;
-import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
 import java.sql.SQLException;
 import java.util.*;

@@ -18,7 +18,6 @@ public class Configuration {
     public final PubSubSubscriber subscriber;
     public final AuthClientBackend authClientBackend;
     public final KPIBackend kpiBackend;
-    public final TestDB testDb;
 
     public class Server {
         private String address;
@@ -112,16 +111,6 @@ public class Configuration {
 
     }
 
-    public class TestDB {
-        private String dbUrl, dbUsername, dbPassword;
-
-        public String getDbUrl() { return dbUrl; }
-
-        public String getDbUsername() { return dbUsername; }
-
-        public String getDbPassword() { return dbPassword; }
-    }
-
     public Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
@@ -129,7 +118,6 @@ public class Configuration {
         this.authClientBackend = new AuthClientBackend();
         this.kpiBackend = new KPIBackend();
         this.execEngine = new ExecutionEngine();
-        this.testDb = new TestDB();
     }
 
     /**
@@ -204,10 +192,6 @@ public class Configuration {
         // Execution engine configuration
         conf.execEngine.SparkMasterURL = properties.getProperty("spark.master.url");
         conf.execEngine.SparkExecutionMode = properties.getProperty("spark.execution.mode");
-
-        conf.testDb.dbUrl = properties.getProperty("test.db.url");
-        conf.testDb.dbUsername = properties.getProperty("test.db.username");
-        conf.testDb.dbPassword = properties.getProperty("test.db.password");
 
         return conf;
 
