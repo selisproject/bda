@@ -96,7 +96,7 @@ public class ExecutionEngine implements Serializable {
                 '}';
     }
 
-    public List<ExecutionEngine> getEngines() throws SQLException {
+    public static List<ExecutionEngine> getEngines() throws SQLException {
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
 
@@ -125,7 +125,7 @@ public class ExecutionEngine implements Serializable {
         throw new SQLException("Failed to retrieve ScnDb info.");
     }
 
-    public ExecutionEngine getEngineById(int id) throws SQLException {
+    public static ExecutionEngine getEngineById(int id) throws SQLException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
