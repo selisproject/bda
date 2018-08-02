@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
-@XmlRootElement(name = "ScnDbInfo")
+@XmlRootElement(name = "ExecutionEngine")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class ExecutionEngine implements Serializable {
 
@@ -122,7 +122,7 @@ public class ExecutionEngine implements Serializable {
             e.printStackTrace();
         }
 
-        throw new SQLException("Failed to retrieve ScnDb info.");
+        throw new SQLException("Failed to retrieve ExecutionEngine info.");
     }
 
     public static ExecutionEngine getEngineById(int id) throws SQLException {
@@ -152,7 +152,7 @@ public class ExecutionEngine implements Serializable {
             e.printStackTrace();
         }
 
-        throw new SQLException("ScnDbInfo object not found.");
+        throw new SQLException("ExecutionEngine object not found.");
 
     }
 }
