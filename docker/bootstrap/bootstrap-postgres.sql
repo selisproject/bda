@@ -22,3 +22,18 @@ CREATE TABLE scn_db_info (
 );
 
 ALTER TABLE scn_db_info OWNER TO selis;
+
+CREATE TABLE execution_engines (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(64) NOT NULL UNIQUE,
+    engine_path     TEXT,
+    local_engine    BOOLEAN DEFAULT(true),
+    args            JSONB
+);
+
+ALTER TABLE execution_engines OWNER TO selis;
+
+INSERT INTO execution_engines (name, engine_path, local_engine, args)
+    VALUES
+	('python3', '/usr/bin/python3', true, '{}'::json),
+	('spark', '', false, '{}'::json);
