@@ -7,6 +7,7 @@ import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutEngineCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.runners.RunnerFactory;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 import org.apache.hadoop.service.Service;
@@ -16,49 +17,32 @@ import java.sql.*;
 
 public class AnalyticsInstance {
 
-    //private KPIBackend kpidb;
     private ExecutEngineCatalog engineCatalog;
     private KpiCatalog kpiCatalog;
     private String scnSlug;
 
     public AnalyticsInstance(String scnSlug) {
-        //this.kpidb = new KPIBackend(kpidbURL, username, password);
         this.kpiCatalog = new KpiCatalog();
         this.engineCatalog = new ExecutEngineCatalog();
         this.scnSlug = scnSlug;
     }
 
-    //public KPIBackend getKpidb() {
-    //    return kpidb;
-    //}
-
     public KpiCatalog getKpiCatalog() { return kpiCatalog; }
 
     public ExecutEngineCatalog getEngineCatalog() { return engineCatalog; }
 
-    private static final String SELECT_ENGINE_QUERY =
-            "SELECT * FROM metadata.execution_engines where id=?;";
-
     private ExecutEngineDescriptor fetch_engine(int engine_id) {
-        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(this.scnSlug);
-        Connection conn = connector.getConnection();
         ExecutEngineDescriptor engineDescriptor = null;
 
         try {
-            PreparedStatement statement = conn.prepareStatement(SELECT_ENGINE_QUERY);
-            statement.setInt(1, engine_id);
-            ResultSet engines = statement.executeQuery();
+            ExecutionEngine engine = ExecutionEngine.getEngineById(engine_id);
 
-            if (engines != null) {
-                if (engines.next()) {
-                    engineDescriptor = new ExecutEngineDescriptor(
-                            engines.getString("name"),
-                            engines.getString("engine_path"),
-                            engines.getBoolean("local_engine"),
-                            new JSONObject(engines.getString("args"))
-                    );
-                }
-            }
+            engineDescriptor = new ExecutEngineDescriptor(
+                            engine.getName(),
+                            engine.getEngine_path(),
+                            engine.isLocal_engine(),
+                            new JSONObject(engine.getArgs())
+            );
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -91,11 +75,13 @@ public class AnalyticsInstance {
         Thread t = new Thread(runner);
         t.start();
 
+        /*
         try {
             t.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        */
     }
 
 
