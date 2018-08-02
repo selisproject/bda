@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import org.apache.commons.io.IOUtils;
@@ -45,12 +46,29 @@ public class RecipeResource {
                 obj.getJSONObject("args").toString());
 
         try {
-            r.save(slug);
 
-            details = Integer.toString(r.getId());
+            List<ExecutionEngine> engines = ExecutionEngine.getEngines();
 
-            if (response != null) {
-                response.setStatus(HttpServletResponse.SC_CREATED);
+            boolean correctEngine = false;
+            for (ExecutionEngine engine : engines) {
+                if (engine.getId() == r.getId()) {
+                    correctEngine = true;
+                }
+            }
+
+            if (correctEngine) {
+                r.save(slug);
+
+                details = Integer.toString(r.getId());
+
+                if (response != null) {
+                    response.setStatus(HttpServletResponse.SC_CREATED);
+                }
+            }
+            else {
+                if (response != null) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
