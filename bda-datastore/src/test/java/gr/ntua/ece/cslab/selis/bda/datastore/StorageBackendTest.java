@@ -1,52 +1,33 @@
 package gr.ntua.ece.cslab.selis.bda.datastore;
 
-import java.io.File;
-import java.io.InputStream;
+import gr.ntua.ece.cslab.selis.bda.common.storage.AbstractTestConnector;
+
 import java.util.*;
+import java.util.logging.Logger;
 
-public class StorageBackendTest {
-    public static void main(String[] args) throws Exception {
-        String EventLogFS;
-        String DimensionTablesFS;
+public class StorageBackendTest extends AbstractTestConnector {
+    Logger LOGGER = Logger.getLogger(StorageBackendTest.class.getCanonicalName());
 
-        /*Properties prop = new Properties();
-        String filename = "datastore.properties";
-        InputStream input = StorageBackendTest.class.getClassLoader().getResourceAsStream(filename);
-        if (input == null) {
-            System.out.println("Sorry, unable to find " + filename);
-            return;
-        }
+    @org.junit.Before
+    public void setUp() {
+        super.setUp();
+    }
 
-        // load a properties file from class path, inside static method
-        prop.load(input);
+    @org.junit.After
+    public void tearDown(){
+        super.tearDown();
+    }
 
-        // get the property value and print it out
-        EventLogFS = new String(prop.getProperty("EventLogFS"));
-        DimensionTablesFS = new String(prop.getProperty("DimensionTablesFS"));*/
-
-        // Where are the event log and dimension tables stored
-        EventLogFS = "/home/evie/Desktop/output"; // hdfs or hbase
-        DimensionTablesFS = "/home/evie/Desktop/output"; // hdfs or postgres
+    @org.junit.Test
+    public void test() {
+        String SCNslug = "testll";
+        StorageBackend backend = new StorageBackend(SCNslug);
 
         // List of dimension tables filenames
         ArrayList<String> dimensionTables = new ArrayList<String>();
         dimensionTables.add("bda-datastore/src/test/resources/trucks.csv");
         dimensionTables.add("bda-datastore/src/test/resources/warehouses.json");
         dimensionTables.add("bda-datastore/src/test/resources/RAs.csv");
-
-        // Clean up the two filesystems before testing
-        //File temp = new File(EventLogFS);
-        //File[] files = temp.listFiles();
-        //if (files != null) for (File f : files) f.delete();
-        //temp = new File(DimensionTablesFS);
-        //files = temp.listFiles();
-        //if (files != null) for (File f : files) f.delete();
-
-        // Create a new backend to the BDA
-        //StorageBackend backend = new StorageBackend(EventLogFS, DimensionTablesFS);
-
-        // Create EventLog and dimension tables
-        //backend.init();
 
         // Create example message for EventLog
         HashMap<String, String> hmap = new HashMap<String, String>();
@@ -62,7 +43,7 @@ public class StorageBackendTest {
         //System.out.println(Arrays.toString(backend.fetch("rows", 1)));
 
         // Get messages of last 3 days from Eventlog
-        //ELbackend.select("days", 3);
+        //backend.select("days", 3);
 
         // Get all messages from EventLog
         //System.out.println(Arrays.toString(backend.fetch("rows", -1)));
