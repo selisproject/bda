@@ -3,8 +3,5 @@
   "description" : "recipe",
   "executablePath" : "easy",
   "engineId" : 1,
-  "args" : {
- 		"intarg" : 1,
-		"strarg" : "string"
-   }
+  "args" : "{\"intarg\" : 1,\"strarg\" : \"string\"}"
 }

@@ -139,12 +139,16 @@ public class DatastoreResource {
         LOGGER.log(Level.INFO, m.toString());
         try {
             new StorageBackend(slug).insert(m);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        response.setStatus(HttpServletResponse.SC_CREATED);
         try {
-            response.flushBuffer();
+            if (response != null) {
+                response.flushBuffer();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -166,12 +170,16 @@ public class DatastoreResource {
                                      MasterData masterData) {
         try {
             new StorageBackend(slug).init(masterData);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        response.setStatus(HttpServletResponse.SC_CREATED);
         try {
-            response.flushBuffer();
+            if (response != null) {
+                response.flushBuffer();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

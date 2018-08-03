@@ -5,7 +5,6 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
@@ -23,8 +22,8 @@ public class RecipeResource {
     private final static Logger LOGGER = Logger.getLogger(RecipeResource.class.getCanonicalName());
 
     /**
-     * Job description insert method
-     * @param m the job description to insert
+     * Recipe insert method
+     * @param r the recipe to insert
      */
     @PUT
     @Path("{slug}")
@@ -32,18 +31,10 @@ public class RecipeResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse insert(@Context HttpServletResponse response,
                                   @PathParam("slug") String slug,
-                                  String m) {
+                                  Recipe r) {
 
         String status = "OK";
         String details = "";
-
-        JSONObject obj = new JSONObject(m);
-
-        Recipe r = new Recipe(obj.getString("name"),
-                obj.getString("description"),
-                obj.getString("executablePath"),
-                obj.getInt("engineId"),
-                obj.getJSONObject("args").toString());
 
         try {
 
