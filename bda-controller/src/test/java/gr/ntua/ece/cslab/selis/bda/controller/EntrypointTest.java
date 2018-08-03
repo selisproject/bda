@@ -17,47 +17,60 @@ import java.util.logging.Logger;
 public class EntrypointTest extends AbstractTestConnector  {
     Logger LOGGER = Logger.getLogger(EntrypointTest.class.getCanonicalName());
 
+    MessageResource messageResource;
+    RecipeResource recipeResource;
+    JobResource jobResource;
+    DatastoreResource datastoreResource;
+
+    ScnDbInfo scnDbInfo;
+    MessageType msgType;
+    Recipe recipe;
+    JobDescription jobDescription;
+
+    String SCNslug = "testll";
+
     @org.junit.Before
     public void setUp() {
         super.setUp();
+        messageResource = new MessageResource();
+        recipeResource = new RecipeResource();
+        jobResource = new JobResource();
+        datastoreResource = new DatastoreResource();
+
+        scnDbInfo = new ScnDbInfo(SCNslug,"LLtest","","lltestdb");
+        datastoreResource.createNewScn(null, scnDbInfo);
     }
 
     @org.junit.After
     public void tearDown(){
+        datastoreResource.destroyScn(null, scnDbInfo.getId());
         super.tearDown();
     }
 
     @org.junit.Test
     public void test() throws Exception {
-        MessageResource messageResource = new MessageResource();
-        RecipeResource recipeResource = new RecipeResource();
-        JobResource jobResource = new JobResource();
-        DatastoreResource datastoreResource = new DatastoreResource();
-        String SCNslug = "testll";
-
-        ScnDbInfo scnDbInfo = new ScnDbInfo(SCNslug,"LLtest","","lltestdb");
-        datastoreResource.createNewScn(null, scnDbInfo);
 
         MasterData masterData = new ObjectMapper().readValue(new File("/code/examples/master_data.json"), MasterData.class);
         datastoreResource.bootstrap(null, SCNslug, masterData);
 
         LOGGER.log(Level.INFO, "About to insert new messageType...");
-        MessageType msgType = new ObjectMapper().readValue(new File("/code/examples/msgtype.json"), MessageType.class);
+        msgType = new ObjectMapper().readValue(new File("/code/examples/msgtype.json"), MessageType.class);
         messageResource.insert(null, SCNslug, msgType);
         msgType = MessageType.getMessageByName(SCNslug, msgType.getName());
         LOGGER.log(Level.INFO, "Inserted : \t" + msgType.toString());
 
         LOGGER.log(Level.INFO, "About to insert new recipe...");
-        Recipe recipe = new ObjectMapper().readValue(new File("/code/examples/recipe.json"), Recipe.class);
+        recipe = new ObjectMapper().readValue(new File("/code/examples/recipe.json"), Recipe.class);
         recipeResource.insert(null, SCNslug, recipe);
         LOGGER.log(Level.INFO, "Inserted : \t" + recipe.toString());
 
+        // TODO: will recipe.getId() work? Or we need to get the recipe info first?
         /*LOGGER.log(Level.INFO, "About to upload recipe file...");
         InputStream uploadedFile = new FileInputStream(new File("/code/examples/recipe.py"));
         recipeResource.upload(SCNslug, recipe.getId(), recipe.getName() + ".py", uploadedFile);
         LOGGER.log(Level.INFO, "File uploaded");
 
-        JobDescription jobDescription = new JobDescription("recipe_job", "recipe_job", true,
+        jobDescription = new JobDescription("recipe_job", "recipe_job", true,
             msgType.getId(), recipe.getId(), "");
 
         LOGGER.log(Level.INFO, "About to insert new job...");
@@ -86,8 +99,6 @@ public class EntrypointTest extends AbstractTestConnector  {
             }
             i++;
         }*/
-
-        datastoreResource.destroyScn(null, scnDbInfo.getId());
     }
 
 }
