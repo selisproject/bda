@@ -87,31 +87,26 @@ public class RecipeResource {
     @Path("{slug}/upload/{id}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public RequestResponse upload(@PathParam("slug") String slug,
-                                  @PathParam("id") int recipe_id,
-                                  @PathParam("filename") String recipe_name,
-                                  InputStream recipe)  {
+                                  @PathParam("id") int recipeId,
+                                  @PathParam("filename") String recipeName,
+                                  InputStream recipeBinary)  {
 
         String status = "OK";
         String details = "";
 
-        String binaryPath = "/uploads/" + recipe_id + "_" + recipe_name;
-        saveFile(recipe, binaryPath);
+        String binaryPath = "/uploads/" + recipeId + "_" + recipeName;
 
+        saveFile(recipeBinary, binaryPath);
 
-        Recipe r = Recipe.getRecipeById(slug, recipe_id);
-        System.out.println(r.toString());
-        r.setExecutablePath(binaryPath);
-        System.out.println(r.toString());
+        Recipe recipe = Recipe.getRecipeById(slug, recipeId);
+        recipe.setExecutablePath(binaryPath);
 
         try {
-            r.updateBinaryPath(slug);
+            recipe.save(slug);
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        //Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
-        //        r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
-        //        new JSONObject(r.getArgs()), r.getExecutable_path());
         return new RequestResponse(status, details);
     }
 

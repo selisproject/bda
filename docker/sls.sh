@@ -16,7 +16,7 @@ SELIS_POSTGRES_IMAGE="selis-postgres:latest"
 SELIS_HBASE_IMAGE="selis-hbase:latest"
 SELIS_SPARK_IMAGE="selis-spark:latest"
 
-SELIS_JDK_PULL_IMAGE="openjdk:latest"
+SELIS_JDK_PULL_IMAGE="openjdk:8"
 SELIS_POSTGRES_PULL_IMAGE="postgres:latest"
 SELIS_HBASE_PULL_IMAGE="dajobe/hbase:latest"
 SELIS_KEYCLOAK_PULL_IMAGE="jboss/keycloak:latest"
