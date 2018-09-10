@@ -103,11 +103,11 @@ public class Entrypoint {
         // Create folders for uploaded recipes and recipe results
         create_folders();
 
-        /*
         // Hardcoded Analytics Job Run.
         AnalyticsInstance analytics = new AnalyticsInstance("scn_slug");
-        analytics.run(2, "");
+        analytics.run(1, "");
 
+        /*
         // Hardcoded SparkLauncher example.
         SparkAppHandle handle = null;
         try {

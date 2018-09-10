@@ -6,12 +6,21 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+
+import java.lang.IllegalStateException;
+
+
+
 /**
  * This class holds all the configuration options used by the Big Data Analytics component as a whole
  * (including the various subsystems).
  */
 public class Configuration {
     private static Logger LOGGER =Logger.getLogger(Configuration.class.getCanonicalName());
+
+    private static Configuration configuration = null;
+
     public final Server server;
     public final StorageBackend storageBackend;
     public final ExecutionEngine execEngine;
@@ -64,13 +73,26 @@ public class Configuration {
         public String getDbPrivilegedPassword() { return dbPrivilegedPassword; }
     }
     public class ExecutionEngine {
-        private String SparkMasterURL, SparkExecutionMode;
+        private String sparkMaster;
+        private String sparkMasterURL;
+        private String sparkDeployMode;
+        private String sparkConfDriverMemory;
+        private String sparkConfExecutorCores;
+        private String sparkConfExecutorMemory;
 
         public ExecutionEngine(){}
 
-        public String getSparkMasterURL() { return SparkMasterURL; }
+        public String getSparkMaster() { return sparkMaster; }
 
-        public String getSparkExecutionMode() { return SparkExecutionMode; }
+        public String getSparkMasterURL() { return sparkMasterURL; }
+
+        public String getSparkDeployMode() { return sparkDeployMode; }
+
+        public String getSparkConfDriverMemory() { return sparkConfDriverMemory; }
+
+        public String getSparkConfExecutorCores() { return sparkConfExecutorCores; }
+
+        public String getSparkConfExecutorMemory() { return sparkConfExecutorMemory; }
     }
     public class PubSubSubscriber {
         private String authHash, hostname;
@@ -111,7 +133,15 @@ public class Configuration {
 
     }
 
-    public Configuration() {
+    public static Configuration getInstance() throws IllegalStateException {
+        if (configuration == null) {
+            throw new IllegalStateException("Configuration not initialized.");
+        }
+
+        return configuration;
+    }
+
+    private Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
         this.subscriber = new PubSubSubscriber();
@@ -190,10 +220,15 @@ public class Configuration {
         conf.kpiBackend.dbPassword = properties.getProperty("kpi.db.password");
 
         // Execution engine configuration
-        conf.execEngine.SparkMasterURL = properties.getProperty("spark.master.url");
-        conf.execEngine.SparkExecutionMode = properties.getProperty("spark.execution.mode");
+        conf.execEngine.sparkMaster = properties.getProperty("spark.master"); 
+        conf.execEngine.sparkMasterURL = properties.getProperty("spark.master.url");
+        conf.execEngine.sparkDeployMode = properties.getProperty("spark.deploy_mode");
+        conf.execEngine.sparkConfDriverMemory = properties.getProperty("spark.conf.driver_memory");
+        conf.execEngine.sparkConfExecutorCores = properties.getProperty("spark.conf.executor_cores");
+        conf.execEngine.sparkConfExecutorMemory = properties.getProperty("spark.conf.executor_memory");
+
+        configuration = conf;
 
         return conf;
-
     }
 }
