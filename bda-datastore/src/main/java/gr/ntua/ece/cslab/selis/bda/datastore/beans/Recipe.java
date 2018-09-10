@@ -45,7 +45,7 @@ public class Recipe implements Serializable {
 
     private final static String UPDATE_RECIPE_QUERY = 
         "UPDATE metadata.recipes " +
-        "SET name = ?, description = ?, executable_path = ?, engine_id = ?, args = ?::json " +
+        "SET name = ?, description = ?, executable_path = ?, engine_id = ?, args = ? " +
         "WHERE id = ?";
 
     private final static String GET_RECIPE_BY_ID =
@@ -232,15 +232,8 @@ public class Recipe implements Serializable {
                 recipe.id = resultSet.getInt("id");
                 recipe.exists = true;
 
-                connection.close();
                 return recipe;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -275,8 +268,6 @@ public class Recipe implements Serializable {
             } catch (SQLException e) {
                 connection.rollback();
                 throw e;
-            } finally {
-                connection.close();
             }
         } else {
             // The object exists, it should be updated.
@@ -301,8 +292,6 @@ public class Recipe implements Serializable {
             } catch (SQLException e) {
                 connection.rollback();
                 throw e;
-            } finally {
-                connection.close();
             }
         }
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into recipes. ID: "+this.id);

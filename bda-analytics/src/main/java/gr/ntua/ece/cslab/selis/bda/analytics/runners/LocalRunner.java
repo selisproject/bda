@@ -53,7 +53,8 @@ public class LocalRunner extends ArgumentParser implements Runnable {
             System.out.println(recipe_part);
             ProcessBuilder pb = new ProcessBuilder(Arrays.asList(
                     engine_part, recipe_part, message,
-                    get_executable_arguments(kpiDescriptor.getExecutable().getArgs())));
+                    kpiDescriptor.getExecutable().getArgs()));
+
             File out = new File("/results/" + kpiDescriptor.getName() + ".out");
             pb.redirectError(ProcessBuilder.Redirect.to(new File(
                     "/results/" + kpiDescriptor.getName() + ".err")));

@@ -58,7 +58,7 @@ public class AnalyticsInstance {
                 recipe.getDescription(),
                 new Executable(
                         recipe.getEngineId(),
-                        new JSONObject(recipe.getArgs()),
+                        recipe.getArgs(),
                         recipe.getExecutablePath()
                 )
         );
