@@ -31,7 +31,7 @@ public class Recipe implements Serializable {
         "description         VARCHAR(256), " +
         "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
         "engine_id           INTEGER NOT NULL, " +
-        "args                JSONB " +
+        "args                VARCHAR(512)" +
         ");";
 
     private final static String ALL_RECIPES_QUERY = 
@@ -40,7 +40,7 @@ public class Recipe implements Serializable {
 
     private final static String INSERT_RECIPE_QUERY = 
         "INSERT INTO metadata.recipes (name, description, executable_path, engine_id, args) " +
-        "VALUES (?, ?, ?, ? ,?::json) " +
+        "VALUES (?, ?, ?, ? ,?) " +
         "RETURNING id";
 
     private final static String GET_RECIPE_BY_ID =
@@ -268,7 +268,7 @@ public class Recipe implements Serializable {
             statement.setString(2, this.description);
             statement.setString(3, this.executablePath);
             statement.setInt(4, Integer.valueOf(this.engineId));
-            statement.setString(5, this.args.toString());
+            statement.setString(5, this.args);
 
             try {
                 ResultSet resultSet = statement.executeQuery();
@@ -286,6 +286,7 @@ public class Recipe implements Serializable {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");
         }
+        LOGGER.log(Level.INFO, "SUCCESS: Insert Into recipes. ID: "+this.id);
      }
 
     public static void createTable(String slug) throws SQLException {

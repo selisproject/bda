@@ -42,7 +42,7 @@ public class RecipeResource {
 
             boolean correctEngine = false;
             for (ExecutionEngine engine : engines) {
-                if (engine.getId() == r.getId()) {
+                if (engine.getId() == r.getEngineId()) {
                     correctEngine = true;
                 }
             }
@@ -57,6 +57,7 @@ public class RecipeResource {
                 }
             }
             else {
+                System.out.println("Bad engine id provided!");
                 if (response != null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }

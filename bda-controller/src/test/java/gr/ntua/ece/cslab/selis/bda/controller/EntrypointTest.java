@@ -59,9 +59,8 @@ public class EntrypointTest extends AbstractTestConnector  {
         messageResource.insert(null, SCNslug, msgType);
         msgType = MessageType.getMessageByName(SCNslug, msgType.getName());
         LOGGER.log(Level.INFO, "Inserted : \t" + msgType.toString());
-
-        // TODO: getRecipeByName fails
-        /*LOGGER.log(Level.INFO, "About to insert new recipe...");
+        
+        LOGGER.log(Level.INFO, "About to insert new recipe...");
         recipe = new ObjectMapper().readValue(new File("/code/examples/recipe.json"), Recipe.class);
         recipeResource.insert(null, SCNslug, recipe);
         recipe = Recipe.getRecipeByName(SCNslug, recipe.getName());
@@ -82,7 +81,7 @@ public class EntrypointTest extends AbstractTestConnector  {
         jobDescription = JobDescription.getJobByMessageId(SCNslug, msgType.getId());
         LOGGER.log(Level.INFO, "Inserted : \t" + jobDescription.toString());
 
-        LOGGER.log(Level.INFO, "Running recipe with message");
+        /*LOGGER.log(Level.INFO, "Running recipe with message");
         (new AnalyticsInstance(SCNslug)).run(jobDescription.getRecipeId(), String.valueOf(msgType.getId()));
         LOGGER.log(Level.INFO, "Recipe result : ");
         try (BufferedReader br = new BufferedReader(new FileReader("/results/recipe.out"))) {
