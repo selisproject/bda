@@ -39,7 +39,6 @@ public class MessageResource {
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
-            PubSubSubscriber.reloadMessageTypes();
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -57,7 +56,7 @@ public class MessageResource {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        PubSubSubscriber.reloadMessageTypes();
         return new RequestResponse(status, details);
     }
 

@@ -64,12 +64,18 @@ public class PostgresqlConnector implements Connector {
             throw e;
         }
 
-        PreparedStatement statement = localConnection.prepareStatement(
-                String.format(CREATE_DATABASE_QUERY, dbname, owner));
+        try {
+            PreparedStatement statement = localConnection.prepareStatement(
+                    String.format(CREATE_DATABASE_QUERY, dbname, owner));
 
-        statement.executeUpdate();
-
-        localConnection.close();
+            statement.executeUpdate();
+            localConnection.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            localConnection.close();
+            throw e;
+        }
 
         return jdbcUrl + dbname;
     }
@@ -86,12 +92,19 @@ public class PostgresqlConnector implements Connector {
             throw e;
         }
 
-        PreparedStatement statement = localConnection.prepareStatement(
-            String.format(CREATE_DATABASE_SCHEMA_QUERY, schema, owner));
+        try {
+            PreparedStatement statement = localConnection.prepareStatement(
+                    String.format(CREATE_DATABASE_SCHEMA_QUERY, schema, owner));
 
-        statement.executeUpdate();
+            statement.executeUpdate();
+            localConnection.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            localConnection.close();
+            throw e;
+        }
 
-        localConnection.close();
     }
 
     public static void dropDatabase(String jdbcUrl, String username, String password,
@@ -108,12 +121,18 @@ public class PostgresqlConnector implements Connector {
             throw e;
         }
 
-        PreparedStatement statement = localConnection.prepareStatement(
-                String.format(DROP_DATABASE_QUERY, dbname));
+        try {
+            PreparedStatement statement = localConnection.prepareStatement(
+                    String.format(DROP_DATABASE_QUERY, dbname));
 
-        statement.executeUpdate();
-
-        localConnection.close();
+            statement.executeUpdate();
+            localConnection.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            localConnection.close();
+            throw e;
+        }
     }
 
     public Connection getConnection() {

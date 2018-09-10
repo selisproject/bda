@@ -9,6 +9,7 @@ import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.MessageResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.RecipeResource;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import java.io.*;
 import java.util.logging.Level;
@@ -59,13 +60,16 @@ public class EntrypointTest extends AbstractTestConnector  {
         msgType = MessageType.getMessageByName(SCNslug, msgType.getName());
         LOGGER.log(Level.INFO, "Inserted : \t" + msgType.toString());
 
-        LOGGER.log(Level.INFO, "About to insert new recipe...");
+        // TODO: getRecipeByName fails
+        /*LOGGER.log(Level.INFO, "About to insert new recipe...");
         recipe = new ObjectMapper().readValue(new File("/code/examples/recipe.json"), Recipe.class);
         recipeResource.insert(null, SCNslug, recipe);
+        recipe = Recipe.getRecipeByName(SCNslug, recipe.getName());
+        if (recipe == null)
+            LOGGER.log(Level.INFO, "Problem getting recipe by name!!!!");
         LOGGER.log(Level.INFO, "Inserted : \t" + recipe.toString());
 
-        // TODO: will recipe.getId() work? Or we need to get the recipe info first?
-        /*LOGGER.log(Level.INFO, "About to upload recipe file...");
+        LOGGER.log(Level.INFO, "About to upload recipe file...");
         InputStream uploadedFile = new FileInputStream(new File("/code/examples/recipe.py"));
         recipeResource.upload(SCNslug, recipe.getId(), recipe.getName() + ".py", uploadedFile);
         LOGGER.log(Level.INFO, "File uploaded");
@@ -77,6 +81,7 @@ public class EntrypointTest extends AbstractTestConnector  {
         jobResource.insert(null, SCNslug, jobDescription);
         jobDescription = JobDescription.getJobByMessageId(SCNslug, msgType.getId());
         LOGGER.log(Level.INFO, "Inserted : \t" + jobDescription.toString());
+
         LOGGER.log(Level.INFO, "Running recipe with message");
         (new AnalyticsInstance(SCNslug)).run(jobDescription.getRecipeId(), String.valueOf(msgType.getId()));
         LOGGER.log(Level.INFO, "Recipe result : ");

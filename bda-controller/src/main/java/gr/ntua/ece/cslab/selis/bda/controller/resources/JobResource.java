@@ -59,10 +59,10 @@ public class JobResource {
         } catch (Exception e) {
             e.printStackTrace();
 
-            status = "ERROR";
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
+            return new RequestResponse("ERROR", "Could not insert new Job.");
         }
 
         try {
