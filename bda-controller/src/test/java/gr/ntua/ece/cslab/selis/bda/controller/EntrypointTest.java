@@ -64,8 +64,6 @@ public class EntrypointTest extends AbstractTestConnector  {
         recipe = new ObjectMapper().readValue(new File("/code/examples/recipe.json"), Recipe.class);
         recipeResource.insert(null, SCNslug, recipe);
         recipe = Recipe.getRecipeByName(SCNslug, recipe.getName());
-        if (recipe == null)
-            LOGGER.log(Level.INFO, "Problem getting recipe by name!!!!");
         LOGGER.log(Level.INFO, "Inserted : \t" + recipe.toString());
 
         LOGGER.log(Level.INFO, "About to upload recipe file...");
