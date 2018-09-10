@@ -72,18 +72,8 @@ public class AnalyticsInstance {
 
         Runnable runner = RunnerFactory.getInstance().getRunner(kpi, engine, message, this.scnSlug);
 
-        Thread t = new Thread(runner);
-        t.start();
+        Thread thread = new Thread(runner);
 
-        /*
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        */
+        thread.start();
     }
-
-
-
 }

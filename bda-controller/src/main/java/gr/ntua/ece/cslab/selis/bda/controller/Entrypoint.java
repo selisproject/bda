@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
+import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
@@ -103,6 +104,24 @@ public class Entrypoint {
         create_folders();
 
         /*
+        // Hardcoded Analytics Job Run.
+        AnalyticsInstance analytics = new AnalyticsInstance("scn_slug");
+        analytics.run(2, "");
+
+        // Hardcoded SparkLauncher example.
+        SparkAppHandle handle = null;
+        try {
+            handle = new SparkLauncher()
+                    .setMaster("yarn")
+                    .setDeployMode("cluster")
+                    .setAppResource("/uploads/2_pi.py")
+                    .setVerbose(true)
+                    .startApplication();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Hardcoded SCN creation example.
         try {
             ScnDbInfo scn = new ScnDbInfo(
                 "scn_slug", "scn_name", "scn_desc", "scn_db"
