@@ -61,4 +61,8 @@ RUN ln -s /usr/local/${SPARK_FILE} ${SPARK_PREFIX}
 # Set spark environment variables.
 ENV SPARK_HOME "${SPARK_PREFIX}"
 
+# Download postgresql jar.
+RUN mkdir /resources
+RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --directory-prefix /resources
+
 ADD ./bootstrap/spark/entrypoint.sh /

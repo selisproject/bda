@@ -36,5 +36,10 @@ keycloak.bda.secret   = a2581f5d-129b-437e-ad01-f17e6fd291b4
 keycloak.bda.url      = http://selis-keycloak:8080/auth
 
 # Spark configuration
-spark.master.url = spark://selis-spark-master:7077
-spark.execution.mode = client
+spark.master               = yarn
+spark.master.url           = spark://selis-spark-master:7077
+spark.deploy_mode          = cluster
+spark.conf.driver_memory   = 1g
+spark.conf.executor_cores  = 1
+spark.conf.executor_memory = 1g
+spark.conf.jars            = /resources/postgresql-42.2.1.jar

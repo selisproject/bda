@@ -48,6 +48,10 @@ public class SparkRunner extends ArgumentParser implements Runnable {
                     .setConf(SparkLauncher.EXECUTOR_CORES, 
                              configuration.execEngine.getSparkConfExecutorCores())
                     .setAppResource(this.recipeResource);
+
+                if (configuration.execEngine.getSparkConfJars() != null) {
+                    launcher.addSparkArg("--jars", configuration.execEngine.getSparkConfJars());
+                }
                 if (message != "") {
                     launcher.addAppArgs(message);
                 }
