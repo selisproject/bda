@@ -80,7 +80,7 @@ public class Entrypoint {
 
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
-            System.err.println("Please provide a configuration file as a first argument");
+            LOGGER.log(Level.WARNING, "Please provide a configuration file as a first argument");
             System.exit(1);
         }
         // parse configuration
@@ -101,20 +101,6 @@ public class Entrypoint {
 
         // Create folders for uploaded recipes and recipe results
         create_folders();
-
-        /*
-        try {
-            ScnDbInfo scn = new ScnDbInfo(
-                "scn_slug", "scn_name", "scn_desc", "scn_db"
-            );
-            scn.save();
-
-            StorageBackend.createNewScn(scn);
-        } catch (Exception e) {
-            System.out.println("Sometimes ...");
-            e.printStackTrace();
-        }
-        */
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -142,7 +128,6 @@ public class Entrypoint {
             subscriber.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
-            System.out.println(e);
             e.printStackTrace();
         } finally {
             LOGGER.log(Level.INFO,"Terminating server");

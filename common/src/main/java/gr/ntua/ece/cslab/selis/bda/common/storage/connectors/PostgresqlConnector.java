@@ -1,8 +1,11 @@
 package gr.ntua.ece.cslab.selis.bda.common.storage.connectors;
 
 import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PostgresqlConnector implements Connector {
+    static Logger LOGGER = Logger.getLogger(PostgresqlConnector.class.getCanonicalName());
 
     private String jdbcURL;
     private String username;
@@ -29,17 +32,17 @@ public class PostgresqlConnector implements Connector {
             e.printStackTrace();
             return;
         }
-        System.out.println("PostgreSQL JDBC Driver Registered!");
+        LOGGER.log(Level.INFO, "PostgreSQL JDBC Driver Registered!");
 
         try {
             connection = DriverManager.getConnection(jdbcURL, username, password);
         } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
+            LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
             e.printStackTrace();
             return;
         }
         if (connection == null) {
-            System.out.println("Failed to make connection!");
+            LOGGER.log(Level.SEVERE, "Failed to make connection!");
         }
 
         // make sure autocommit is off
@@ -59,7 +62,7 @@ public class PostgresqlConnector implements Connector {
         try {
             localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
         } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
+            LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
             e.printStackTrace();
             throw e;
         }
@@ -87,7 +90,7 @@ public class PostgresqlConnector implements Connector {
         try {
             localConnection = DriverManager.getConnection(jdbcUrl, username, password);
         } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
+            LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
             e.printStackTrace();
             throw e;
         }
@@ -116,7 +119,7 @@ public class PostgresqlConnector implements Connector {
         try {
             localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
         } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
+            LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
             e.printStackTrace();
             throw e;
         }

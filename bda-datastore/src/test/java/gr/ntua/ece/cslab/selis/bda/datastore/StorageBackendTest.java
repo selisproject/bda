@@ -3,6 +3,7 @@ package gr.ntua.ece.cslab.selis.bda.datastore;
 import gr.ntua.ece.cslab.selis.bda.common.storage.AbstractTestConnector;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class StorageBackendTest extends AbstractTestConnector {
@@ -40,27 +41,27 @@ public class StorageBackendTest extends AbstractTestConnector {
         //backend.insert(hmap);
 
         // Get last message from EventLog
-        //System.out.println(Arrays.toString(backend.fetch("rows", 1)));
+        //LOGGER.log(Level.INFO, Arrays.toString(backend.fetch("rows", 1)));
 
         // Get messages of last 3 days from Eventlog
         //backend.select("days", 3);
 
         // Get all messages from EventLog
-        //System.out.println(Arrays.toString(backend.fetch("rows", -1)));
+        //LOGGER.log(Level.INFO, Arrays.toString(backend.fetch("rows", -1)));
 
         // Get info for specific entities from dimension table
-        //System.out.println(Arrays.toString(backend.select("trucks","RA", "AG.072")));
+        //LOGGER.log(Level.INFO, Arrays.toString(backend.select("trucks","RA", "AG.072")));
 
         // Get info for specific entities from EventLog
-        //System.out.println(Arrays.toString(backend.select("","warehouse_id", "1")));
+        //LOGGER.log(Level.INFO, Arrays.toString(backend.select("","warehouse_id", "1")));
 
         // Print EventLog format
-        //System.out.println(Arrays.toString(backend.getSchema("")));
+        //LOGGER.log(Level.INFO, Arrays.toString(backend.getSchema("")));
 
         // Print dimension table format
-        //System.out.println(backend.getSchema("warehouses").getSchema().getColumnNames());
+        //LOGGER.log(Level.INFO, backend.getSchema("warehouses").getSchema().getColumnNames());
 
         // List dimension tables
-        //System.out.println(backend.listTables().toString());
+        //LOGGER.log(Level.INFO, backend.listTables().toString());
     }
 }

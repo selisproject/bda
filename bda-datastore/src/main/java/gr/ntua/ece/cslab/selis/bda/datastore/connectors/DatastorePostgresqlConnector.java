@@ -9,8 +9,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DatastorePostgresqlConnector implements DatastoreConnector {
+    Logger LOGGER = Logger.getLogger(DatastorePostgresqlConnector.class.getCanonicalName());
 
     PostgresqlConnector conn;
 
@@ -66,7 +69,7 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
                 }
                 // add one more column named 'message' that will contain the blob
                 q=q.substring(0, q.length() - 1)+");";
-                System.out.println(q);
+                LOGGER.log(Level.INFO, q);
                 st.executeUpdate(q);
                 st.executeUpdate("ALTER TABLE Events OWNER TO "+ this.user+";");
             }
@@ -96,7 +99,7 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
                     q+=",";
                 }
                 q=q.substring(0, q.length() - 1)+");";
-                System.out.println(q);
+                LOGGER.log(Level.INFO, q);
                 st.addBatch(q);
                 st.addBatch("ALTER TABLE " + table.getName() + " OWNER TO "+ conn.getUsername()+";");
                 st.executeBatch();
@@ -164,7 +167,7 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
                 conn.getConnection().commit();
             }
         } catch (SQLException e) {
-            System.out.println("Failed creation");
+            LOGGER.log(Level.SEVERE, "Failed creation");
             e.printStackTrace();
             conn.getConnection().rollback();
         }

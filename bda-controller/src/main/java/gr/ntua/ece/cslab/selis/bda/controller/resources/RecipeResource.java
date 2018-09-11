@@ -12,6 +12,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.*;
 import java.sql.SQLException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.List;
 import java.util.LinkedList;
@@ -57,14 +58,14 @@ public class RecipeResource {
                 }
             }
             else {
-                System.out.println("Bad engine id provided!");
+                LOGGER.log(Level.WARNING, "Bad engine id provided!");
                 if (response != null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(e.toString());
+            LOGGER.log(Level.SEVERE, e.toString());
 
             status = "ERROR";
             if (response != null) {
@@ -99,9 +100,8 @@ public class RecipeResource {
 
 
         Recipe r = Recipe.getRecipeById(slug, recipe_id);
-        System.out.println(r.toString());
         r.setExecutablePath(binaryPath);
-        System.out.println(r.toString());
+        LOGGER.log(Level.INFO, r.toString());
 
         try {
             r.updateBinaryPath(slug);

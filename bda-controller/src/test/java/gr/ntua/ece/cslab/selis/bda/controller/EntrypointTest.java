@@ -85,11 +85,11 @@ public class EntrypointTest extends AbstractTestConnector  {
         try (BufferedReader br = new BufferedReader(new FileReader("/results/recipe.out"))) {
             String line = null;
             while ((line = br.readLine()) != null) {
-                System.out.println("\t" + line);
+                LOGGER.log(Level.INFO, "\t" + line);
             }
         }
         catch (Exception e) {
-            System.out.println(e);
+            LOGGER.log(Level.INFO, e);
         }
         List<Tuple> results = Entrypoint.analyticsComponent.getKpidb().fetch(recipe.getName(), "rows", 1);
         LOGGER.log(Level.INFO, "KPIDB entry:" );
