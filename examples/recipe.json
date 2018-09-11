@@ -2,6 +2,6 @@
   "name" : "recipe",
   "description" : "recipe",
   "executablePath" : "easy",
-  "engineId" : 1,
+  "engineId" : 2,
   "args" : ""
 }

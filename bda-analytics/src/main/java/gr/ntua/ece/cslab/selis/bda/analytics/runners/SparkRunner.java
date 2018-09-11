@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
@@ -13,64 +14,68 @@ import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 public class SparkRunner extends ArgumentParser implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(SparkLauncher.class.getCanonicalName());
 
-    String engine_part;
-    String recipe_part;
-    KpiDescriptor kpiDescriptor;
-    ExecutEngineDescriptor engine;
-    //KPIBackend kpidb;
     String message;
+    String scnSlug;
+    String recipeResource;
+    KpiDescriptor kpiDescriptor;
+    ExecutEngineDescriptor engineDescriptor;
 
-    public SparkRunner(KpiDescriptor kpi,
-                       ExecutEngineDescriptor engine,
-                       String message,
-                       String scnSlug) {
-        this.kpiDescriptor = kpi;
-        this.engine = engine;
+    public SparkRunner(KpiDescriptor kpi, ExecutEngineDescriptor engine,
+                       String message, String scnSlug) {
+
         this.message = message;
-        //this.kpidb = kpidb;
-
-        engine_part = "";
-        recipe_part = "";
-
-        // Set first the path of the engine
-        engine_part += engine.getExecutionPreamble();
-
-        if (engine.getArgs().length() != 0) {
-            // Add code to support engine arguments
-        }
-
-        // Set the path of the recipe executable
-        recipe_part += kpi.getExecutable().getOsPath();
+        this.scnSlug = scnSlug;
+        this.kpiDescriptor = kpi;
+        this.engineDescriptor = engine;
+        this.recipeResource = this.kpiDescriptor.getExecutable().getOsPath();
     }
 
     @Override
     public void run() {
         SparkAppHandle handle = null;
-        try {
-            handle = new SparkLauncher()
-                    .setMaster("yarn")
-                    .setDeployMode("cluster")
-                    .setAppResource(recipe_part)
-                    // the three properties below should be removed in the future
-                    .setConf("spark.port.maxRetries","100")
-                    .addSparkArg("--driver-class-path","/resources/postgresql-42.2.1.jar")
-                    .addSparkArg("--jars","/resources/postgresql-42.2.1.jar")
-                    //.redirectOutput(new File("/results/" + kpiDescriptor.getName() + ".out"))
-                    .addAppArgs(message).startApplication();
-        } catch (IOException e) {
-            e.printStackTrace();
-            LOGGER.log(Level.WARNING,"Spark job failed to start!");
-        }
-        /*try {
-            while (!handle.getState().equals(SparkAppHandle.State.FINISHED) && !handle.getState().equals(SparkAppHandle.State.FAILED) && !handle.getState().equals(SparkAppHandle.State.LOST))
-                Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            LOGGER.log(Level.WARNING,"Spark job execution was interrupted!");
-        }
-        handle.stop();
-        handle.kill();
-        LOGGER.log(Level.INFO,"Spark job finished!");*/
-    }
 
+        try {
+            Configuration configuration = Configuration.getInstance();
+
+            try {
+                SparkLauncher launcher = new SparkLauncher()
+                    .setMaster(configuration.execEngine.getSparkMaster())
+                    .setDeployMode(configuration.execEngine.getSparkDeployMode())
+                    .setConf(SparkLauncher.DRIVER_MEMORY, 
+                             configuration.execEngine.getSparkConfDriverMemory())
+                    .setConf(SparkLauncher.EXECUTOR_MEMORY, 
+                             configuration.execEngine.getSparkConfExecutorMemory())
+                    .setConf(SparkLauncher.EXECUTOR_CORES, 
+                             configuration.execEngine.getSparkConfExecutorCores())
+                    .setAppResource(this.recipeResource);
+
+                if (configuration.execEngine.getSparkConfJars() != null) {
+                    launcher.addSparkArg("--jars", configuration.execEngine.getSparkConfJars());
+                }
+                if (message != "") {
+                    launcher.addAppArgs(message);
+                }
+
+                handle = launcher.startApplication();
+            } catch (IOException e) {
+                e.printStackTrace();
+                LOGGER.log(Level.WARNING,"Spark job failed to start!");
+            }
+
+            try {
+                // TODO: This can be done better with a `SparkAppHandle.Listener`.
+                while (!handle.getState().isFinal()) {
+                    Thread.sleep(1000);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                LOGGER.log(Level.WARNING, "Spark job execution was interrupted!");
+            }
+
+            LOGGER.log(Level.INFO, "Spark job finished!");
+        } catch (IllegalStateException e) {
+            LOGGER.log(Level.WARNING,
+                       "Spark job execution failed. Uninitialized configuration!");
+        }
+    }
 }

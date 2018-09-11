@@ -58,7 +58,7 @@ public class AnalyticsInstance {
                 recipe.getDescription(),
                 new Executable(
                         recipe.getEngineId(),
-                        new JSONObject(recipe.getArgs()),
+                        recipe.getArgs(),
                         recipe.getExecutablePath()
                 )
         );
@@ -72,18 +72,8 @@ public class AnalyticsInstance {
 
         Runnable runner = RunnerFactory.getInstance().getRunner(kpi, engine, message, this.scnSlug);
 
-        Thread t = new Thread(runner);
-        t.start();
+        Thread thread = new Thread(runner);
 
-        /*
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        */
+        thread.start();
     }
-
-
-
 }

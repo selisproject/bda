@@ -1,2 +1,10 @@
 mvn initialize
-mvn package
+
+OPTIONS=""
+
+if [ "$1" == "--skip-tests" ]
+then
+    OPTIONS="$OPTIONS -Dmaven.test.skip=true"
+fi
+
+mvn package $OPTIONS

@@ -1,4 +1,4 @@
-FROM openjdk:latest
+FROM openjdk:8
 
 ARG HADOOP_FILE=hadoop-2.9.1
 ARG HADOOP_PREFIX=/usr/local/hadoop
@@ -60,5 +60,9 @@ RUN ln -s /usr/local/${SPARK_FILE} ${SPARK_PREFIX}
 
 # Set spark environment variables.
 ENV SPARK_HOME "${SPARK_PREFIX}"
+
+# Download postgresql jar.
+RUN mkdir /resources
+RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --directory-prefix /resources
 
 ADD ./bootstrap/spark/entrypoint.sh /
