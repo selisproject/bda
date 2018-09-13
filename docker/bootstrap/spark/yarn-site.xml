@@ -18,6 +18,25 @@
         <value>selis-spark-master</value>
         <description>The hostname of the RM.</description>
     </property>
+
+    <!-- SparkLauncher Client Mode Settings.
+
+    The following two settings are to solve an issue with SparkLauncher
+    when running on client mode.
+
+    More here:
+        https://stackoverflow.com/questions/43262836/apache-spark-running-spark-shell-on-yarn-error
+    -->
+    <property>
+        <name>yarn.nodemanager.pmem-check-enabled</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.vmem-check-enabled</name>
+        <value>false</value>
+    </property>
+    <!-- SparkLauncher Client Mode Settings. -->
+
     <!--
     <property>
         <name>yarn.scheduler.minimum-allocation-mb</name>
