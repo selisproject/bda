@@ -104,10 +104,10 @@ public class Entrypoint {
         create_folders();
 
         // Hardcoded Analytics Job Run.
-        AnalyticsInstance analytics = new AnalyticsInstance("scn_slug");
-        analytics.run(1, "");
-
         /*
+        AnalyticsInstance analytics = new AnalyticsInstance("sonae_slug");
+        analytics.run(1, "666");
+
         // Hardcoded SparkLauncher example.
         SparkAppHandle handle = null;
         try {

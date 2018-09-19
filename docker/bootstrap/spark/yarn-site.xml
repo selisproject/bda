@@ -48,6 +48,13 @@
     </property>
     <!-- Yarn local cache options (These values are for development). -->
 
+    <!-- Yarn logs, retains for just 15s. (These values are for development). -->
+    <property>
+        <name>yarn.nodemanager.log.retain-seconds</name>
+        <value>15</value>
+    </property>
+    <!-- Yarn logs, retains for just 15s. (These values are for development). -->
+
     <!--
     <property>
         <name>yarn.scheduler.minimum-allocation-mb</name>

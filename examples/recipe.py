@@ -129,7 +129,7 @@ if __name__ == '__main__':
     print('(1) ----->{}'.format(rdd.first()))
     print(80 * '-')
 
-    result = compute(session.spark, sys.argv[1:])
+    result = compute(session.spark, sys.argv[9:])
 
     print(80 * '-')
     print('(2) ----->{}'.format(result))

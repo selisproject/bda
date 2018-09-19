@@ -8,4 +8,4 @@ curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" 
 
 curl -ik -X PUT -H "Content-type:application/json" -d @recipe.json http://localhost:9999/api/recipe/scn_slug/
 
-curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @pi.py http://localhost:9999/api/recipe/scn_slug/upload/1/pi.py
+curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @recipe.py http://localhost:9999/api/recipe/scn_slug/upload/1/recipe.py
