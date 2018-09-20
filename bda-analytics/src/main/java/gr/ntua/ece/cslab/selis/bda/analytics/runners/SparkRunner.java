@@ -64,7 +64,11 @@ public class SparkRunner extends ArgumentParser implements Runnable {
                 ScnDbInfo scn =  ScnDbInfo.getScnDbInfoBySlug(scnSlug);
 
                 launcher.addAppArgs(
+                    "--selis-scn-name", scn.getName(),
+                    "--selis-scn-slug", scn.getSlug(),
                     "--selis-scn-db", scn.getDtDbname(),
+                    "--selis-kpi-db", scn.getKpiDbname(),
+                    "--selis-kpi-table", kpiDescriptor.getName(),
                     "--selis-dt-url", configuration.storageBackend.getDimensionTablesURL(),
                     "--selis-dt-user", configuration.storageBackend.getDbUsername(),
                     "--selis-dt-pass", configuration.storageBackend.getDbPassword()
