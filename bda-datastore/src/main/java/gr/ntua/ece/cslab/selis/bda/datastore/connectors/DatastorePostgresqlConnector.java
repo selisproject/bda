@@ -226,11 +226,15 @@ public class DatastorePostgresqlConnector implements DatastoreConnector {
             Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            String q = "SELECT * FROM "+tablename+" WHERE ";
-            for (Map.Entry element : filters.entrySet()){
-                q+="cast("+element.getKey()+" as text) ='"+element.getValue()+"' AND ";
+            String q = "SELECT * FROM "+tablename;
+            if (!filters.isEmpty()) {
+                q += " WHERE ";
+
+                for (Map.Entry element : filters.entrySet()) {
+                    q += "cast(" + element.getKey() + " as text) ='" + element.getValue() + "' AND ";
+                }
+                q = q.substring(0, q.length() - 4) + ";";
             }
-            q=q.substring(0, q.length() - 4)+";";
             ResultSet rs = st.executeQuery(q);
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();

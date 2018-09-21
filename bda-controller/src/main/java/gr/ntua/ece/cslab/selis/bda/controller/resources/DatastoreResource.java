@@ -201,8 +201,14 @@ public class DatastoreResource {
             @PathParam("slug") String slug
     ) {
         try {
-            Map<String,String> map= Splitter.on('&').withKeyValueSeparator("=").split(filters);
-            HashMap<String, String> mapfilters = new HashMap<String, String>(map);
+            HashMap<String, String> mapfilters;
+            if(filters != null && !filters.isEmpty()) {
+                Map<String, String> map = Splitter.on('&').withKeyValueSeparator("=").split(filters);
+                mapfilters = new HashMap<String, String>(map);
+            }
+            else {
+                mapfilters = new HashMap<String, String>();
+            }
             return new StorageBackend(slug).select(tableName, mapfilters);
         } catch (Exception e) {
             e.printStackTrace();
