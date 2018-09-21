@@ -19,7 +19,7 @@
                             <goal>install-file</goal>
                         </goals>
                         <configuration>
-                            <file>${basedir}/lib/selis-pubsub-client-library-0.2.1.jar</file>
+                            <file>${basedir}/lib/client-library-0.2.1.jar</file>
                             <groupId>de.tu-dresden.selis.pubsub</groupId>
                             <artifactId>client-library</artifactId>
                             <version>0.2.1</version>
@@ -198,5 +198,4 @@
             <version>0.2.1</version>
         </dependency>
     </dependencies>
-
 </project>
