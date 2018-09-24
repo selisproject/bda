@@ -6,6 +6,7 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 
 import de.tu_dresden.selis.pubsub.*;
 import de.tu_dresden.selis.pubsub.PubSubException;
@@ -43,11 +44,15 @@ public class PubSubSubscriber implements Runnable {
     public void run() {
         PubSub pubsub = null;
 
+        Configuration configuration = Configuration.getInstance();
+
+        String certificateLocation = configuration.subscriber.getCertificateLocation();
+
         while (reloadMessageTypesFlag) {
             reloadMessageTypesFlag = false;
 
             try {
-                pubsub = new PubSub(this.hostname, this.portNumber);
+                pubsub = new PubSub(certificateLocation, this.hostname, this.portNumber);
                 this.messageTypeNames = new Vector<String>();
                 List<ScnDbInfo> SCNs = new LinkedList<>();
                 try {

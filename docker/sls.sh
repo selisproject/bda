@@ -20,7 +20,7 @@ SELIS_JDK_PULL_IMAGE="openjdk:8"
 SELIS_POSTGRES_PULL_IMAGE="postgres:latest"
 SELIS_HBASE_PULL_IMAGE="dajobe/hbase:latest"
 SELIS_KEYCLOAK_PULL_IMAGE="jboss/keycloak:latest"
-SELIS_PUBSUB_PULL_IMAGE="tudselis/pubsub:dev-1803071815"
+SELIS_PUBSUB_PULL_IMAGE="tudselis/pubsub:dev-1809221630"
 
 SELIS_BDA_CONTAINER="selis-controller"
 SELIS_HBASE_CONTAINER="selis-hbase"
@@ -308,6 +308,7 @@ then
             --hostname "$SELIS_PUBSUB_CONTAINER" \
             --publish 127.0.0.1:20000:20000 \
             --publish 127.0.0.1:20001:20001 \
+            --env HOSTNAME="$SELIS_PUBSUB_CONTAINER" \
             "$SELIS_PUBSUB_PULL_IMAGE"
     fi
 

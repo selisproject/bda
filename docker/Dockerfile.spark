@@ -71,4 +71,7 @@ RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --directory-
 ADD ./bootstrap/sales-forecast-supplier-7-warehouse-444.json /resources/
 ADD ./bootstrap/stock-levels-supplier-7-warehouse-444.json /resources/
 
+# Add the certificate, used to connect to pubsub.
+ADD ./bootstrap/root.crt /resources/
+
 ADD ./bootstrap/spark/entrypoint.sh /

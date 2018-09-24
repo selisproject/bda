@@ -98,7 +98,7 @@ public class Configuration {
         public String getSparkConfExecutorMemory() { return sparkConfExecutorMemory; }
     }
     public class PubSubSubscriber {
-        private String authHash, hostname;
+        private String authHash, hostname, certificateLocation;
         private int portNumber;
 
         public PubSubSubscriber(){
@@ -107,6 +107,8 @@ public class Configuration {
         public String getAuthHash() { return authHash; }
 
         public String getHostname() { return hostname; }
+
+        public String getCertificateLocation() { return certificateLocation; }
 
         public int getPortNumber() { return portNumber; }
 
@@ -210,6 +212,7 @@ public class Configuration {
             return null;
         }
         conf.subscriber.authHash = properties.getProperty("pubsub.authhash");
+        conf.subscriber.certificateLocation = properties.getProperty("pubsub.certificate.location");
 
         // Keycloak Auth Configuration.
         conf.authClientBackend.authServerUrl = properties.getProperty("keycloak.bda.url");
