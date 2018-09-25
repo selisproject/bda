@@ -120,8 +120,11 @@ public class KPIPostgresqlConnector implements KPIConnector {
                 List<KeyValue> entries = new LinkedList<>();
                 for (int i = 1; i <= columnsNumber; i++) {
                     String columnValue = rs.getString(i);
-                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
-                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
+                    if (rs.wasNull()) {
+                        columnValue = "null";
+                    }
+                    //if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
+                    entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
                 }
                 res.add(new Tuple(entries));
             }
@@ -147,8 +150,11 @@ public class KPIPostgresqlConnector implements KPIConnector {
                 List<KeyValue> entries = new LinkedList<>();
                 for (int i = 1; i <= columnsNumber; i++) {
                     String columnValue = rs.getString(i);
-                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
-                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
+                    if (rs.wasNull()) {
+                        columnValue = "null";
+                    }
+                    //if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
+                    entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
                 }
                 res.add(new Tuple(entries));
             }
