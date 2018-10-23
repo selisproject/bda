@@ -1,15 +1,16 @@
 package gr.ntua.ece.cslab.selis.bda.common.storage.connectors;
 
 import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PostgresqlConnector implements Connector {
+    static Logger LOGGER = Logger.getLogger(PostgresqlConnector.class.getCanonicalName());
 
     private String jdbcURL;
     private String username;
     private String password;
     private Connection connection;
-
-    private final static String CHECK_DATABASE_QUERY = "select count(*) as counter from pg_catalog.pg_database where datname = '%s';";
 
     private final static String CREATE_DATABASE_QUERY = "CREATE DATABASE %s WITH OWNER %s;";
 
@@ -31,17 +32,17 @@ public class PostgresqlConnector implements Connector {
             e.printStackTrace();
             return;
         }
-        System.out.println("PostgreSQL JDBC Driver Registered!");
+        LOGGER.log(Level.INFO, "PostgreSQL JDBC Driver Registered!");
 
         try {
             connection = DriverManager.getConnection(jdbcURL, username, password);
         } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
+            LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
             e.printStackTrace();
             return;
         }
         if (connection == null) {
-            System.out.println("Failed to make connection!");
+            LOGGER.log(Level.SEVERE, "Failed to make connection!");
         }
 
         // make sure autocommit is off
@@ -61,28 +62,23 @@ public class PostgresqlConnector implements Connector {
         try {
             localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
         } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
+            LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
             e.printStackTrace();
             throw e;
         }
 
-        PreparedStatement statement = localConnection.prepareStatement(
-                String.format(CHECK_DATABASE_QUERY, dbname));
+        try {
+            PreparedStatement statement = localConnection.prepareStatement(
+                    String.format(CREATE_DATABASE_QUERY, dbname, owner));
 
-        ResultSet rs = statement.executeQuery();
-
-        if (rs.next()){
-            if (rs.getInt("counter")==1){
-                localConnection.close();
-                return jdbcUrl + dbname;
-            }
+            statement.executeUpdate();
+            localConnection.close();
         }
-        statement = localConnection.prepareStatement(
-                String.format(CREATE_DATABASE_QUERY, dbname, owner));
-
-        statement.executeUpdate();
-
-        localConnection.close();
+        catch (Exception e){
+            e.printStackTrace();
+            localConnection.close();
+            throw e;
+        }
 
         return jdbcUrl + dbname;
     }
@@ -94,17 +90,24 @@ public class PostgresqlConnector implements Connector {
         try {
             localConnection = DriverManager.getConnection(jdbcUrl, username, password);
         } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
+            LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
             e.printStackTrace();
             throw e;
         }
 
-        PreparedStatement statement = localConnection.prepareStatement(
-            String.format(CREATE_DATABASE_SCHEMA_QUERY, schema, owner));
+        try {
+            PreparedStatement statement = localConnection.prepareStatement(
+                    String.format(CREATE_DATABASE_SCHEMA_QUERY, schema, owner));
 
-        statement.executeUpdate();
+            statement.executeUpdate();
+            localConnection.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            localConnection.close();
+            throw e;
+        }
 
-        localConnection.close();
     }
 
     public static void dropDatabase(String jdbcUrl, String username, String password,
@@ -116,17 +119,23 @@ public class PostgresqlConnector implements Connector {
         try {
             localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
         } catch (SQLException e) {
-            System.out.println("Connection Failed! Check output console");
+            LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
             e.printStackTrace();
             throw e;
         }
 
-        PreparedStatement statement = localConnection.prepareStatement(
-                String.format(DROP_DATABASE_QUERY, dbname));
+        try {
+            PreparedStatement statement = localConnection.prepareStatement(
+                    String.format(DROP_DATABASE_QUERY, dbname));
 
-        statement.executeUpdate();
-
-        localConnection.close();
+            statement.executeUpdate();
+            localConnection.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            localConnection.close();
+            throw e;
+        }
     }
 
     public Connection getConnection() {

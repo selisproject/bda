@@ -1,6 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
-import gr.ntua.ece.cslab.selis.bda.controller.beans.MessageType;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubSubscriber;
 
@@ -39,7 +39,6 @@ public class MessageResource {
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
-            PubSubSubscriber.reloadMessageTypes();
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -57,7 +56,7 @@ public class MessageResource {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        PubSubSubscriber.reloadMessageTypes();
         return new RequestResponse(status, details);
     }
 

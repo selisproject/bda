@@ -22,6 +22,9 @@ public class ScnDbInfo implements Serializable {
     private String name;
     private String description;
     private String dbname;
+    private transient String dtDbname;
+    private transient String elDbname;
+    private transient String kpiDbname;
 
     private final static String GET_SCN_QUERY =
             "SELECT id, slug, name, description, dbname " +
@@ -54,6 +57,9 @@ public class ScnDbInfo implements Serializable {
         this.name = name;
         this.description = description;
         this.dbname = dbname;
+        this.dtDbname = dbname + "_dt";
+        this.elDbname = dbname + "_el";
+        this.kpiDbname = dbname + "_kpi";
     }
 
     public int getId() {
@@ -92,6 +98,18 @@ public class ScnDbInfo implements Serializable {
         this.dbname = dbname;
     }
 
+    public String getDtDbname() { return dtDbname; }
+
+    public void setDtDbname(String dtDbname) { this.dtDbname = dtDbname; }
+
+    public String getElDbname() { return elDbname; }
+
+    public void setElDbname(String elDbname) { this.elDbname = elDbname; }
+
+    public String getKpiDbname() { return kpiDbname; }
+
+    public void setKpiDbname(String kpiDbname) { this.kpiDbname = kpiDbname; }
+
     @Override
     public String toString() {
         return "ScnDbInfo {" +
@@ -108,20 +126,28 @@ public class ScnDbInfo implements Serializable {
             PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
             Connection connection = connector.getConnection();
 
-            PreparedStatement statement = connection.prepareStatement(INSERT_SCN_QUERY);
+            try {
+                PreparedStatement statement = connection.prepareStatement(INSERT_SCN_QUERY);
 
-            statement.setString(1, this.slug);
-            statement.setString(2, this.name);
-            statement.setString(3, this.description);
-            statement.setString(4, this.dbname);
+                statement.setString(1, this.slug);
+                statement.setString(2, this.name);
+                statement.setString(3, this.description);
+                statement.setString(4, this.dbname);
 
-            ResultSet resultSet = statement.executeQuery();
+                ResultSet resultSet = statement.executeQuery();
 
-            connection.commit();
+                connection.commit();
 
-            if (resultSet.next()) {
-                this.id     = resultSet.getInt("id");
-                this.exists = true;
+                if (resultSet.next()) {
+                    this.id = resultSet.getInt("id");
+                    this.dtDbname = dbname + "_dt";
+                    this.elDbname = dbname + "_el";
+                    this.kpiDbname = dbname + "_kpi";
+                    this.exists = true;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                connection.rollback();
             }
         } else {
             // The object exists, it should be updated.

@@ -2,8 +2,7 @@
 		"tables":[
 				{
 				"name": "RAs",
-				"schema":[
-						{
+				"schema":{
 						"columnNames":["id","name","location"],
 						"columnTypes":[
 								{
@@ -17,7 +16,7 @@
 								"value":"text"
 						}],
 						"primaryKey":"id"
-				}],
+				},
 				"data":[
 						{
 						"tuple":[
@@ -46,7 +45,7 @@
 				}]
 		},{
 				"name": "warehouses",
-				"schema":[
+				"schema":
 						{
 						"columnNames":["id", "name", "address"],
 						"columnTypes":[
@@ -61,7 +60,7 @@
 								"value":"text"
 						}],
 						"primaryKey":"id"
-				}],
+				},
 				"data":[
 						{
 						"tuple":[

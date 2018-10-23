@@ -4,7 +4,6 @@ import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.ConnectorFactory;
-import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -68,13 +67,13 @@ public class SystemConnector {
         }
         for (ScnDbInfo SCN: SCNs){
             elConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                configuration.storageBackend.getEventLogURL()+SCN.getDbname(),
+                configuration.storageBackend.getEventLogURL()+SCN.getElDbname(),
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword()
             ));
 
             dtConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                configuration.storageBackend.getDimensionTablesURL()+SCN.getDbname(),
+                configuration.storageBackend.getDimensionTablesURL()+SCN.getDtDbname(),
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword()
             ));
@@ -86,26 +85,26 @@ public class SystemConnector {
             );*/
 
             kpiConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                configuration.kpiBackend.getDbUrl()+SCN.getDbname(),
+                configuration.kpiBackend.getDbUrl()+SCN.getKpiDbname(),
                 configuration.kpiBackend.getDbUsername(),
                 configuration.kpiBackend.getDbPassword()
             ));
         }
     }
 
-    public void createScnDatabase(String scnSlug, String dbname) 
+    public void createScnDatabase(ScnDbInfo scn)
         throws SystemConnectorException, UnsupportedOperationException {
 
+        String scnSlug = scn.getSlug();
         Vector<String> schemas = new Vector<String>(1);
         schemas.add("metadata");
-
 
         String databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
             configuration.storageBackend.getDimensionTablesURL(),
             configuration.storageBackend.getDbPrivilegedUsername(),
             configuration.storageBackend.getDbPrivilegedPassword(),
             configuration.storageBackend.getDbUsername(),
-            dbname, 
+            scn.getDtDbname(),
             schemas
         );
 
@@ -122,7 +121,7 @@ public class SystemConnector {
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword(),
                 configuration.storageBackend.getDbUsername(),
-                dbname,
+                scn.getElDbname(),
                 null
         );
 
@@ -134,16 +133,13 @@ public class SystemConnector {
 
         elConnectors.put(scnSlug, elConnector);
 
-        schemas = new Vector<>(1);
-        schemas.add("kpi");
-
         databaseUrl = ConnectorFactory.createNewDatabaseWithSchemas(
                 configuration.kpiBackend.getDbUrl(),
                 configuration.storageBackend.getDbPrivilegedUsername(),
                 configuration.storageBackend.getDbPrivilegedPassword(),
                 configuration.kpiBackend.getDbUsername(),
-                dbname,
-                schemas
+                scn.getKpiDbname(),
+                null
         );
 
         Connector kpiConnector = ConnectorFactory.getInstance().generateConnector(
@@ -155,9 +151,10 @@ public class SystemConnector {
         kpiConnectors.put(scnSlug, kpiConnector);
     }
 
-    public void destroyScnDatabase(String scnSlug, String dbname)
+    public void destroyScnDatabase(ScnDbInfo scn)
             throws UnsupportedOperationException, SystemConnectorException {
 
+        String scnSlug = scn.getSlug();
         getDTconnector(scnSlug).close();
         getELconnector(scnSlug).close();
         getKPIconnector(scnSlug).close();
@@ -167,7 +164,7 @@ public class SystemConnector {
                 configuration.storageBackend.getDbPrivilegedUsername(),
                 configuration.storageBackend.getDbPrivilegedPassword(),
                 configuration.storageBackend.getDbUsername(),
-                dbname
+                scn.getDtDbname()
         );
         dtConnectors.remove(scnSlug);
 
@@ -176,18 +173,17 @@ public class SystemConnector {
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword(),
                 configuration.storageBackend.getDbUsername(),
-                dbname
+                scn.getElDbname()
         );
         elConnectors.remove(scnSlug);
 
-        // TODO: This comment should be removed when separate database names will be used
-        /*ConnectorFactory.dropDatabase(
+        ConnectorFactory.dropDatabase(
                 configuration.kpiBackend.getDbUrl(),
                 configuration.storageBackend.getDbPrivilegedUsername(),
                 configuration.storageBackend.getDbPrivilegedPassword(),
                 configuration.kpiBackend.getDbUsername(),
-                dbname
-        );*/
+                scn.getKpiDbname()
+        );
         kpiConnectors.remove(scnSlug);
     }
 

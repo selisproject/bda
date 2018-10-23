@@ -19,9 +19,9 @@ public class KPIPostgresqlConnector implements KPIConnector {
     public void create(KPITable kpi_table) throws Exception {
         Statement st = conn.getConnection().createStatement();
         List<KeyValue> columns = kpi_table.getKpi_schema().getColumnTypes();
-        st.addBatch("DROP TABLE IF EXISTS kpi."+kpi_table.getKpi_name()+";");
+        st.addBatch("DROP TABLE IF EXISTS "+kpi_table.getKpi_name()+";");
 
-        String q="CREATE TABLE kpi." + kpi_table.getKpi_name() + " (id SERIAL PRIMARY KEY, timestamp timestamp, ";
+        String q="CREATE TABLE " + kpi_table.getKpi_name() + " (id SERIAL PRIMARY KEY, timestamp timestamp, ";
         for (KeyValue element : columns){
             q+=element.getKey()+" "+element.getValue();
             q+=",";
@@ -29,7 +29,7 @@ public class KPIPostgresqlConnector implements KPIConnector {
         q=q.substring(0, q.length() - 1)+");";
         System.out.println(q);
         st.addBatch(q);
-        st.addBatch("ALTER TABLE kpi." + kpi_table.getKpi_name() + " OWNER TO "+ conn.getUsername() +";");
+        st.addBatch("ALTER TABLE " + kpi_table.getKpi_name() + " OWNER TO "+ conn.getUsername() +";");
         st.executeBatch();
         conn.getConnection().commit();
     }
@@ -39,7 +39,7 @@ public class KPIPostgresqlConnector implements KPIConnector {
         try {
             if (kpi.getEntries().size()>0) {
                 String values = "";
-                String insertTableSQL = "INSERT INTO kpi." + kpi.getKpi_name() + " (";
+                String insertTableSQL = "INSERT INTO " + kpi.getKpi_name() + " (";
                 insertTableSQL +=  "timestamp,";
                 values += "?,";
                 List<KeyValue> types = this.describe(kpi.getKpi_name()).getKpi_schema().getColumnTypes();
@@ -104,7 +104,7 @@ public class KPIPostgresqlConnector implements KPIConnector {
             Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            String sqlQuery = "SELECT * FROM kpi."+ kpi_name;
+            String sqlQuery = "SELECT * FROM "+ kpi_name;
             if (filters.getTuple().size() > 0) {
                 sqlQuery += " WHERE";
                 for (KeyValue filter : filters.getTuple()) {
@@ -120,8 +120,11 @@ public class KPIPostgresqlConnector implements KPIConnector {
                 List<KeyValue> entries = new LinkedList<>();
                 for (int i = 1; i <= columnsNumber; i++) {
                     String columnValue = rs.getString(i);
-                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
-                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
+                    if (rs.wasNull()) {
+                        columnValue = "null";
+                    }
+                    //if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
+                    entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
                 }
                 res.add(new Tuple(entries));
             }
@@ -140,15 +143,18 @@ public class KPIPostgresqlConnector implements KPIConnector {
             Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            ResultSet rs = st.executeQuery("SELECT * FROM kpi." + kpi_name + " order by timestamp desc limit "+n+";");
+            ResultSet rs = st.executeQuery("SELECT * FROM " + kpi_name + " order by timestamp desc limit "+n+";");
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             while (rs.next()) {
                 List<KeyValue> entries = new LinkedList<>();
                 for (int i = 1; i <= columnsNumber; i++) {
                     String columnValue = rs.getString(i);
-                    if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
-                        entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
+                    if (rs.wasNull()) {
+                        columnValue = "null";
+                    }
+                    //if (!columnValue.equalsIgnoreCase("null") && !columnValue.matches(""))
+                    entries.add(new KeyValue(rsmd.getColumnName(i), columnValue));
                 }
                 res.add(new Tuple(entries));
             }
@@ -168,7 +174,7 @@ public class KPIPostgresqlConnector implements KPIConnector {
             Statement st = conn.getConnection().createStatement();
             // Turn use of the cursor on.
             st.setFetchSize(1000);
-            ResultSet rs = st.executeQuery("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = 'kpi."+kpi_name+"';");
+            ResultSet rs = st.executeQuery("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = '"+kpi_name+"';");
             while (rs.next()) {
                 columnNames.add(rs.getString(1));
                 columnTypes.add(new KeyValue(rs.getString(1),rs.getString(2)));

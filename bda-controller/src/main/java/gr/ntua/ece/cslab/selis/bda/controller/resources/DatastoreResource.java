@@ -9,13 +9,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import com.google.common.base.Splitter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.*;
-import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 /**
  * This class holds the REST API of the datastore object.
  * Created by Giannis Giannakopoulos on 10/11/17.
@@ -51,14 +50,26 @@ public class DatastoreResource {
 
         try {
             StorageBackend.createNewScn(scn);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-
+            LOGGER.log(Level.INFO, "Clearing SCN registry and databases after failure.");
+            try {
+                StorageBackend.destroyScn(scn);
+            } catch (Exception e1) {
+            }
+            try {
+                ScnDbInfo.destroy(scn.getId());
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Could not clear SCN registry, after databases creation failed!");
+            }
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return new RequestResponse("ERROR", "Could not create new SCN.");
         }
 
-        response.setStatus(HttpServletResponse.SC_CREATED);
         try {
             if (response != null) {
                 response.flushBuffer();
@@ -78,7 +89,7 @@ public class DatastoreResource {
     @Path("destroy")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse createNewScn(@Context HttpServletResponse response,
+    public RequestResponse destroyScn(@Context HttpServletResponse response,
             @QueryParam("scnId") Integer scnId) {
 
         try {
@@ -93,6 +104,9 @@ public class DatastoreResource {
 
         try {
             ScnDbInfo.destroy(scnId);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -100,7 +114,6 @@ public class DatastoreResource {
             return new RequestResponse("ERROR", "Could not destroy SCN.");
         }
 
-        response.setStatus(HttpServletResponse.SC_CREATED);
         try {
             if (response != null) {
                 response.flushBuffer();
@@ -126,12 +139,16 @@ public class DatastoreResource {
         LOGGER.log(Level.INFO, m.toString());
         try {
             new StorageBackend(slug).insert(m);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        response.setStatus(HttpServletResponse.SC_CREATED);
         try {
-            response.flushBuffer();
+            if (response != null) {
+                response.flushBuffer();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -150,15 +167,19 @@ public class DatastoreResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse bootstrap(@Context HttpServletResponse response,
                                      @PathParam("slug") String slug,
-                                     MasterData masterData) throws IOException {
+                                     MasterData masterData) {
         try {
             new StorageBackend(slug).init(masterData);
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        response.setStatus(HttpServletResponse.SC_CREATED);
         try {
-            response.flushBuffer();
+            if (response != null) {
+                response.flushBuffer();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -180,8 +201,14 @@ public class DatastoreResource {
             @PathParam("slug") String slug
     ) {
         try {
-            Map<String,String> map= Splitter.on('&').withKeyValueSeparator("=").split(filters);
-            HashMap<String, String> mapfilters = new HashMap<String, String>(map);
+            HashMap<String, String> mapfilters;
+            if(filters != null && !filters.isEmpty()) {
+                Map<String, String> map = Splitter.on('&').withKeyValueSeparator("=").split(filters);
+                mapfilters = new HashMap<String, String>(map);
+            }
+            else {
+                mapfilters = new HashMap<String, String>();
+            }
             return new StorageBackend(slug).select(tableName, mapfilters);
         } catch (Exception e) {
             e.printStackTrace();
@@ -217,7 +244,7 @@ public class DatastoreResource {
     public List<DimensionTable> getSchema(@PathParam("slug") String slug) {
         try {
             List<String> tables = new StorageBackend(slug).listTables();
-            List res = new LinkedList<>();
+            List<DimensionTable> res = new LinkedList<>();
             for (String table: tables){
                 DimensionTable schema = new StorageBackend(slug).getSchema(table);
                 LOGGER.log(Level.INFO, "Table: " +table + ", Columns: "+ schema.getSchema().getColumnNames());
@@ -248,7 +275,7 @@ public class DatastoreResource {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new LinkedList();
+        return new LinkedList<>();
     }
 
     /**

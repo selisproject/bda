@@ -1,12 +1,9 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
-
-import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
-import gr.ntua.ece.cslab.selis.bda.controller.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
@@ -14,6 +11,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.*;
 import java.sql.SQLException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.List;
 import java.util.LinkedList;
@@ -24,8 +22,8 @@ public class RecipeResource {
     private final static Logger LOGGER = Logger.getLogger(RecipeResource.class.getCanonicalName());
 
     /**
-     * Job description insert method
-     * @param m the job description to insert
+     * Recipe insert method
+     * @param r the recipe to insert
      */
     @PUT
     @Path("{slug}")
@@ -33,30 +31,40 @@ public class RecipeResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse insert(@Context HttpServletResponse response,
                                   @PathParam("slug") String slug,
-                                  String m) {
+                                  Recipe r) {
 
         String status = "OK";
         String details = "";
 
-        JSONObject obj = new JSONObject(m);
-
-        Recipe r = new Recipe(obj.getString("name"),
-                obj.getString("description"),
-                obj.getString("executablePath"),
-                obj.getInt("engineId"),
-                obj.getJSONObject("args").toString());
-
         try {
-            r.save(slug);
 
-            details = Integer.toString(r.getId());
+            List<ExecutionEngine> engines = ExecutionEngine.getEngines();
 
-            if (response != null) {
-                response.setStatus(HttpServletResponse.SC_CREATED);
+            boolean correctEngine = false;
+            for (ExecutionEngine engine : engines) {
+                if (engine.getId() == r.getEngineId()) {
+                    correctEngine = true;
+                }
+            }
+
+            if (correctEngine) {
+                r.save(slug);
+
+                details = Integer.toString(r.getId());
+
+                if (response != null) {
+                    response.setStatus(HttpServletResponse.SC_CREATED);
+                }
+            }
+            else {
+                LOGGER.log(Level.WARNING, "Bad engine id provided!");
+                if (response != null) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(e.toString());
+            LOGGER.log(Level.SEVERE, e.toString());
 
             status = "ERROR";
             if (response != null) {
@@ -79,31 +87,26 @@ public class RecipeResource {
     @Path("{slug}/upload/{id}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public RequestResponse upload(@PathParam("slug") String slug,
-                                  @PathParam("id") int recipe_id,
-                                  @PathParam("filename") String recipe_name,
-                                  InputStream recipe)  {
+                                  @PathParam("id") int recipeId,
+                                  @PathParam("filename") String recipeName,
+                                  InputStream recipeBinary)  {
 
         String status = "OK";
         String details = "";
 
-        String binaryPath = "/uploads/" + recipe_id + "_" + recipe_name;
-        saveFile(recipe, binaryPath);
+        String binaryPath = "/uploads/" + recipeId + "_" + recipeName;
 
+        saveFile(recipeBinary, binaryPath);
 
-        Recipe r = Recipe.getRecipeById(slug, recipe_id);
-        System.out.println(r.toString());
-        r.setExecutablePath(binaryPath);
-        System.out.println(r.toString());
+        Recipe recipe = Recipe.getRecipeById(slug, recipeId);
+        recipe.setExecutablePath(binaryPath);
 
         try {
-            r.updateBinaryPath(slug);
+            recipe.save(slug);
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        //Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(
-        //        r.getId(), r.getName(), r.getDescription(), r.getEngine_id(),
-        //        new JSONObject(r.getArgs()), r.getExecutable_path());
         return new RequestResponse(status, details);
     }
 

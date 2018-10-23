@@ -1,5 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+
 import de.tu_dresden.selis.pubsub.PubSub;
 import de.tu_dresden.selis.pubsub.Message;
 import de.tu_dresden.selis.pubsub.PubSubException;
@@ -14,7 +16,11 @@ public class PubSubPublisher {
     private static PubSub publisher;
 
     public PubSubPublisher(String hostname, int portNumber) {
-        this.publisher = new PubSub(hostname, portNumber);
+        Configuration configuration = Configuration.getInstance();
+
+        String certificateLocation = configuration.subscriber.getCertificateLocation();
+
+        this.publisher = new PubSub(certificateLocation, hostname, portNumber);
     }
 
     public void publish(HashMap<String,String> message) {

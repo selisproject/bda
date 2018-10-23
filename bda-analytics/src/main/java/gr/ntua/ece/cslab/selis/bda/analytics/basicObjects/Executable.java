@@ -11,17 +11,16 @@ package gr.ntua.ece.cslab.selis.bda.analytics.basicObjects;
 import java.util.List;
 
 import com.google.gson.Gson;
-import org.json.JSONObject;
 
 public class Executable {
 	private int engineID;
-	private JSONObject args;
+	private String args;
 	private String osPath;
 
 	public Executable() {
 	}
 
-	public Executable(int engineID, JSONObject args, String osPath) {
+	public Executable(int engineID, String args, String osPath) {
 		this.engineID = engineID;
 		this.args = args;
 		this.osPath = osPath;
@@ -35,11 +34,11 @@ public class Executable {
 		this.engineID = engineID;
 	}
 
-	public JSONObject getArgs() {
+	public String getArgs() {
 		return args;
 	}
 
-	public void setArgs(JSONObject args) {
+	public void setArgs(String args) {
 		this.args = args;
 	}
 

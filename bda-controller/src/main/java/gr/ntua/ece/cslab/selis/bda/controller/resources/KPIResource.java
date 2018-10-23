@@ -16,6 +16,7 @@ import org.json.XML;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -64,17 +65,33 @@ public class KPIResource {
                 for (KeyValue cell : tuple.getTuple()) {
                     for (KeyValue type : table.getKpi_schema().getColumnTypes()) {
                         if (cell.getKey().equals(type.getKey())) {
-                            if (type.getValue().contains("integer"))
+                            if (type.getValue().contains("integer")) {
+                                if (cell.getValue() == "null") {
+                                    cell.setValue("-1");
+                                }
                                 row.put(cell.getKey(), Integer.valueOf(cell.getValue()));
-                            else if (type.getValue().contains("bigint"))
+                            }
+                            else if (type.getValue().contains("bigint")) {
+                                if (cell.getValue() == "null") {
+                                    cell.setValue("-1");
+                                }
                                 row.put(cell.getKey(), Long.valueOf(cell.getValue()));
-                            else if (type.getValue().contains("json"))
+                            }
+                            else if (type.getValue().contains("json")) {
+                                if (cell.getValue() == "null") {
+                                    cell.setValue("{}");
+                                }
                                 if (cell.getValue().startsWith("["))
                                     row.put(cell.getKey(), new JSONArray(cell.getValue()));
                                 else
                                     row.put(cell.getKey(), new JSONObject(cell.getValue()));
-                            else
+                            }
+                            else {
+                                if (cell.getValue() == "null") {
+                                    cell.setValue("");
+                                }
                                 row.put(cell.getKey(), cell.getValue());
+                            }
                         }
                     }
                 }
@@ -126,17 +143,33 @@ public class KPIResource {
                 for (KeyValue cell : tuple.getTuple()) {
                     for (KeyValue type : table.getKpi_schema().getColumnTypes()) {
                         if (cell.getKey().equals(type.getKey())) {
-                            if (type.getValue().contains("integer"))
+                            if (type.getValue().contains("integer")) {
+                                if (cell.getValue() == "null") {
+                                    cell.setValue("-1");
+                                }
                                 row.put(cell.getKey(), Integer.valueOf(cell.getValue()));
-                            else if (type.getValue().contains("bigint"))
+                            }
+                            else if (type.getValue().contains("bigint")) {
+                                if (cell.getValue() == "null") {
+                                    cell.setValue("-1");
+                                }
                                 row.put(cell.getKey(), Long.valueOf(cell.getValue()));
-                            else if (type.getValue().contains("json"))
+                            }
+                            else if (type.getValue().contains("json")) {
+                                if (cell.getValue() == "null") {
+                                    cell.setValue("{}");
+                                }
                                 if (cell.getValue().startsWith("["))
                                     row.put(cell.getKey(), new JSONArray(cell.getValue()));
                                 else
                                     row.put(cell.getKey(), new JSONObject(cell.getValue()));
-                            else
+                            }
+                            else {
+                                if (cell.getValue() == "null") {
+                                    cell.setValue("");
+                                }
                                 row.put(cell.getKey(), cell.getValue());
+                            }
                         }
                     }
                 }

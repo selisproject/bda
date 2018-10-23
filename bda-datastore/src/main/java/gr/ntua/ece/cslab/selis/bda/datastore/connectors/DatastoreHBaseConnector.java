@@ -30,10 +30,6 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
         this.tableName = TableName.valueOf(conn.getNamespace()+":Events");
     }
 
-    public void createMetaTables() throws DatastoreException, UnsupportedOperationException {
-        throw new java.lang.UnsupportedOperationException("Creating Metadata tables in HBase is not supported.");
-    }
-
     public String put(Message row) throws IOException {
         Admin admin = conn.getConnection().getAdmin();
         String rowkey = null;

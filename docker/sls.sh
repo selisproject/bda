@@ -16,17 +16,20 @@ SELIS_POSTGRES_IMAGE="selis-postgres:latest"
 SELIS_HBASE_IMAGE="selis-hbase:latest"
 SELIS_SPARK_IMAGE="selis-spark:latest"
 
-SELIS_JDK_PULL_IMAGE="openjdk:latest"
+SELIS_JDK_PULL_IMAGE="openjdk:8"
 SELIS_POSTGRES_PULL_IMAGE="postgres:latest"
 SELIS_HBASE_PULL_IMAGE="dajobe/hbase:latest"
 SELIS_KEYCLOAK_PULL_IMAGE="jboss/keycloak:latest"
+SELIS_PUBSUB_PULL_IMAGE="tudselis/pubsub:dev-1809221630"
 
 SELIS_BDA_CONTAINER="selis-controller"
 SELIS_HBASE_CONTAINER="selis-hbase"
 SELIS_POSTGRES_CONTAINER="selis-postgres"
 SELIS_KEYCLOAK_CONTAINER="selis-keycloak"
 SELIS_SPARK_MASTER_CONTAINER="selis-spark-master"
-SELIS_SPARK_WORKER_CONTAINER="selis-spark-worker"
+SELIS_SPARK_WORKER_CONTAINER_0="selis-spark-worker-0"
+SELIS_SPARK_WORKER_CONTAINER_1="selis-spark-worker-1"
+SELIS_PUBSUB_CONTAINER="selis-pubsub"
 
 
 ################################################################################
@@ -42,7 +45,9 @@ then
     docker rm "$SELIS_POSTGRES_CONTAINER"
     docker rm "$SELIS_KEYCLOAK_CONTAINER"
     docker rm "$SELIS_SPARK_MASTER_CONTAINER"
-    docker rm "$SELIS_SPARK_WORKER_CONTAINER"
+    docker rm "$SELIS_SPARK_WORKER_CONTAINER_0"
+    docker rm "$SELIS_SPARK_WORKER_CONTAINER_1"
+    docker rm "$SELIS_PUBSUB_CONTAINER"
 
     docker rmi "$SELIS_BDA_IMAGE"
     docker rmi "$SELIS_POSTGRES_IMAGE"
@@ -93,6 +98,14 @@ then
     echo "Pulling keycloak image..."
 
     docker pull "$SELIS_KEYCLOAK_PULL_IMAGE"
+fi
+
+SELIS_PUBSUB_IMAGE_ID="$(docker images --quiet "$SELIS_PUBSUB_PULL_IMAGE")"
+if [ "$SELIS_PUBSUB_IMAGE_ID" == "" ]
+then
+    echo "Pulling pubsub image..."
+
+    docker pull "$SELIS_PUBSUB_PULL_IMAGE"
 fi
 
 ################################################################################
@@ -269,11 +282,34 @@ then
             --detach \
             --network "$SELIS_NETWORK" \
             --publish 127.0.0.1:8081:8081 \
-            --hostname "$SELIS_SPARK_WORKER_CONTAINER" \
-            --name "$SELIS_SPARK_WORKER_CONTAINER" \
+            --hostname "$SELIS_SPARK_WORKER_CONTAINER_0" \
+            --name "$SELIS_SPARK_WORKER_CONTAINER_0" \
             "$SELIS_SPARK_IMAGE" \
             /entrypoint.sh worker
 
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --publish 127.0.0.1:8082:8082 \
+            --hostname "$SELIS_SPARK_WORKER_CONTAINER_1" \
+            --name "$SELIS_SPARK_WORKER_CONTAINER_1" \
+            "$SELIS_SPARK_IMAGE" \
+            /entrypoint.sh worker
+    fi
+
+    if [ "$2" == "pubsub" ] || [ "$2" == "all" ]
+    then
+        echo "Running pubsub container."
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --name "$SELIS_PUBSUB_CONTAINER" \
+            --hostname "$SELIS_PUBSUB_CONTAINER" \
+            --publish 127.0.0.1:20000:20000 \
+            --publish 127.0.0.1:20001:20001 \
+            --env HOSTNAME="$SELIS_PUBSUB_CONTAINER" \
+            "$SELIS_PUBSUB_PULL_IMAGE"
     fi
 
     if [ "$2" == "controller" ] || [ "$2" == "all" ]
@@ -304,8 +340,11 @@ then
     docker start "$SELIS_POSTGRES_CONTAINER"
     docker start "$SELIS_KEYCLOAK_CONTAINER"
     docker start "$SELIS_SPARK_MASTER_CONTAINER"
-    docker start "$SELIS_SPARK_WORKER_CONTAINER"
+    docker start "$SELIS_SPARK_WORKER_CONTAINER_0"
+    docker start "$SELIS_SPARK_WORKER_CONTAINER_1"
+    docker start "$SELIS_PUBSUB_CONTAINER"
     docker start "$SELIS_BDA_CONTAINER"
+
 fi
 
 
@@ -318,10 +357,12 @@ then
     echo "Stopping all containers..."
 
     docker stop "$SELIS_BDA_CONTAINER"
+    docker stop "$SELIS_PUBSUB_CONTAINER"
     docker stop "$SELIS_HBASE_CONTAINER"
     docker stop "$SELIS_POSTGRES_CONTAINER"
     docker stop "$SELIS_KEYCLOAK_CONTAINER"
     docker stop "$SELIS_SPARK_MASTER_CONTAINER"
-    docker stop "$SELIS_SPARK_WORKER_CONTAINER"
+    docker stop "$SELIS_SPARK_WORKER_CONTAINER_0"
+    docker stop "$SELIS_SPARK_WORKER_CONTAINER_1"
 
 fi

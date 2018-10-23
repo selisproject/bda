@@ -7,7 +7,6 @@ import com.google.gson.Gson;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.Executable;
-import org.json.JSONObject;
 
 public class KpiCatalog {
 	private HashMap<Integer, KpiDescriptor> kpis;
@@ -28,7 +27,7 @@ public class KpiCatalog {
 	}
 
 	public void addNewKpi(int recipe_id, String name, String description, int engine_id,
-						  JSONObject args, String ospath) {
+						  String args, String ospath) {
 		KpiDescriptor newKpi = new KpiDescriptor(name, description,
 				new Executable(engine_id, args, ospath));
 		kpis.put(recipe_id, newKpi);

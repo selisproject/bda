@@ -18,6 +18,43 @@
         <value>selis-spark-master</value>
         <description>The hostname of the RM.</description>
     </property>
+
+    <!-- SparkLauncher Client Mode Settings.
+
+    The following two settings are to solve an issue with SparkLauncher
+    when running on client mode.
+
+    More here:
+        https://stackoverflow.com/questions/43262836/apache-spark-running-spark-shell-on-yarn-error
+    -->
+    <property>
+        <name>yarn.nodemanager.pmem-check-enabled</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.vmem-check-enabled</name>
+        <value>false</value>
+    </property>
+    <!-- SparkLauncher Client Mode Settings. -->
+
+    <!-- Yarn local cache options (These values are for development). -->
+    <property>
+        <name>yarn.nodemanager.localizer.cache.cleanup.interval-ms</name>
+        <value>120000</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.localizer.cache.target-size-mb</name>
+        <value>512</value>
+    </property>
+    <!-- Yarn local cache options (These values are for development). -->
+
+    <!-- Yarn logs, retains for just 15s. (These values are for development). -->
+    <property>
+        <name>yarn.nodemanager.log.retain-seconds</name>
+        <value>15</value>
+    </property>
+    <!-- Yarn logs, retains for just 15s. (These values are for development). -->
+
     <!--
     <property>
         <name>yarn.scheduler.minimum-allocation-mb</name>
