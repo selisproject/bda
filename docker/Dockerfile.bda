@@ -11,6 +11,10 @@ RUN mkdir /code
 
 RUN chown -R $localuser:$localuser /code
 
+# Ugly Hack to make `postgresql-client` installation
+# work with a `slim` openjdk-debian image.
+RUN mkdir /usr/share/man/man7
+
 # Install packages.
 RUN apt-get update && apt-get install -y \
     postgresql-client \
