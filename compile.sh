@@ -1,3 +1,4 @@
+mvn clean
 mvn initialize
 
 OPTIONS=""
