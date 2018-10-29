@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * KPIResource holds the method for the analytics module.
+ * KPIResource holds the method for the analyticsml module.
  * Created by Giannis Giannakopoulos on 10/11/17.
  */
 @Path("kpi")

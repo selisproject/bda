@@ -1,6 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
-import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
+import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
@@ -172,11 +172,11 @@ public class PubSubSubscriber implements Runnable {
 
         MessageType msgInfo = MessageType.getMessageByName(scnSlug, messageType);
         try {
+            // TODO: handle multiple jobs related to a single message
             JobDescription job = JobDescription.getJobByMessageId(scnSlug, msgInfo.getId());
 
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], Launching " + job.getName() + " recipe.");
-            // TODO: check job.getJob_type()
-            (new AnalyticsInstance(scnSlug)).run(job.getRecipeId(), message_id);
+            (new RunnerInstance(scnSlug)).run(job.getRecipeId(), job.getJob_type(), message_id);
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], No recipe found for message " + messageType + ".");
         }
