@@ -1,6 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
-import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
@@ -106,8 +105,8 @@ public class Entrypoint {
 
         // Hardcoded Analytics Job Run.
         /*
-        AnalyticsInstance analytics = new AnalyticsInstance("sonae_slug");
-        analytics.run(1, "666");
+        AnalyticsInstance analyticsml = new AnalyticsInstance("sonae_slug");
+        analyticsml.run(1, "666");
 
         // Hardcoded SparkLauncher example.
         SparkAppHandle handle = null;
