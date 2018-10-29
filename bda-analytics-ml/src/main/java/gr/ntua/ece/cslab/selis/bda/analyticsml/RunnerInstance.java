@@ -3,7 +3,6 @@ package gr.ntua.ece.cslab.selis.bda.analyticsml;
 import gr.ntua.ece.cslab.selis.bda.analyticsml.runners.RunnerFactory;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Recipe;
-
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
 import java.sql.SQLException;
