@@ -71,7 +71,6 @@ public class HBaseConnector implements Connector {
             HBaseAdmin.checkHBaseAvailable(conf);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
             throw e;
         }
 
@@ -81,7 +80,6 @@ public class HBaseConnector implements Connector {
             admin = ConnectionFactory.createConnection(conf).getAdmin();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
-            e.printStackTrace();
             throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase connection initialized.");
@@ -92,7 +90,6 @@ public class HBaseConnector implements Connector {
             admin.createNamespace(NamespaceDescriptor.create(dbname).build());
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of namespace failed! Check output console.");
-            e.printStackTrace();
             throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase namespace created.");
@@ -107,7 +104,6 @@ public class HBaseConnector implements Connector {
             admin.close();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of Events table in namespace failed! Check output console.");
-            e.printStackTrace();
             throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase namespace created.");
@@ -127,7 +123,6 @@ public class HBaseConnector implements Connector {
             HBaseAdmin.checkHBaseAvailable(conf);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
             throw e;
         }
 
@@ -137,7 +132,6 @@ public class HBaseConnector implements Connector {
             admin = ConnectionFactory.createConnection(conf).getAdmin();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
-            e.printStackTrace();
             throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase Admin connection initialized.");
@@ -152,7 +146,6 @@ public class HBaseConnector implements Connector {
             admin.close();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Destroy of namespace failed! Check output console.");
-            e.printStackTrace();
             throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase namespace deleted.");

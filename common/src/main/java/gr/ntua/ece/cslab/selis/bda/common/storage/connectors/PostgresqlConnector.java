@@ -63,7 +63,6 @@ public class PostgresqlConnector implements Connector {
             localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
-            e.printStackTrace();
             throw e;
         }
 
@@ -75,7 +74,6 @@ public class PostgresqlConnector implements Connector {
             localConnection.close();
         }
         catch (Exception e){
-            e.printStackTrace();
             localConnection.close();
             throw e;
         }
@@ -91,7 +89,6 @@ public class PostgresqlConnector implements Connector {
             localConnection = DriverManager.getConnection(jdbcUrl, username, password);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
-            e.printStackTrace();
             throw e;
         }
 
@@ -103,7 +100,6 @@ public class PostgresqlConnector implements Connector {
             localConnection.close();
         }
         catch (Exception e){
-            e.printStackTrace();
             localConnection.close();
             throw e;
         }
@@ -120,7 +116,6 @@ public class PostgresqlConnector implements Connector {
             localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
-            e.printStackTrace();
             throw e;
         }
 
@@ -132,7 +127,6 @@ public class PostgresqlConnector implements Connector {
             localConnection.close();
         }
         catch (Exception e){
-            e.printStackTrace();
             localConnection.close();
             throw e;
         }
