@@ -42,6 +42,8 @@ public class DatastoreResource {
 
             details = Integer.toString(scn.getId());
         } catch (Exception e) {
+            e.printStackTrace();
+
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return new RequestResponse("ERROR", "Could not register new SCN.");
         }
@@ -52,6 +54,7 @@ public class DatastoreResource {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
         } catch (Exception e) {
+            e.printStackTrace();
             LOGGER.log(Level.INFO, "Clearing SCN registry and databases after failure.");
             try {
                 StorageBackend.destroyScn(scn);
@@ -60,6 +63,7 @@ public class DatastoreResource {
             try {
                 ScnDbInfo.destroy(scn.getId());
             } catch (SQLException e1) {
+                e1.printStackTrace();
                 LOGGER.log(Level.SEVERE, "Could not clear SCN registry, after databases creation failed!");
             }
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -92,6 +96,8 @@ public class DatastoreResource {
             ScnDbInfo scn = ScnDbInfo.getScnDbInfoById(scnId);
             StorageBackend.destroyScn(scn);
         } catch (Exception e) {
+            e.printStackTrace();
+
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return new RequestResponse("ERROR", "Could not destroy SCN databases.");
         }
@@ -102,6 +108,8 @@ public class DatastoreResource {
                 response.setStatus(HttpServletResponse.SC_CREATED);
             }
         } catch (Exception e) {
+            e.printStackTrace();
+
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return new RequestResponse("ERROR", "Could not destroy SCN.");
         }

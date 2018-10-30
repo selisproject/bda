@@ -148,7 +148,7 @@ public class ScnDbInfo implements Serializable {
             } catch (SQLException e) {
                 e.printStackTrace();
                 connection.rollback();
-                throw e;
+                throw new SQLException("Failed to insert ScnDbInfo object.");
             }
         } else {
             // The object exists, it should be updated.

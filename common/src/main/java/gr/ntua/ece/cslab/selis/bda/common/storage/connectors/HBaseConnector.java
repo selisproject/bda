@@ -37,11 +37,7 @@ public class HBaseConnector implements Connector {
         // Check HBase Availability.
         try {
             HBaseAdmin.checkHBaseAvailable(conf);
-        } catch (ServiceException e) {
-            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return;
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
             e.printStackTrace();
             return;
@@ -64,7 +60,7 @@ public class HBaseConnector implements Connector {
         return connection;
     }
 
-    public static String createNamespace(String fs, String username, String password, String dbname) {
+    public static String createNamespace(String fs, String username, String password, String dbname) throws IOException, ServiceException {
         // Initialize HBase Configuration.
         Configuration conf = HBaseConfiguration.create();
         conf.set("hbase.zookeeper.property.clientPort",getHBaseConnectionPort(fs));
@@ -73,14 +69,10 @@ public class HBaseConnector implements Connector {
         // Check HBase Availability.
         try {
             HBaseAdmin.checkHBaseAvailable(conf);
-        } catch (ServiceException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
             e.printStackTrace();
-            return null;
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return null;
+            throw e;
         }
 
         // Initialize HBase Connection.
@@ -90,7 +82,7 @@ public class HBaseConnector implements Connector {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
             e.printStackTrace();
-            return null;
+            throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase connection initialized.");
         }
@@ -101,7 +93,7 @@ public class HBaseConnector implements Connector {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of namespace failed! Check output console.");
             e.printStackTrace();
-            return null;
+            throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase namespace created.");
         }
@@ -116,7 +108,7 @@ public class HBaseConnector implements Connector {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of Events table in namespace failed! Check output console.");
             e.printStackTrace();
-            return null;
+            throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase namespace created.");
         }
@@ -124,7 +116,7 @@ public class HBaseConnector implements Connector {
         return fs + dbname;
     }
 
-    public static void dropNamespace(String fs, String username, String password, String dbname) {
+    public static void dropNamespace(String fs, String username, String password, String dbname) throws IOException, ServiceException {
         // Initialize HBase Configuration.
         Configuration conf = HBaseConfiguration.create();
         conf.set("hbase.zookeeper.property.clientPort",getHBaseConnectionPort(fs));
@@ -133,14 +125,10 @@ public class HBaseConnector implements Connector {
         // Check HBase Availability.
         try {
             HBaseAdmin.checkHBaseAvailable(conf);
-        } catch (ServiceException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
             e.printStackTrace();
-            return;
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return;
+            throw e;
         }
 
         // Initialize HBase Admin Connection.
@@ -150,7 +138,7 @@ public class HBaseConnector implements Connector {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
             e.printStackTrace();
-            return;
+            throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase Admin connection initialized.");
         }
@@ -165,7 +153,7 @@ public class HBaseConnector implements Connector {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Destroy of namespace failed! Check output console.");
             e.printStackTrace();
-            return;
+            throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase namespace deleted.");
         }
