@@ -148,6 +148,7 @@ public class ScnDbInfo implements Serializable {
             } catch (SQLException e) {
                 e.printStackTrace();
                 connection.rollback();
+                throw e;
             }
         } else {
             // The object exists, it should be updated.
