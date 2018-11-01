@@ -4,6 +4,8 @@ import gr.ntua.ece.cslab.selis.bda.analyticsml.runners.RunnerFactory;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Recipe;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+
 import java.sql.SQLException;
 
 public class RunnerInstance {
@@ -14,7 +16,7 @@ public class RunnerInstance {
         this.scnSlug = scnSlug;
     }
 
-    public void run(int recipeId, String executionType, String messageId){
+    public void run(int recipeId, String executionType, String messageId) throws SystemConnectorException {
         Recipe recipe = Recipe.getRecipeById(scnSlug, recipeId);
         ExecutionEngine engine = null;
         try {
