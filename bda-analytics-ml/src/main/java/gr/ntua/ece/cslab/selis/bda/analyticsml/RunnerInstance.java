@@ -51,4 +51,8 @@ public class RunnerInstance {
 
         thread.start();
     }
+
+    public void schedule(){
+        // TODO: create a new cron job
+    }
 }
