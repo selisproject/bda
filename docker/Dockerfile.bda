@@ -1,0 +1,28 @@
+FROM selis-spark:latest
+
+# Declare `localuser` as build argument.
+ARG localuser
+
+# Create local host user.
+RUN useradd -mU $localuser
+
+# Create code directory.
+RUN mkdir /code
+
+RUN chown -R $localuser:$localuser /code
+
+# Ugly Hack to make `postgresql-client` installation
+# work with a `slim` openjdk-debian image.
+RUN mkdir /usr/share/man/man7
+
+# Install packages.
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    maven \
+    tmux \
+    vim
+
+# Set working directory.
+WORKDIR /code
+
+CMD ["/bin/bash"]

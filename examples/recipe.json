@@ -1,0 +1,7 @@
+{
+  "name" : "recipe",
+  "description" : "recipe",
+  "executablePath" : "easy",
+  "engineId" : 2,
+  "args" : ""
+}

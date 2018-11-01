@@ -1,0 +1,76 @@
+SELIS Big Data Analytics Module - Docker
+========================================
+
+
+About
+-----
+This set of Dockerfiles is intended for setting up a local development 
+environment. All required databases and modules are containerized and 
+reasonable defaults are provided. This setup is not for production usage.
+
+
+Getting Started
+---------------
+Assuming that we have a running `docker` installation locally and a Pub-Sub 
+existing installation remotely (we fill the connection details in the 
+properties file), we can setup the SELIS BDA locally by executing 
+
+```bash
+./sls.sh run all
+```
+
+This subcommand will pull, build required images, create volumes, create a
+network and launch containers for the BDA's components. When it finishes it 
+connects to the 'selis-controller' container where the BDA code that existed
+locally has been copied to be tested.
+
+Other useful subcommands are:
+
+```bash
+# Start all containers:
+./sls.sh startall
+
+# Stop all containers:
+./sls.sh stopall
+
+# Run specified container:
+./sls.sh run <postgres/hbase/keycloak/controller>
+
+# Remove all containers/images/networks/volumes:
+./sls.sh clean
+```
+A certain convention is used for naming things, for more details look 
+at `./sls.sh`.
+
+Keycloak Setup
+--------------
+The steps to setup Keycloak server, after executing `./sls.sh run all`, are:
+
+1. Go [here](http://127.0.0.1:8989/auth/), choose `Administration Console` and
+   login using the credentials: `selis-admin/123456`.
+
+2. Create a new `realm` by choosing `Add realm` and name it `selis-bda-realm`.
+
+3. Create a new `Client` by choosing `Clients > Create` and name it
+   `selis-bda-app`.
+
+4. Set `Authorization Enabled` to `ON`.
+
+5. Set `Valid Redirect URIs` to `http://127.0.0.1:9999/*`.
+
+6. Go to `Installation` tab, choose the `Keycloak OIDC JSON` format and click
+   `Download`.
+
+7. Save the created `.json` locally and copy the `secret` to  `bda.properties`.
+
+8. Go to `Roles` and click `Add Role`, set the role name to `selis-user-role`.
+
+9. Go to `Users`, click `Add user` and set username to `selis-user` 
+   and password to `123456`.
+
+10. In the `Role Mappings` tab add a `selis-user-role` to the user.
+
+11. Go to `Clients > Service Account Roles` and add the `selis-user-role` to
+    the assigned roles.
+
+12. Compile and run the BDA server.

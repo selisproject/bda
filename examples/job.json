@@ -1,0 +1,7 @@
+{
+    "name":"sales_forecast_job",
+    "description":"sales_forecast_job",
+    "messageTypeId": 1,
+    "recipeId": 1,
+    "active": true
+}
