@@ -3,8 +3,10 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -17,6 +19,9 @@ import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,16 +34,35 @@ public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
     public static Thread subscriber;
-    public static PubSubPublisher publisher;
+    //public static PubSubPublisher publisher;
+
+    public static List<String> getSubscriptions(){
+        List<String> messageTypeNames = new LinkedList<>();
+        List<ScnDbInfo> SCNs = new LinkedList<>();
+        try {
+            SCNs = ScnDbInfo.getScnDbInfo();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (!(SCNs.isEmpty()))
+        {
+            for (ScnDbInfo SCN : SCNs) {
+                messageTypeNames.addAll(MessageType.getActiveMessageTypeNames(SCN.getSlug()));
+            }
+        }
+        return messageTypeNames;
+    }
 
     private static void pubSubConnectorsInitialization() {
         LOGGER.log(Level.INFO, "Initializing PubSub subscriber...");
-        subscriber = new Thread(new PubSubSubscriber(configuration.subscriber.getAuthHash(),
-                configuration.subscriber.getHostname(),
-                configuration.subscriber.getPortNumber()), "subscriber");
-        LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
-        publisher = new PubSubPublisher(configuration.subscriber.getHostname(),
-                configuration.subscriber.getPortNumber());
+        subscriber = new Thread(new PubSubSubscriber(configuration.pubsub.getAuthHash(),
+                configuration.pubsub.getHostname(),
+                configuration.pubsub.getPortNumber(),
+                configuration.pubsub.getCertificateLocation()),"subscriber");
+        PubSubSubscriber.reloadMessageTypes(getSubscriptions());
+        //LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
+        //publisher = new PubSubPublisher(configuration.pubsub.getHostname(),
+        //        configuration.pubsub.getPortNumber());
     }
 
     private static void authClientBackendInitialization() {

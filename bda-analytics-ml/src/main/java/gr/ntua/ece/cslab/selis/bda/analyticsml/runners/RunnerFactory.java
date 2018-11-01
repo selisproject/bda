@@ -1,7 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.analyticsml.runners;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
-import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 
 public class RunnerFactory {
 	public static RunnerFactory runnerFactory;

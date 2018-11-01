@@ -24,6 +24,7 @@ public class Configuration {
     public final Server server;
     public final StorageBackend storageBackend;
     public final ExecutionEngine execEngine;
+    public final PubSubServer pubsub;
     public final PubSubSubscriber subscriber;
     public final AuthClientBackend authClientBackend;
     public final KPIBackend kpiBackend;
@@ -97,11 +98,11 @@ public class Configuration {
 
         public String getSparkConfExecutorMemory() { return sparkConfExecutorMemory; }
     }
-    public class PubSubSubscriber {
+    public class PubSubServer {
         private String authHash, hostname, certificateLocation;
         private int portNumber;
 
-        public PubSubSubscriber(){
+        public PubSubServer(){
         }
 
         public String getAuthHash() { return authHash; }
@@ -109,6 +110,18 @@ public class Configuration {
         public String getHostname() { return hostname; }
 
         public String getCertificateLocation() { return certificateLocation; }
+
+        public int getPortNumber() { return portNumber; }
+
+    }
+    public class PubSubSubscriber {
+        private String hostname;
+        private int portNumber;
+
+        public PubSubSubscriber(){
+        }
+
+        public String getHostname() { return hostname; }
 
         public int getPortNumber() { return portNumber; }
 
@@ -149,6 +162,7 @@ public class Configuration {
     private Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
+        this.pubsub = new PubSubServer();
         this.subscriber = new PubSubSubscriber();
         this.authClientBackend = new AuthClientBackend();
         this.kpiBackend = new KPIBackend();
@@ -204,15 +218,24 @@ public class Configuration {
         conf.storageBackend.eventLogURL = properties.getProperty("backend.db.event.url");
 
         // Pub/Sub Configuration.
-        conf.subscriber.hostname = properties.getProperty("pubsub.address");
+        conf.pubsub.hostname = properties.getProperty("pubsub.address");
         try {
-            conf.subscriber.portNumber = Integer.valueOf(properties.getProperty("pubsub.port"));
+            conf.pubsub.portNumber = Integer.valueOf(properties.getProperty("pubsub.port"));
         } catch (NumberFormatException e) {
             LOGGER.log(Level.SEVERE, e.getMessage());
             return null;
         }
-        conf.subscriber.authHash = properties.getProperty("pubsub.authhash");
-        conf.subscriber.certificateLocation = properties.getProperty("pubsub.certificate.location");
+        conf.pubsub.authHash = properties.getProperty("pubsub.authhash");
+        conf.pubsub.certificateLocation = properties.getProperty("pubsub.certificate.location");
+
+        // Pub/Sub Subscriber Configuration.
+        conf.subscriber.hostname = properties.getProperty("pubsub.subscriber.address");
+        try {
+            conf.subscriber.portNumber = Integer.valueOf(properties.getProperty("pubsub.subscriber.port"));
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage());
+            return null;
+        }
 
         // Keycloak Auth Configuration.
         conf.authClientBackend.authServerUrl = properties.getProperty("keycloak.bda.url");

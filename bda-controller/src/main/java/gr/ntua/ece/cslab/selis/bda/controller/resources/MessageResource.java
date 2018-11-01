@@ -1,5 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubSubscriber;
@@ -9,6 +11,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.List;
 import java.util.LinkedList;
@@ -49,6 +53,9 @@ public class MessageResource {
             return new RequestResponse("ERROR", "Could not insert new Message Type.");
         }
 
+        // TODO: call reload method in subscriber
+        reload(null, Entrypoint.getSubscriptions());
+
         try {
             if (response != null) {
                 response.flushBuffer();
@@ -56,7 +63,6 @@ public class MessageResource {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        PubSubSubscriber.reloadMessageTypes();
         return new RequestResponse(status, details);
     }
 
@@ -77,4 +83,31 @@ public class MessageResource {
 
         return messageTypes;
     }
+
+    /**
+     * Message subscriptions reload method
+     * @param messageTypes the message types names to subscribe to
+     */
+    @PUT
+    @Path("/reload")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public RequestResponse reload(@Context HttpServletResponse response,
+                                  List<String> messageTypes) {
+        String status = "OK";
+        String details = "";
+
+        PubSubSubscriber.reloadMessageTypes(messageTypes);
+
+        try {
+            if (response != null) {
+                response.flushBuffer();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new RequestResponse(status, details);
+    }
+
 }
