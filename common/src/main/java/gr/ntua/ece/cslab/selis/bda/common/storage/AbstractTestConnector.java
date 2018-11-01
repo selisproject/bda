@@ -8,11 +8,11 @@ public abstract class AbstractTestConnector {
 
     public AbstractTestConnector(){}
 
-    public void setUp() {
+    public void setUp() throws SystemConnectorException {
         SystemConnector.init("../conf/bdatest.properties");
     }
 
-    public void tearDown(){
+    public void tearDown() throws SystemConnectorException {
         SystemConnector.getInstance().close();
     }
 }

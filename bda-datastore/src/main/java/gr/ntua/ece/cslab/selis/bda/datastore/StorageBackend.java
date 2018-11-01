@@ -18,7 +18,7 @@ public class StorageBackend {
 
     /** The StorageBackend constructor creates two new connections, one for the EventLog FS and one for the Dimension
      *  tables FS, using the FS parameters that are provided as input Strings. **/
-    public StorageBackend(String SCN) {
+    public StorageBackend(String SCN) throws SystemConnectorException {
         this.ELconnector = ConnectorFactory.getInstance().generateConnector(SystemConnector.getInstance().getELconnector(SCN));
         this.DTconnector = ConnectorFactory.getInstance().generateConnector(SystemConnector.getInstance().getDTconnector(SCN));
     }

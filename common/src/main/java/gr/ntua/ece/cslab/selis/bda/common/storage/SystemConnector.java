@@ -23,7 +23,7 @@ public class SystemConnector {
 
     /** The constructor creates new connections for the EventLog FS, the Dimension
      *  tables FS and the KPI db per LL as well as the BDA db. **/
-    public SystemConnector() {
+    public SystemConnector() throws SystemConnectorException {
         this.elConnectors = new HashMap<String, Connector>();
         this.dtConnectors = new HashMap<String, Connector>();
         this.kpiConnectors = new HashMap<String, Connector>();
@@ -36,7 +36,7 @@ public class SystemConnector {
         );
     }
 
-    public static SystemConnector getInstance(){
+    public static SystemConnector getInstance() throws SystemConnectorException {
         if (systemConnector == null){
             systemConnector = new SystemConnector();
             systemConnector.initSCNconnections();
@@ -44,7 +44,7 @@ public class SystemConnector {
         return systemConnector;
     }
 
-    public static void init(String args){
+    public static void init(String args) throws SystemConnectorException {
         // parse configuration
         configuration = Configuration.parseConfiguration(args);
         if(configuration==null) {
@@ -56,7 +56,7 @@ public class SystemConnector {
         }
     }
 
-    private void initSCNconnections(){
+    private void initSCNconnections() throws SystemConnectorException {
         List<ScnDbInfo> SCNs = new LinkedList<>();
         try {
             SCNs = ScnDbInfo.getScnDbInfo();

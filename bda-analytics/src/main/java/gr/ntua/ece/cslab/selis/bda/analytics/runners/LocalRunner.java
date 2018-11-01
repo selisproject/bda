@@ -8,6 +8,7 @@ import java.util.*;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KeyValue;
@@ -25,7 +26,7 @@ public class LocalRunner extends ArgumentParser implements Runnable {
     public LocalRunner(KpiDescriptor kpi,
                     ExecutEngineDescriptor engine,
                     String message,
-                    String SCNslug) {
+                    String SCNslug) throws SystemConnectorException {
         this.kpiDescriptor = kpi;
         this.engine = engine;
         this.message = message;

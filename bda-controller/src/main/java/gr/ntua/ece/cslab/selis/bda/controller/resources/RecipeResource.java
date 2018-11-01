@@ -98,12 +98,11 @@ public class RecipeResource {
 
         saveFile(recipeBinary, binaryPath);
 
-        Recipe recipe = Recipe.getRecipeById(slug, recipeId);
-        recipe.setExecutablePath(binaryPath);
-
         try {
+            Recipe recipe = Recipe.getRecipeById(slug, recipeId);
+            recipe.setExecutablePath(binaryPath);
             recipe.save(slug);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

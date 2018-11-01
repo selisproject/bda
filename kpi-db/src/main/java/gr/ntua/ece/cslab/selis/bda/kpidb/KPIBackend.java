@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.kpidb;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.Connector;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPI;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPITable;
@@ -13,7 +14,7 @@ import java.util.List;
 public class KPIBackend {
     private KPIConnector kpiConnector;
 
-    public KPIBackend(String slug) {
+    public KPIBackend(String slug) throws SystemConnectorException {
         this.kpiConnector = KPIConnectorFactory.getInstance().generateConnector(SystemConnector.getInstance().getKPIconnector(slug));
     }
 

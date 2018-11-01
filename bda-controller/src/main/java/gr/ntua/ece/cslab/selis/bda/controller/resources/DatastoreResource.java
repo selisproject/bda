@@ -62,7 +62,7 @@ public class DatastoreResource {
             }
             try {
                 ScnDbInfo.destroy(scn.getId());
-            } catch (SQLException e1) {
+            } catch (Exception e1) {
                 e1.printStackTrace();
                 LOGGER.log(Level.SEVERE, "Could not clear SCN registry, after databases creation failed!");
             }

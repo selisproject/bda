@@ -19,7 +19,7 @@ public class HBaseConnector implements Connector {
     private String namespace;
     private Connection connection;
 
-    public HBaseConnector(String FS, String username, String password) {
+    public HBaseConnector(String FS, String username, String password) throws IOException, ServiceException {
         // Store Connection Parameters.
         this.port = getHBaseConnectionPort(FS);
         this.hostname = getHBaseConnectionURL(FS);
@@ -39,8 +39,7 @@ public class HBaseConnector implements Connector {
             HBaseAdmin.checkHBaseAvailable(conf);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return;
+            throw e;
         }
 
         // Initialize HBase Connection.
@@ -49,8 +48,7 @@ public class HBaseConnector implements Connector {
             this.connection = ConnectionFactory.createConnection(conf);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console.");
-            e.printStackTrace();
-            return;
+            throw e;
         } finally {
             LOGGER.log(Level.INFO, "HBase connection initialized.");
         }

@@ -2,6 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -96,7 +97,7 @@ public class ExecutionEngine implements Serializable {
                 '}';
     }
 
-    public static List<ExecutionEngine> getEngines() throws SQLException {
+    public static List<ExecutionEngine> getEngines() throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
 
@@ -125,7 +126,7 @@ public class ExecutionEngine implements Serializable {
         throw new SQLException("Failed to retrieve ExecutionEngine info.");
     }
 
-    public static ExecutionEngine getEngineById(int id) throws SQLException {
+    public static ExecutionEngine getEngineById(int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();

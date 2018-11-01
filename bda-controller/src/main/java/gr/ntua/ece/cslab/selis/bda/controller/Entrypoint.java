@@ -3,6 +3,7 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 
 import org.eclipse.jetty.server.Server;
@@ -79,7 +80,7 @@ public class Entrypoint {
         assertNotNull(tokenString);
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws SystemConnectorException {
         if (args.length < 1) {
             LOGGER.log(Level.WARNING, "Please provide a configuration file as a first argument");
             System.exit(1);

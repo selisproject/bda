@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.io.Serializable;
@@ -136,7 +137,7 @@ public class Recipe implements Serializable {
                 '}';
     }
 
-    public static List<Recipe> getRecipes(String slug) throws SQLException {
+    public static List<Recipe> getRecipes(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -173,7 +174,7 @@ public class Recipe implements Serializable {
         return recipes;
      }
 
-    public static Recipe getRecipeById(String slug, int id) {
+    public static Recipe getRecipeById(String slug, int id) throws SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
@@ -207,7 +208,7 @@ public class Recipe implements Serializable {
     }
 
 
-    public static Recipe getRecipeByName(String slug, String name) {
+    public static Recipe getRecipeByName(String slug, String name) throws SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
@@ -241,7 +242,7 @@ public class Recipe implements Serializable {
         return null;
     }
 
-    public void save(String slug) throws SQLException, UnsupportedOperationException {
+    public void save(String slug) throws SQLException, UnsupportedOperationException, SystemConnectorException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
             PostgresqlConnector connector = (PostgresqlConnector ) 
@@ -297,7 +298,7 @@ public class Recipe implements Serializable {
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into recipes. ID: "+this.id);
      }
 
-    public static void createTable(String slug) throws SQLException {
+    public static void createTable(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector )
                 SystemConnector.getInstance().getDTconnector(slug);
 

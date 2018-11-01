@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.analytics.runners;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import org.apache.spark.launcher.SparkLauncher;
 import org.apache.spark.launcher.SparkAppHandle;
 import java.io.IOException;
@@ -80,8 +81,12 @@ public class SparkRunner extends ArgumentParser implements Runnable {
                 LOGGER.log(Level.WARNING,"Spark job failed to start!");
             } catch (SQLException e) {
                 e.printStackTrace();
-                LOGGER.log(Level.WARNING,"Spark job failed. Unknown SCN.");
+                LOGGER.log(Level.WARNING,"Spark job failed to start. Unknown SCN.");
+            } catch (SystemConnectorException e){
+                e.printStackTrace();
+                LOGGER.log(Level.WARNING,"Spark job failed to start. Connection to get SCN failed.");
             }
+
 
             try {
                 // TODO: This can be done better with a `SparkAppHandle.Listener`.

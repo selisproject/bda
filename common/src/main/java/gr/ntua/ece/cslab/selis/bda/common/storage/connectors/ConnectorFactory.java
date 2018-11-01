@@ -24,19 +24,24 @@ public class ConnectorFactory {
 
     /** Depending on the FS string format initialize a connector from a different class.
      *  Connectors are implemented for four different filesystems: local, HBase, HDFS, PostgreSQL. **/
-    public Connector generateConnector(String FS, String Username, String Password){
-        Connector connector;
+    public Connector generateConnector(String FS, String Username, String Password) throws SystemConnectorException {
+        Connector connector = null;
 
         int connectorType = ConnectorFactory.getConnectorType(FS);
 
-        if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
-            connector = new HDFSConnector(FS, Username, Password);
-        } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
-            connector = new HBaseConnector(FS, Username, Password);
-        } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
-            connector = new PostgresqlConnector(FS, Username, Password);
-        } else {
-            connector = new LocalFSConnector(FS, Username, Password);
+        try{
+            if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
+                connector = new HDFSConnector(FS, Username, Password);
+            } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
+                connector = new HBaseConnector(FS, Username, Password);
+            } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
+                connector = new PostgresqlConnector(FS, Username, Password);
+            } else {
+                connector = new LocalFSConnector(FS, Username, Password);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new SystemConnectorException("Could not create new connector.");
         }
 
         return connector;
