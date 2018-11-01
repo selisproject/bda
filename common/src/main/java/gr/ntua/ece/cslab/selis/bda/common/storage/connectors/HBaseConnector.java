@@ -46,11 +46,10 @@ public class HBaseConnector implements Connector {
         this.connection = null;
         try {
             this.connection = ConnectionFactory.createConnection(conf);
+            LOGGER.log(Level.INFO, "HBase connection initialized.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console.");
             throw e;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase connection initialized.");
         }
     }
 
@@ -76,23 +75,20 @@ public class HBaseConnector implements Connector {
         Admin admin;
         try {
             admin = ConnectionFactory.createConnection(conf).getAdmin();
+            LOGGER.log(Level.INFO, "HBase connection initialized.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
             throw e;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase connection initialized.");
         }
 
         // Create HBase namespace
         try {
             admin.createNamespace(NamespaceDescriptor.create(dbname).build());
+            LOGGER.log(Level.INFO, "HBase namespace created.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of namespace failed! Check output console.");
             throw e;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase namespace created.");
         }
-
 
         try {
             HTableDescriptor desc = new HTableDescriptor(dbname + ":Events");
@@ -100,11 +96,10 @@ public class HBaseConnector implements Connector {
 
             admin.createTable(desc);
             admin.close();
+            LOGGER.log(Level.INFO, "HBase namespace created.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of Events table in namespace failed! Check output console.");
             throw e;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase namespace created.");
         }
 
         return fs + dbname;
@@ -128,11 +123,10 @@ public class HBaseConnector implements Connector {
         Admin admin;
         try {
             admin = ConnectionFactory.createConnection(conf).getAdmin();
+            LOGGER.log(Level.INFO, "HBase Admin connection initialized.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
             throw e;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase Admin connection initialized.");
         }
 
         // Delete HBase table and namespace
@@ -142,11 +136,10 @@ public class HBaseConnector implements Connector {
             admin.deleteTable(table);
             admin.deleteNamespace(dbname);
             admin.close();
+            LOGGER.log(Level.INFO, "HBase namespace deleted.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Destroy of namespace failed! Check output console.");
             throw e;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase namespace deleted.");
         }
     }
 
