@@ -3,7 +3,7 @@ package gr.ntua.ece.cslab.selis.bda.analyticsml.runners;
 import java.util.*;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
-import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 
 public class LocalRunner extends ArgumentParser implements Runnable {
 

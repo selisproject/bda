@@ -1,12 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
-import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
-import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 
 import de.tu_dresden.selis.pubsub.*;
 import de.tu_dresden.selis.pubsub.PubSubException;
@@ -15,7 +11,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,17 +21,20 @@ public class PubSubSubscriber implements Runnable {
     private static String authHash;
     private static String hostname;
     private static int portNumber;
-    private List<String> messageTypeNames;
+    private static String certificateLocation;
 
+    private static volatile List<String> messageTypeNames = new LinkedList<>();
     private static volatile boolean reloadMessageTypesFlag = true;
 
-    public PubSubSubscriber(String authHash, String hostname, int portNumber) {
+    public PubSubSubscriber(String authHash, String hostname, int portNumber, String cert) {
         this.authHash = authHash;
         this.hostname = hostname;
         this.portNumber = portNumber;
+        this.certificateLocation = cert;
     }
 
-    public static void reloadMessageTypes() {
+    public static void reloadMessageTypes(List<String> messageTypes) {
+        messageTypeNames = messageTypes;
         reloadMessageTypesFlag = true;
     }
 
@@ -44,26 +42,13 @@ public class PubSubSubscriber implements Runnable {
     public void run() {
         PubSub pubsub = null;
 
-        Configuration configuration = Configuration.getInstance();
-
-        String certificateLocation = configuration.subscriber.getCertificateLocation();
-
         while (reloadMessageTypesFlag) {
             reloadMessageTypesFlag = false;
 
             try {
-                pubsub = new PubSub(certificateLocation, this.hostname, this.portNumber);
-                this.messageTypeNames = new Vector<String>();
-                List<ScnDbInfo> SCNs = new LinkedList<>();
-                try {
-                    SCNs = ScnDbInfo.getScnDbInfo();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                if (!(SCNs.isEmpty())) {
-                    for (ScnDbInfo SCN : SCNs) {
-                        messageTypeNames.addAll(MessageType.getActiveMessageTypeNames(SCN.getSlug()));
-                    }
+                pubsub = new PubSub(this.certificateLocation, this.hostname, this.portNumber);
+
+                if (!(messageTypeNames.isEmpty())) {
 
                     for (String messageTypeName : messageTypeNames) {
                         Subscription subscription = new Subscription(this.authHash);
@@ -163,6 +148,7 @@ public class PubSubSubscriber implements Runnable {
             }
         }
         bdamessage.setEntries(entries);
+
         try {
             message_id = new StorageBackend(scnSlug).insert(bdamessage);
             LOGGER.info("Subscriber[" + authHash + "], Received and persisted " + messageType + " message.");
@@ -170,15 +156,6 @@ public class PubSubSubscriber implements Runnable {
             e.printStackTrace();
         }
 
-        MessageType msgInfo = MessageType.getMessageByName(scnSlug, messageType);
-        try {
-            // TODO: handle multiple jobs related to a single message
-            JobDescription job = JobDescription.getJobByMessageId(scnSlug, msgInfo.getId());
-
-            LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], Launching " + job.getName() + " recipe.");
-            (new RunnerInstance(scnSlug)).run(job.getRecipeId(), job.getJob_type(), message_id);
-        } catch (SQLException e) {
-            LOGGER.log(Level.INFO, "Subscriber[" + authHash + "], No recipe found for message " + messageType + ".");
-        }
+        (new RunnerInstance(scnSlug)).run(messageType, message_id);
     }
 }

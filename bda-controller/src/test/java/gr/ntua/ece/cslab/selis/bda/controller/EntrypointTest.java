@@ -1,7 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.AbstractTestConnector;
-import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.DatastoreResource;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
