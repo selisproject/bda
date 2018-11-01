@@ -178,7 +178,7 @@
         </dependency>
         <dependency>
             <groupId>gr.ntua.ece.cslab</groupId>
-            <artifactId>bda-analytics</artifactId>
+            <artifactId>bda-analytics-ml</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>

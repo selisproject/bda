@@ -12,10 +12,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <modules>
-        <module>bda-analytics</module>
+        <module>bda-analytics-ml</module>
         <module>bda-controller</module>
         <module>bda-datastore</module>
-        <module>bda-ml</module>
         <module>kpi-db</module>
         <module>common</module>
     </modules>
