@@ -2,6 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.AnalyticsInstance;
 import gr.ntua.ece.cslab.selis.bda.common.storage.AbstractTestConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.DatastoreResource;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
@@ -31,7 +32,7 @@ public class EntrypointTest extends AbstractTestConnector  {
     String SCNslug = "testll";
 
     @org.junit.Before
-    public void setUp() {
+    public void setUp() throws SystemConnectorException {
         super.setUp();
         messageResource = new MessageResource();
         recipeResource = new RecipeResource();
@@ -43,7 +44,7 @@ public class EntrypointTest extends AbstractTestConnector  {
     }
 
     @org.junit.After
-    public void tearDown(){
+    public void tearDown() throws SystemConnectorException {
         datastoreResource.destroyScn(null, scnDbInfo.getId());
         super.tearDown();
     }

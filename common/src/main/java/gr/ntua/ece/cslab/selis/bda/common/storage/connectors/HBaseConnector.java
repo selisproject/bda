@@ -19,7 +19,7 @@ public class HBaseConnector implements Connector {
     private String namespace;
     private Connection connection;
 
-    public HBaseConnector(String FS, String username, String password) {
+    public HBaseConnector(String FS, String username, String password) throws IOException, ServiceException {
         // Store Connection Parameters.
         this.port = getHBaseConnectionPort(FS);
         this.hostname = getHBaseConnectionURL(FS);
@@ -37,26 +37,19 @@ public class HBaseConnector implements Connector {
         // Check HBase Availability.
         try {
             HBaseAdmin.checkHBaseAvailable(conf);
-        } catch (ServiceException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return;
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return;
+            throw e;
         }
 
         // Initialize HBase Connection.
         this.connection = null;
         try {
             this.connection = ConnectionFactory.createConnection(conf);
+            LOGGER.log(Level.INFO, "HBase connection initialized.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console.");
-            e.printStackTrace();
-            return;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase connection initialized.");
+            throw e;
         }
     }
 
@@ -64,7 +57,7 @@ public class HBaseConnector implements Connector {
         return connection;
     }
 
-    public static String createNamespace(String fs, String username, String password, String dbname) {
+    public static String createNamespace(String fs, String username, String password, String dbname) throws IOException, ServiceException {
         // Initialize HBase Configuration.
         Configuration conf = HBaseConfiguration.create();
         conf.set("hbase.zookeeper.property.clientPort",getHBaseConnectionPort(fs));
@@ -73,39 +66,29 @@ public class HBaseConnector implements Connector {
         // Check HBase Availability.
         try {
             HBaseAdmin.checkHBaseAvailable(conf);
-        } catch (ServiceException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return null;
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return null;
+            throw e;
         }
 
         // Initialize HBase Connection.
         Admin admin;
         try {
             admin = ConnectionFactory.createConnection(conf).getAdmin();
+            LOGGER.log(Level.INFO, "HBase connection initialized.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
-            e.printStackTrace();
-            return null;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase connection initialized.");
+            throw e;
         }
 
         // Create HBase namespace
         try {
             admin.createNamespace(NamespaceDescriptor.create(dbname).build());
+            LOGGER.log(Level.INFO, "HBase namespace created.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of namespace failed! Check output console.");
-            e.printStackTrace();
-            return null;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase namespace created.");
+            throw e;
         }
-
 
         try {
             HTableDescriptor desc = new HTableDescriptor(dbname + ":Events");
@@ -113,18 +96,16 @@ public class HBaseConnector implements Connector {
 
             admin.createTable(desc);
             admin.close();
+            LOGGER.log(Level.INFO, "HBase namespace created.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of Events table in namespace failed! Check output console.");
-            e.printStackTrace();
-            return null;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase namespace created.");
+            throw e;
         }
 
         return fs + dbname;
     }
 
-    public static void dropNamespace(String fs, String username, String password, String dbname) {
+    public static void dropNamespace(String fs, String username, String password, String dbname) throws IOException, ServiceException {
         // Initialize HBase Configuration.
         Configuration conf = HBaseConfiguration.create();
         conf.set("hbase.zookeeper.property.clientPort",getHBaseConnectionPort(fs));
@@ -133,26 +114,19 @@ public class HBaseConnector implements Connector {
         // Check HBase Availability.
         try {
             HBaseAdmin.checkHBaseAvailable(conf);
-        } catch (ServiceException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return;
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
-            e.printStackTrace();
-            return;
+            throw e;
         }
 
         // Initialize HBase Admin Connection.
         Admin admin;
         try {
             admin = ConnectionFactory.createConnection(conf).getAdmin();
+            LOGGER.log(Level.INFO, "HBase Admin connection initialized.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
-            e.printStackTrace();
-            return;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase Admin connection initialized.");
+            throw e;
         }
 
         // Delete HBase table and namespace
@@ -162,12 +136,10 @@ public class HBaseConnector implements Connector {
             admin.deleteTable(table);
             admin.deleteNamespace(dbname);
             admin.close();
+            LOGGER.log(Level.INFO, "HBase namespace deleted.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Destroy of namespace failed! Check output console.");
-            e.printStackTrace();
-            return;
-        } finally {
-            LOGGER.log(Level.INFO, "HBase namespace deleted.");
+            throw e;
         }
     }
 

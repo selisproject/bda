@@ -7,6 +7,7 @@ import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.ExecutEngineCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.catalogs.KpiCatalog;
 import gr.ntua.ece.cslab.selis.bda.analytics.runners.RunnerFactory;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
@@ -31,7 +32,7 @@ public class AnalyticsInstance {
 
     public ExecutEngineCatalog getEngineCatalog() { return engineCatalog; }
 
-    private ExecutEngineDescriptor fetch_engine(int engine_id) {
+    private ExecutEngineDescriptor fetch_engine(int engine_id) throws SystemConnectorException {
         ExecutEngineDescriptor engineDescriptor = null;
 
         try {
@@ -51,7 +52,7 @@ public class AnalyticsInstance {
         return engineDescriptor;
     }
 
-    private KpiDescriptor fetch_kpi(int recipe_id) {
+    private KpiDescriptor fetch_kpi(int recipe_id) throws SystemConnectorException {
         Recipe recipe = Recipe.getRecipeById(scnSlug, recipe_id);
         return new KpiDescriptor(
                 recipe.getName(),
@@ -65,10 +66,20 @@ public class AnalyticsInstance {
 
     }
 
-    public void run(int recipe_id, String message){
-        KpiDescriptor kpi = fetch_kpi(recipe_id);
+    public void run(int recipe_id, String message) throws SystemConnectorException {
+        KpiDescriptor kpi = null;
+        try {
+            kpi = fetch_kpi(recipe_id);
+        } catch (SystemConnectorException e) {
+            e.printStackTrace();
+        }
 
-        ExecutEngineDescriptor engine =  fetch_engine(kpi.getExecutable().getEngineID());
+        ExecutEngineDescriptor engine = null;
+        try {
+            engine = fetch_engine(kpi.getExecutable().getEngineID());
+        } catch (SystemConnectorException e) {
+            e.printStackTrace();
+        }
 
         Runnable runner = RunnerFactory.getInstance().getRunner(kpi, engine, message, this.scnSlug);
 

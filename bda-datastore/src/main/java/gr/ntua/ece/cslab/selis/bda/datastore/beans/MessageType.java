@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.io.Serializable;
@@ -114,7 +115,7 @@ public class MessageType implements Serializable {
         "VALUES (?, ?, ?, ?) " +
         "RETURNING id;";
 
-    public static List<MessageType> getMessageTypes(String slug) throws SQLException {
+    public static List<MessageType> getMessageTypes(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
@@ -146,7 +147,7 @@ public class MessageType implements Serializable {
         return messageTypes;
      }
 
-    public static List<String> getActiveMessageTypeNames(String slug) {
+    public static List<String> getActiveMessageTypeNames(String slug) throws SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
 
@@ -166,7 +167,7 @@ public class MessageType implements Serializable {
         return messageTypeNames;
     }
 
-    public static MessageType getMessageByName(String slug, String name) throws SQLException {
+    public static MessageType getMessageByName(String slug, String name) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
 
@@ -195,7 +196,7 @@ public class MessageType implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
-    public static MessageType getMessageById(String slug, int id) throws SQLException {
+    public static MessageType getMessageById(String slug, int id) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
 
@@ -224,7 +225,7 @@ public class MessageType implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
-    public void save(String slug) throws SQLException {
+    public void save(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector )
             SystemConnector.getInstance().getDTconnector(slug);
 
@@ -253,7 +254,7 @@ public class MessageType implements Serializable {
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
     }
 
-    public static void createTable(String slug) throws SQLException {
+    public static void createTable(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector )
                 SystemConnector.getInstance().getDTconnector(slug);
 

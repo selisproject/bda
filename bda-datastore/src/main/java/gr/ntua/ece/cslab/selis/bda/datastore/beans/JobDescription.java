@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.sql.*;
@@ -134,7 +135,7 @@ public class JobDescription implements Serializable {
                 '}';
     }
 
-    public static List<JobDescription> getJobs(String slug) throws SQLException {
+    public static List<JobDescription> getJobs(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -170,7 +171,7 @@ public class JobDescription implements Serializable {
         return jobs;
      }
 
-    public static List<JobDescription> getActiveJobs(String slug) throws SQLException {
+    public static List<JobDescription> getActiveJobs(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -206,7 +207,7 @@ public class JobDescription implements Serializable {
         return jobs;
      }
 
-    public static JobDescription getJobById(String slug, int id) throws SQLException {
+    public static JobDescription getJobById(String slug, int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -241,7 +242,7 @@ public class JobDescription implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
-    public static JobDescription getJobByMessageId(String slug, int id) throws SQLException {
+    public static JobDescription getJobByMessageId(String slug, int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -276,7 +277,7 @@ public class JobDescription implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
-    public void save(String slug) throws SQLException, UnsupportedOperationException {
+    public void save(String slug) throws SQLException, UnsupportedOperationException, SystemConnectorException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
             PostgresqlConnector connector = (PostgresqlConnector ) 
@@ -311,7 +312,7 @@ public class JobDescription implements Serializable {
         }
      }
 
-    public static void createTable(String slug) throws SQLException {
+    public static void createTable(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector )
                 SystemConnector.getInstance().getDTconnector(slug);
 

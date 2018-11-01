@@ -2,6 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.analytics.runners;
 
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.ExecutEngineDescriptor;
 import gr.ntua.ece.cslab.selis.bda.analytics.basicObjects.KpiDescriptor;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 
 public class RunnerFactory {
@@ -18,7 +19,7 @@ public class RunnerFactory {
 							  ExecutEngineDescriptor engine,
 							  String message,
                               String scnSlug
-	) {
+	) throws SystemConnectorException {
 		if (engine.isLocal_engine())
 			return new LocalRunner(kpi, engine, message, scnSlug);
 		else

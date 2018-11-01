@@ -18,7 +18,7 @@ CREATE TABLE scn_db_info (
     slug        VARCHAR(64) NOT NULL UNIQUE,
     name        VARCHAR(128) NOT NULL,
     description VARCHAR(256),
-    dbname      VARCHAR(64) NOT NULL
+    dbname      VARCHAR(64) NOT NULL UNIQUE
 );
 
 ALTER TABLE scn_db_info OWNER TO selis;
@@ -46,7 +46,7 @@ CREATE TABLE scn_db_info (
     slug        VARCHAR(64) NOT NULL UNIQUE,
     name        VARCHAR(128) NOT NULL,
     description VARCHAR(256),
-    dbname      VARCHAR(64) NOT NULL
+    dbname      VARCHAR(64) NOT NULL UNIQUE
 );
 
 ALTER TABLE scn_db_info OWNER TO selis;

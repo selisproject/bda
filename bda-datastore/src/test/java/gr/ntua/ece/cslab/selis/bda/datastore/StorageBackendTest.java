@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.datastore;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.AbstractTestConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -10,17 +11,17 @@ public class StorageBackendTest extends AbstractTestConnector {
     Logger LOGGER = Logger.getLogger(StorageBackendTest.class.getCanonicalName());
 
     @org.junit.Before
-    public void setUp() {
+    public void setUp() throws SystemConnectorException {
         super.setUp();
     }
 
     @org.junit.After
-    public void tearDown(){
+    public void tearDown() throws SystemConnectorException {
         super.tearDown();
     }
 
     @org.junit.Test
-    public void test() {
+    public void test() throws SystemConnectorException {
         String SCNslug = "testll";
         StorageBackend backend = new StorageBackend(SCNslug);
 

@@ -24,19 +24,24 @@ public class ConnectorFactory {
 
     /** Depending on the FS string format initialize a connector from a different class.
      *  Connectors are implemented for four different filesystems: local, HBase, HDFS, PostgreSQL. **/
-    public Connector generateConnector(String FS, String Username, String Password){
-        Connector connector;
+    public Connector generateConnector(String FS, String Username, String Password) throws SystemConnectorException {
+        Connector connector = null;
 
         int connectorType = ConnectorFactory.getConnectorType(FS);
 
-        if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
-            connector = new HDFSConnector(FS, Username, Password);
-        } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
-            connector = new HBaseConnector(FS, Username, Password);
-        } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
-            connector = new PostgresqlConnector(FS, Username, Password);
-        } else {
-            connector = new LocalFSConnector(FS, Username, Password);
+        try{
+            if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
+                connector = new HDFSConnector(FS, Username, Password);
+            } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
+                connector = new HBaseConnector(FS, Username, Password);
+            } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
+                connector = new PostgresqlConnector(FS, Username, Password);
+            } else {
+                connector = new LocalFSConnector(FS, Username, Password);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new SystemConnectorException("Could not create new connector.");
         }
 
         return connector;
@@ -45,15 +50,20 @@ public class ConnectorFactory {
     /** Creates a new database and specified schemas.
      *  Returns the jdbcUrl of the new database. **/
     public static String createNewDatabaseWithSchemas(String fs, String username, 
-        String password, String owner, String dbname, Vector<String> schemas) 
+        String password, String owner, String dbname, Vector<String> schemas)
         throws SystemConnectorException, UnsupportedOperationException {
-        String databaseUrl = null;
+        String databaseUrl;
         int connectorType = ConnectorFactory.getConnectorType(fs);
 
         if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
             throw new UnsupportedOperationException("Creating a database in HDFS is not supported.");
         } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
-            databaseUrl = HBaseConnector.createNamespace(fs, username, password, dbname);
+            try {
+                databaseUrl = HBaseConnector.createNamespace(fs, username, password, dbname);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new SystemConnectorException("Could not create HBase namespace.");
+            }
         } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
             // 0. Create new database.
             try {
@@ -91,7 +101,12 @@ public class ConnectorFactory {
         if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
             throw new UnsupportedOperationException("Dropping a database in HDFS is not supported.");
         } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
-            HBaseConnector.dropNamespace(fs, username, password, dbname);
+            try {
+                HBaseConnector.dropNamespace(fs, username, password, dbname);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new SystemConnectorException("Could not drop HBase namespace.");
+            }
         } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
             try {
                 PostgresqlConnector.dropDatabase(fs, username, password, owner, dbname);

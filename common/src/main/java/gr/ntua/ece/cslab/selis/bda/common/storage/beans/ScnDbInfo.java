@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.sql.*;
@@ -120,7 +121,7 @@ public class ScnDbInfo implements Serializable {
                 "}";
     }
 
-    public void save() throws SQLException, UnsupportedOperationException {
+    public void save() throws SQLException, UnsupportedOperationException, SystemConnectorException {
         if (!this.exists) {
             // The object does not exist, it should be inserted.
             PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
@@ -148,6 +149,7 @@ public class ScnDbInfo implements Serializable {
             } catch (SQLException e) {
                 e.printStackTrace();
                 connection.rollback();
+                throw new SQLException("Failed to insert ScnDbInfo object.");
             }
         } else {
             // The object exists, it should be updated.
@@ -155,7 +157,7 @@ public class ScnDbInfo implements Serializable {
         }
     }
 
-    public static void destroy(int id) throws SQLException, UnsupportedOperationException {
+    public static void destroy(int id) throws SQLException, UnsupportedOperationException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
 
@@ -174,7 +176,7 @@ public class ScnDbInfo implements Serializable {
         throw new SQLException("ScnDbInfo object not found.");
     }
 
-    public static ScnDbInfo getScnDbInfoById(int id) throws SQLException {
+    public static ScnDbInfo getScnDbInfoById(int id) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
 
@@ -204,7 +206,7 @@ public class ScnDbInfo implements Serializable {
         throw new SQLException("ScnDbInfo object not found.");
     }
 
-    public static ScnDbInfo getScnDbInfoBySlug(String slug) throws SQLException {
+    public static ScnDbInfo getScnDbInfoBySlug(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
 
@@ -234,7 +236,7 @@ public class ScnDbInfo implements Serializable {
         throw new SQLException("ScnDbInfo object not found.");
     }
 
-    public static List<ScnDbInfo> getScnDbInfo() throws SQLException {
+    public static List<ScnDbInfo> getScnDbInfo() throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
 

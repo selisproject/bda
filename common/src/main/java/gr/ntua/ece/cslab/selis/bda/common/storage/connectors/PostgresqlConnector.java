@@ -20,7 +20,7 @@ public class PostgresqlConnector implements Connector {
  
     // The method creates a connection to the database provided in the 'jdbcURL' parameter.
     // The database should be up and running.
-    public PostgresqlConnector(String JdbcURL, String Username, String Password){
+    public PostgresqlConnector(String JdbcURL, String Username, String Password) throws SQLException, ClassNotFoundException {
         this.jdbcURL = JdbcURL;
         this.username = Username;
         this.password = Password;
@@ -29,8 +29,7 @@ public class PostgresqlConnector implements Connector {
             Class.forName("org.postgresql.Driver");
 
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return;
+            throw e;
         }
         LOGGER.log(Level.INFO, "PostgreSQL JDBC Driver Registered!");
 
@@ -38,8 +37,7 @@ public class PostgresqlConnector implements Connector {
             connection = DriverManager.getConnection(jdbcURL, username, password);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
-            e.printStackTrace();
-            return;
+            throw e;
         }
         if (connection == null) {
             LOGGER.log(Level.SEVERE, "Failed to make connection!");
@@ -63,7 +61,6 @@ public class PostgresqlConnector implements Connector {
             localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
-            e.printStackTrace();
             throw e;
         }
 
@@ -75,7 +72,6 @@ public class PostgresqlConnector implements Connector {
             localConnection.close();
         }
         catch (Exception e){
-            e.printStackTrace();
             localConnection.close();
             throw e;
         }
@@ -91,7 +87,6 @@ public class PostgresqlConnector implements Connector {
             localConnection = DriverManager.getConnection(jdbcUrl, username, password);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
-            e.printStackTrace();
             throw e;
         }
 
@@ -103,7 +98,6 @@ public class PostgresqlConnector implements Connector {
             localConnection.close();
         }
         catch (Exception e){
-            e.printStackTrace();
             localConnection.close();
             throw e;
         }
@@ -120,7 +114,6 @@ public class PostgresqlConnector implements Connector {
             localConnection = DriverManager.getConnection(postgresTemplateUrl, username, password);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console");
-            e.printStackTrace();
             throw e;
         }
 
@@ -132,7 +125,6 @@ public class PostgresqlConnector implements Connector {
             localConnection.close();
         }
         catch (Exception e){
-            e.printStackTrace();
             localConnection.close();
             throw e;
         }
