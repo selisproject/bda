@@ -17,7 +17,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.util.LinkedList;
@@ -36,14 +35,10 @@ public class Entrypoint {
     public static Thread subscriber;
     //public static PubSubPublisher publisher;
 
-    public static List<String> getSubscriptions(){
+    public static List<String> getSubscriptions() throws SQLException, SystemConnectorException {
         List<String> messageTypeNames = new LinkedList<>();
-        List<ScnDbInfo> SCNs = new LinkedList<>();
-        try {
-            SCNs = ScnDbInfo.getScnDbInfo();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        List<ScnDbInfo> SCNs = ScnDbInfo.getScnDbInfo();
+
         if (!(SCNs.isEmpty()))
         {
             for (ScnDbInfo SCN : SCNs) {
@@ -59,7 +54,14 @@ public class Entrypoint {
                 configuration.pubsub.getHostname(),
                 configuration.pubsub.getPortNumber(),
                 configuration.pubsub.getCertificateLocation()),"subscriber");
-        PubSubSubscriber.reloadMessageTypes(getSubscriptions());
+
+        try {
+            List<String> subscriptions = getSubscriptions();
+            PubSubSubscriber.reloadMessageTypes(subscriptions);
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Failed to get subscriptions.");
+        }
         //LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
         //publisher = new PubSubPublisher(configuration.pubsub.getHostname(),
         //        configuration.pubsub.getPortNumber());

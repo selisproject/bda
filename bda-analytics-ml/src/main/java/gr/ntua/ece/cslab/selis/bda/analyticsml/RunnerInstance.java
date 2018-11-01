@@ -15,6 +15,8 @@ public class RunnerInstance {
     private String scnSlug;
     private MessageType msgInfo;
     private JobDescription job;
+    private Recipe recipe;
+    private ExecutionEngine engine;
 
     public RunnerInstance(String scnSlug) {
         this.scnSlug = scnSlug;
@@ -36,8 +38,8 @@ public class RunnerInstance {
             return;
         }
 
-        Recipe recipe = Recipe.getRecipeById(scnSlug, job.getRecipeId());
-        ExecutionEngine engine = null;
+        recipe = Recipe.getRecipeById(scnSlug, job.getRecipeId());
+
         try {
             engine = ExecutionEngine.getEngineById(recipe.getEngineId());
         } catch (SQLException e) {

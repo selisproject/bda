@@ -53,8 +53,13 @@ public class MessageResource {
             return new RequestResponse("ERROR", "Could not insert new Message Type.");
         }
 
-        // TODO: call reload method in subscriber
-        reload(null, Entrypoint.getSubscriptions());
+        try {
+            List<String> subscriptions = Entrypoint.getSubscriptions();
+            // TODO: call reload method in subscriber
+            reload(null, subscriptions);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         try {
             if (response != null) {
