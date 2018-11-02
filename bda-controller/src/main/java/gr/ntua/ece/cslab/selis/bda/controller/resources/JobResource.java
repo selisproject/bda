@@ -1,6 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
-import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
@@ -92,39 +91,5 @@ public class JobResource {
         }
 
         return jobs;
-    }
-
-    /**
-     * Run jobs related to a message type
-     */
-    @POST
-    @Path("{slug}/run")
-    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse run(@Context HttpServletResponse response,
-                               @PathParam("slug") String slug,
-                               @QueryParam("messageType") String messageType,
-                               @QueryParam("messageId") String messageId){
-        String status = "OK";
-        String details = "";
-
-        try {
-            (new RunnerInstance(slug)).run(messageType, messageId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (response != null) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-            return new RequestResponse("ERROR", "Could not start Jobs related to this message.");
-        }
-        try {
-            if (response != null) {
-                response.flushBuffer();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return new RequestResponse(status, details);
     }
 }

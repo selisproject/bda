@@ -1,7 +1,9 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
-import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import de.tu_dresden.selis.pubsub.Message;
+
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
+import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubMessage;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubSubscriber;
@@ -11,11 +13,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Vector;
+import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.List;
-import java.util.LinkedList;
 
 @Path("message")
 public class MessageResource {
@@ -56,7 +56,7 @@ public class MessageResource {
         try {
             List<String> subscriptions = Entrypoint.getSubscriptions();
             // TODO: call reload method in subscriber
-            reload(null, subscriptions);
+            PubSubSubscriber.reloadMessageTypes(subscriptions);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -87,6 +87,44 @@ public class MessageResource {
         }
 
         return messageTypes;
+    }
+
+    /**
+     * Handle incoming PubSub message method
+     * @param message the PubSub message
+     */
+    @POST
+    @Path("/pubsub")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public static RequestResponse handleMessage(@Context HttpServletResponse response, Message message) {
+
+        String status = "OK";
+        String details = "";
+
+        try {
+            PubSubMessage.handleMessage(message);
+            LOGGER.log(Level.WARNING,"PubSub message successfully inserted in the BDA.");
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_CREATED);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+
+            return new RequestResponse("ERROR", "Could not insert new PubSub message.");
+        }
+
+        try {
+            if (response != null) {
+                response.flushBuffer();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new RequestResponse(status, details);
     }
 
     /**

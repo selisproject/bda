@@ -59,9 +59,12 @@ public class PubSubSubscriber implements Runnable {
                             @Override
                             public void onMessage(Message message) {
                                 try {
-                                    handleMessage(message);
+                                    PubSubMessage.handleMessage(message);
+                                    LOGGER.log(Level.WARNING,"PubSub message successfully inserted in the BDA.");
+                                    //handleMessage(message);
                                 } catch (Exception e) {
                                     e.printStackTrace();
+                                    LOGGER.log(Level.WARNING,"Could not insert new PubSub message.");
                                 }
                             }
                         });
@@ -148,14 +151,13 @@ public class PubSubSubscriber implements Runnable {
             }
         }
         bdamessage.setEntries(entries);
+        message_id = new StorageBackend(scnSlug).insert(bdamessage);
 
         try {
-            message_id = new StorageBackend(scnSlug).insert(bdamessage);
-            LOGGER.info("Subscriber[" + authHash + "], Received and persisted " + messageType + " message.");
+            (new RunnerInstance(scnSlug)).run(messageType, message_id);
         } catch (Exception e) {
             e.printStackTrace();
+            LOGGER.log(Level.WARNING,"Could not send request to start message related jobs.");
         }
-
-        (new RunnerInstance(scnSlug)).run(messageType, message_id);
     }
 }
