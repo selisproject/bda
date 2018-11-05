@@ -1,13 +1,18 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
-import java.io.Serializable;
+import java.io.*;
 import java.sql.*;
 import java.util.List;
 import java.util.Vector;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import java.lang.UnsupportedOperationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -174,7 +179,7 @@ public class Recipe implements Serializable {
         return recipes;
      }
 
-    public static Recipe getRecipeById(String slug, int id) throws SystemConnectorException {
+    public static Recipe getRecipeById(String slug, int id) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
@@ -186,9 +191,7 @@ public class Recipe implements Serializable {
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-
-                Recipe recipe;
-                recipe = new Recipe(
+                Recipe recipe = new Recipe(
                         resultSet.getString("name"),
                         resultSet.getString("description"),
                         resultSet.getString("executable_path"),
@@ -198,13 +201,15 @@ public class Recipe implements Serializable {
 
                 recipe.id = resultSet.getInt("id");
                 recipe.exists = true;
+
                 return recipe;
+            } else {
+                throw new SQLException("Recipe Not Found.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
-
-        return null;
     }
 
 
@@ -315,5 +320,94 @@ public class Recipe implements Serializable {
         }
 
         LOGGER.log(Level.INFO, "SUCCESS: Create recipes table in metadata schema.");
+    }
+
+    public static String getStorageForSlug(String slug) {
+        Configuration configuration = Configuration.getInstance();
+
+        String storageLocation = 
+            configuration.execEngine.getRecipeStorageLocation() +
+            File.separator + slug;
+
+        return storageLocation;
+    }
+
+    public static void ensureStorageForSlug(String slug) throws IOException {
+        String storageLocationForSlug = Recipe.getStorageForSlug(slug); 
+
+        if (storageLocationForSlug.startsWith("hdfs://")) {
+            /*
+            // Use HDFS storage for recipes.
+            Configuration configuration = Configuration.getInstance();
+
+            org.apache.hadoop.fs.FileSystem fs = null;
+            try {
+                fs = org.apache.hadoop.fs.FileSystem.get(
+                    URI.create(configuration.execEngine.getRecipeStorageLocation()), 
+                    new org.apache.hadoop.conf.Configuration()
+                );
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw e;
+            }
+                
+            org.apache.hadoop.fs.Path path = new org.apache.hadoop.fs.Path(
+                storageLocationForSlug
+            );
+
+            if (!fs.exists(path)) {
+                try {
+                    fs.mkdirs(
+                        new org.apache.hadoop.fs.Path(storageLocationForSlug)
+                    );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw e;
+                }
+            }
+            */
+        } else {
+            // Use local storage for recipes.
+            File path = new File(storageLocationForSlug);
+            if (!path.exists()) {
+                path.mkdir();
+            }
+        }
+    }
+
+    public static String saveRecipeForSlug(String slug,
+                                           InputStream recipeInStream,
+                                           String recipeName)
+                                           throws IOException {
+        byte[] recipeBytes = null;
+
+        try {
+            recipeBytes = IOUtils.toByteArray(recipeInStream);
+
+            recipeInStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        String recipeHash = DigestUtils.md5Hex(recipeBytes);
+
+        String recipeFilename = Paths.get(
+            Recipe.getStorageForSlug(slug), recipeHash + "_" + recipeName
+        ).toString();
+
+        File outputFile = new File(recipeFilename);
+        OutputStream outputStream = new FileOutputStream(outputFile);
+
+        try {
+            IOUtils.write(recipeBytes, outputStream);
+
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        return recipeFilename;
     }
 }

@@ -82,6 +82,8 @@ public class Configuration {
         private String sparkConfExecutorCores;
         private String sparkConfExecutorMemory;
 
+        private String recipeStorageLocation;
+
         public ExecutionEngine(){}
 
         public String getSparkMaster() { return sparkMaster; }
@@ -97,6 +99,8 @@ public class Configuration {
         public String getSparkConfExecutorCores() { return sparkConfExecutorCores; }
 
         public String getSparkConfExecutorMemory() { return sparkConfExecutorMemory; }
+
+        public String getRecipeStorageLocation() { return recipeStorageLocation; }
     }
     public class PubSubServer {
         private String authHash, certificateLocation;
@@ -234,6 +238,7 @@ public class Configuration {
         conf.execEngine.sparkConfDriverMemory = properties.getProperty("spark.conf.driver_memory");
         conf.execEngine.sparkConfExecutorCores = properties.getProperty("spark.conf.executor_cores");
         conf.execEngine.sparkConfExecutorMemory = properties.getProperty("spark.conf.executor_memory");
+        conf.execEngine.recipeStorageLocation = properties.getProperty("engines.recipe.storage");
 
         configuration = conf;
 

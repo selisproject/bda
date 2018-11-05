@@ -2,6 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import org.apache.commons.io.IOUtils;
 
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.*;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -86,27 +88,61 @@ public class RecipeResource {
     @PUT
     @Path("{slug}/upload/{id}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public RequestResponse upload(@PathParam("slug") String slug,
-                                  @PathParam("id") int recipeId,
-                                  @PathParam("filename") String recipeName,
-                                  InputStream recipeBinary)  {
-
-        String status = "OK";
-        String details = "";
-
-        String binaryPath = "/uploads/" + recipeId + "_" + recipeName;
-
-        saveFile(recipeBinary, binaryPath);
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response upload(@PathParam("slug") String slug,
+                           @PathParam("id") int recipeId,
+                           @PathParam("filename") String recipeName,
+                           InputStream recipeBinary)  {
 
         try {
-            Recipe recipe = Recipe.getRecipeById(slug, recipeId);
-            recipe.setExecutablePath(binaryPath);
-            recipe.save(slug);
-        } catch (Exception e) {
+            Recipe.ensureStorageForSlug(slug);
+        } catch (IOException e) {
             e.printStackTrace();
+
+            return Response.serverError().entity(
+                new RequestResponse("ERROR", "Upload recipe FAILED")
+            ).build();
         }
 
-        return new RequestResponse(status, details);
+        String recipeFilename = null; 
+        try {
+            recipeFilename = Recipe.saveRecipeForSlug(
+                slug, recipeBinary, recipeName
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                new RequestResponse("ERROR", "Upload recipe FAILED")
+            ).build();
+        }
+
+        Recipe recipe = null;
+        try {
+            recipe = Recipe.getRecipeById(slug, recipeId);
+        } catch (SQLException | SystemConnectorException e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                new RequestResponse("ERROR", "Upload recipe FAILED")
+            ).build();
+        }
+
+        recipe.setExecutablePath(recipeFilename);
+
+        try {
+            recipe.save(slug);
+        } catch (SQLException | SystemConnectorException e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                new RequestResponse("ERROR", "Upload recipe FAILED")
+            ).build();
+        }
+
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
     }
 
     /**
@@ -126,24 +162,4 @@ public class RecipeResource {
 
         return recipes;
     }
-
-
-    private void saveFile(InputStream uploadedInputStream, String serverLocation) {
-
-        try {
-            File outputFile = new File(serverLocation);
-            OutputStream outputStream = new FileOutputStream(outputFile);
-
-            IOUtils.copy(uploadedInputStream, outputStream);
-
-            outputStream.close();
-            uploadedInputStream.close();
-
-        } catch (IOException e) {
-
-            e.printStackTrace();
-        }
-
-    }
-
 }
