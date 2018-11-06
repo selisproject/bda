@@ -30,7 +30,7 @@ pubsub.port = 20000
 pubsub.authhash = myhash
 pubsub.certificate.location = /resources/root.crt
 pubsub.subscriber.address = selis-subscriber
-pubsub.subscriber.port = 9999
+pubsub.subscriber.port = 9998
 
 # keycloak configuration parameters.
 keycloak.bda.realm    = selis-bda-realm

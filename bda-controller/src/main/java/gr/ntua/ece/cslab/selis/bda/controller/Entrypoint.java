@@ -3,10 +3,8 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
-import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
-
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
+import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -18,9 +16,6 @@ import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
 import java.io.File;
 import java.net.InetSocketAddress;
-import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,35 +28,24 @@ public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
     public static Thread subscriber;
+    private static PubSubSubscription subscriptions;
     //public static PubSubPublisher publisher;
 
-    public static List<String> getSubscriptions() throws SQLException, SystemConnectorException {
-        List<String> messageTypeNames = new LinkedList<>();
-        List<ScnDbInfo> SCNs = ScnDbInfo.getScnDbInfo();
-
-        if (!(SCNs.isEmpty()))
-        {
-            for (ScnDbInfo SCN : SCNs) {
-                messageTypeNames.addAll(MessageType.getActiveMessageTypeNames(SCN.getSlug()));
-            }
-        }
-        return messageTypeNames;
-    }
-
     private static void pubSubConnectorsInitialization() {
-        LOGGER.log(Level.INFO, "Initializing PubSub subscriber...");
+        LOGGER.log(Level.INFO, "Initializing PubSub subscriptions...");
         subscriber = new Thread(new PubSubSubscriber(configuration.pubsub.getAuthHash(),
                 configuration.pubsub.getHostname(),
                 configuration.pubsub.getPortNumber(),
                 configuration.pubsub.getCertificateLocation()),"subscriber");
 
         try {
-            List<String> subscriptions = getSubscriptions();
-            PubSubSubscriber.reloadMessageTypes(subscriptions);
+            subscriptions = PubSubSubscription.getActiveSubscriptions();
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING, "Failed to get subscriptions.");
         }
+        //PubSubSubscriber.reloadMessageTypes(subscriptions);
+
         //LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
         //publisher = new PubSubPublisher(configuration.pubsub.getHostname(),
         //        configuration.pubsub.getPortNumber());
@@ -183,8 +167,10 @@ public class Entrypoint {
             LOGGER.log(Level.INFO, "Starting server");
             server.start();
             subscriber.start();
+            PubSubMessage.externalSubscribe(configuration.subscriber.getHostname(),
+                    configuration.subscriber.getPortNumber(),
+                    subscriptions);
             server.join();
-            subscriber.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
             e.printStackTrace();

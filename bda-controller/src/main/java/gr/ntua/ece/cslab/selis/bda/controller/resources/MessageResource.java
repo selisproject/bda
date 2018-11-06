@@ -4,6 +4,7 @@ import de.tu_dresden.selis.pubsub.Message;
 
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubMessage;
+import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubSubscriber;
@@ -54,9 +55,11 @@ public class MessageResource {
         }
 
         try {
-            List<String> subscriptions = Entrypoint.getSubscriptions();
-            // TODO: call reload method in subscriber
-            PubSubSubscriber.reloadMessageTypes(subscriptions);
+            PubSubSubscription subscriptions = PubSubSubscription.getActiveSubscriptions();
+            PubSubMessage.externalSubscribe(Entrypoint.configuration.subscriber.getHostname(),
+                    Entrypoint.configuration.subscriber.getPortNumber(),
+                    subscriptions);
+            //PubSubSubscriber.reloadMessageTypes(subscriptions);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -94,7 +97,7 @@ public class MessageResource {
      * @param message the PubSub message
      */
     @POST
-    @Path("/pubsub")
+    @Path("/insert")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public static RequestResponse handleMessage(@Context HttpServletResponse response, Message message) {
@@ -131,12 +134,12 @@ public class MessageResource {
      * Message subscriptions reload method
      * @param messageTypes the message types names to subscribe to
      */
-    @PUT
+    @POST
     @Path("/reload")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public RequestResponse reload(@Context HttpServletResponse response,
-                                  List<String> messageTypes) {
+                                  PubSubSubscription messageTypes) {
         String status = "OK";
         String details = "";
 

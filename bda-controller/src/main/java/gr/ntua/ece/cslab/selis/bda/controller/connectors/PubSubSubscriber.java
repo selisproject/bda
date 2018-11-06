@@ -10,6 +10,9 @@ import de.tu_dresden.selis.pubsub.PubSubException;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Tuple;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -23,7 +26,7 @@ public class PubSubSubscriber implements Runnable {
     private static int portNumber;
     private static String certificateLocation;
 
-    private static volatile List<String> messageTypeNames = new LinkedList<>();
+    private static volatile PubSubSubscription messageTypeNames = new PubSubSubscription();
     private static volatile boolean reloadMessageTypesFlag = true;
 
     public PubSubSubscriber(String authHash, String hostname, int portNumber, String cert) {
@@ -33,7 +36,7 @@ public class PubSubSubscriber implements Runnable {
         this.certificateLocation = cert;
     }
 
-    public static void reloadMessageTypes(List<String> messageTypes) {
+    public static void reloadMessageTypes(PubSubSubscription messageTypes) {
         messageTypeNames = messageTypes;
         reloadMessageTypesFlag = true;
     }
@@ -48,12 +51,13 @@ public class PubSubSubscriber implements Runnable {
             try {
                 pubsub = new PubSub(this.certificateLocation, this.hostname, this.portNumber);
 
-                if (!(messageTypeNames.isEmpty())) {
+                if (!(messageTypeNames.getSubscriptions().isEmpty())) {
 
-                    for (String messageTypeName : messageTypeNames) {
+                    for (Tuple messageTypeName : messageTypeNames.getSubscriptions()) {
                         Subscription subscription = new Subscription(this.authHash);
 
-                        subscription.add(new Rule("message_type", messageTypeName, RuleType.EQ));
+                        for (KeyValue rule: messageTypeName.getTuple())
+                            subscription.add(new Rule(rule.getKey(), rule.getValue(), RuleType.EQ));
 
                         pubsub.subscribe(subscription, new Callback() {
                             @Override
@@ -72,8 +76,11 @@ public class PubSubSubscriber implements Runnable {
 
                     LOGGER.log(Level.INFO,
                             "SUCCESS: Subscribed to {0} message types",
-                            messageTypeNames.size());
+                            messageTypeNames.getSubscriptions().size());
                 }
+                else
+                    LOGGER.log(Level.INFO,
+                            "No registered messages to subscribe to.");
             } catch (PubSubException ex) {
                 LOGGER.log(Level.WARNING,
                            "Could not subscribe, got error: {0}",
@@ -109,25 +116,36 @@ public class PubSubSubscriber implements Runnable {
         String messageType = "";
         String message_id = "";
         String scnSlug = "";
+
+        for (Map.Entry<String, Object> entry : message.entrySet()) {
+            String key = entry.getKey() != null ? entry.getKey() : "";
+            if (key.matches("scn_slug")) {
+                scnSlug = entry.getValue() != null ? entry.getValue().toString() : "";
+            }
+        }
+        if (scnSlug.matches("")) {
+            throw new Exception("Subscriber[" + authHash + "], received message with no SCN slug. This should never happen.");
+        }
         for (Map.Entry<String, Object> entry : message.entrySet()) {
             String key = entry.getKey() != null ? entry.getKey() : "";
             if (key.matches("message_type")) {
+                List<String> messageTypeNames;
+                try {
+                    messageTypeNames = MessageType.getActiveMessageTypeNames(scnSlug);
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING, "Could not get registered message types to validate incoming message.");
+                    throw e;
+                }
                 String value = entry.getValue() != null ? entry.getValue().toString() : "";
                 if (messageTypeNames.contains(value))
                     messageType = value;
                 else
                     throw new Exception("Subscriber[" + authHash + "], received unknown message type: " + value + ". This should never happen.");
             }
-
-            if (key.matches("scn_slug")) {
-                scnSlug = entry.getValue() != null ? entry.getValue().toString() : "";
-            }
         }
         if (messageType.matches(""))
             throw new Exception("Subscriber[" + authHash + "], received no message type. This should never happen.");
-        if (scnSlug.matches("")) {
-            throw new Exception("Subscriber[" + authHash + "], received message with no SCN slug. This should never happen.");
-        }
+
 
         List<KeyValue> entries = new LinkedList<>();
         for (Map.Entry<String, Object> entry : message.entrySet()) {

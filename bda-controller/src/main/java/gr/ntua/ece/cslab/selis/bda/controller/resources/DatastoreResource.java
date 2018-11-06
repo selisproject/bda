@@ -2,7 +2,8 @@ package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubSubscriber;
+import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
+import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubMessage;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
@@ -11,7 +12,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.*;
 import com.google.common.base.Splitter;
 import java.util.logging.Level;
@@ -117,9 +117,11 @@ public class DatastoreResource {
         }
 
         try {
-            List<String> subscriptions = Entrypoint.getSubscriptions();
-            // TODO: call reload method in subscriber
-            PubSubSubscriber.reloadMessageTypes(subscriptions);
+            PubSubSubscription subscriptions = PubSubSubscription.getActiveSubscriptions();
+            PubSubMessage.externalSubscribe(Entrypoint.configuration.subscriber.getHostname(),
+                    Entrypoint.configuration.subscriber.getPortNumber(),
+                    subscriptions);
+            //PubSubSubscriber.reloadMessageTypes(subscriptions);
         } catch (Exception e) {
             e.printStackTrace();
         }

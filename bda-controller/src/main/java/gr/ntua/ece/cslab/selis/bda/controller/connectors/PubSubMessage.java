@@ -3,13 +3,17 @@ package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 import de.tu_dresden.selis.pubsub.Message;
 
 import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
-import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
+
+import javax.ws.rs.client.*;
+import javax.ws.rs.core.Response;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,16 +31,26 @@ public class PubSubMessage {
         String message_id = "";
         String scnSlug = "";
 
-        List<String> messageTypeNames;
-        try {
-            messageTypeNames = Entrypoint.getSubscriptions();
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Could not get registered message types to validate incoming message.");
-            throw e;
+        for (Map.Entry<String, Object> entry : message.entrySet()) {
+            String key = entry.getKey() != null ? entry.getKey() : "";
+            if (key.matches("scn_slug")) {
+                scnSlug = entry.getValue() != null ? entry.getValue().toString() : "";
+            }
+        }
+        if (scnSlug.matches("")) {
+            LOGGER.log(Level.WARNING,"Received message with no SCN slug. This should never happen.");
+            throw new Exception("Could not insert new PubSub message. Missing SCN identifier.");
         }
         for (Map.Entry<String, Object> entry : message.entrySet()) {
             String key = entry.getKey() != null ? entry.getKey() : "";
             if (key.matches("message_type")) {
+                List<String> messageTypeNames;
+                try {
+                    messageTypeNames = MessageType.getActiveMessageTypeNames(scnSlug);
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING, "Could not get registered message types to validate incoming message.");
+                    throw e;
+                }
                 String value = entry.getValue() != null ? entry.getValue().toString() : "";
                 if (messageTypeNames.contains(value))
                     messageType = value;
@@ -45,18 +59,10 @@ public class PubSubMessage {
                     throw new Exception("Could not insert new PubSub message. Unregistered message type.");
                 }
             }
-
-            if (key.matches("scn_slug")) {
-                scnSlug = entry.getValue() != null ? entry.getValue().toString() : "";
-            }
         }
         if (messageType.matches("")){
             LOGGER.log(Level.WARNING,"Received no message type. This should never happen.");
             throw new Exception("Could not insert new PubSub message. Empty message type.");
-        }
-        if (scnSlug.matches("")) {
-            LOGGER.log(Level.WARNING,"Received message with no SCN slug. This should never happen.");
-            throw new Exception("Could not insert new PubSub message. Missing SCN identifier.");
         }
 
         List<KeyValue> entries = new LinkedList<>();
@@ -89,6 +95,30 @@ public class PubSubMessage {
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING,"Could not send request to start message related jobs.");
+        }
+    }
+
+    public static void externalSubscribe(String subscriberHost, Integer subscriberPort, PubSubSubscription messageTypes) {
+        Client client = ClientBuilder.newClient();
+
+        WebTarget resource = client.target("http://"+subscriberHost+":"+subscriberPort+"/api").path("/message/reload");
+        Invocation.Builder request = resource.request();
+
+        try{
+            Response response = request.post(Entity.json(messageTypes));
+            if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
+                LOGGER.log(Level.INFO,
+                        "SUCCESS: Request to subscribe to {0} message types has been received",
+                        messageTypes.getSubscriptions().size());
+            } else {
+                LOGGER.log(Level.WARNING,
+                        "Request to subscribe has failed, got error: {0}",
+                        response.getStatusInfo().getReasonPhrase());
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            LOGGER.log(Level.WARNING,
+                    "Could not connect to subscriber.");
         }
     }
 }
