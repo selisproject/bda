@@ -1,24 +1,19 @@
 FROM openjdk:8-slim-stretch
 
 # Specify hadoop resources.
-ARG HADOOP_FILE=hadoop-2.9.1
+ARG HADOOP_VERSION=2.9.1
 ARG HADOOP_PREFIX=/usr/local/hadoop
-ARG HADOOP_TAR_FILE=hadoop-2.9.1.tar.gz
-ARG HADOOP_DOWNLOAD_URL=http://apache.mirrors.spacedump.net/hadoop/common/stable/hadoop-2.9.1.tar.gz
 
 # Install dependencies.
 RUN apt-get update && apt-get install -y \
     procps \
     wget
 
-# Download hadoop.
-RUN wget ${HADOOP_DOWNLOAD_URL} --directory-prefix /tmp
-# COPY ${HADOOP_TAR_FILE} /tmp
-
-# Untar and link to `/usr/local/hadoop`.
-RUN tar -xzf /tmp/${HADOOP_TAR_FILE} -C /usr/local/
-RUN rm /tmp/${HADOOP_TAR_FILE}
-RUN ln -s /usr/local/${HADOOP_FILE} ${HADOOP_PREFIX}
+# Download, install hadoop.
+RUN wget https://archive.apache.org/dist/hadoop/core/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz && \
+    tar -xzvf hadoop-${HADOOP_VERSION}.tar.gz && \
+    mv hadoop-${HADOOP_VERSION} ${HADOOP_PREFIX} && \
+	rm hadoop-${HADOOP_VERSION}.tar.gz
 
 # Set hadoop/yarn environment variables.
 ENV HADOOP_PREFIX      "${HADOOP_PREFIX}"
