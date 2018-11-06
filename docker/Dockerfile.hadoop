@@ -1,0 +1,35 @@
+FROM openjdk:8-slim-stretch
+
+# Specify hadoop resources.
+ARG HADOOP_FILE=hadoop-2.9.1
+ARG HADOOP_PREFIX=/usr/local/hadoop
+ARG HADOOP_TAR_FILE=hadoop-2.9.1.tar.gz
+ARG HADOOP_DOWNLOAD_URL=http://apache.mirrors.spacedump.net/hadoop/common/stable/hadoop-2.9.1.tar.gz
+
+# Install dependencies.
+RUN apt-get update && apt-get install -y \
+    procps \
+    wget
+
+# Download hadoop.
+RUN wget ${HADOOP_DOWNLOAD_URL} --directory-prefix /tmp
+# COPY ${HADOOP_TAR_FILE} /tmp
+
+# Untar and link to `/usr/local/hadoop`.
+RUN tar -xzf /tmp/${HADOOP_TAR_FILE} -C /usr/local/
+RUN rm /tmp/${HADOOP_TAR_FILE}
+RUN ln -s /usr/local/${HADOOP_FILE} ${HADOOP_PREFIX}
+
+# Set hadoop/yarn environment variables.
+ENV HADOOP_PREFIX      "${HADOOP_PREFIX}"
+ENV HADOOP_HOME        "${HADOOP_PREFIX}"
+ENV HADOOP_COMMON_HOME "${HADOOP_PREFIX}"
+ENV HADOOP_CONF_DIR    "${HADOOP_PREFIX}/etc/hadoop"
+ENV HADOOP_HDFS_HOME   "${HADOOP_PREFIX}"
+ENV HADOOP_MAPRED_HOME "${HADOOP_PREFIX}"
+
+# Add configuration files.
+ADD ./bootstrap/hadoop/hdfs-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
+ADD ./bootstrap/hadoop/core-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
+
+ADD ./bootstrap/hadoop/entrypoint.sh /
