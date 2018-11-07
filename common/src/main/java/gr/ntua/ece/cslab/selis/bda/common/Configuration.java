@@ -50,6 +50,9 @@ public class Configuration {
         private String eventLogURL, dimensionTablesURL, bdaDatabaseURL, dbUsername, dbPassword;
         private String dbPrivilegedUsername, dbPrivilegedPassword;
 
+        private String eventLogMaster = null;
+        private String eventLogQuorum = null;
+
         public StorageBackend() {
         }
 
@@ -72,6 +75,10 @@ public class Configuration {
         public String getDbPrivilegedUsername() { return dbPrivilegedUsername; }
 
         public String getDbPrivilegedPassword() { return dbPrivilegedPassword; }
+
+        public String getEventLogMaster() { return eventLogMaster; }
+
+        public String getEventLogQuorum() { return eventLogQuorum; }
     }
     public class ExecutionEngine {
         private String sparkMaster;
@@ -211,6 +218,8 @@ public class Configuration {
         // conf.storageBackend.eventLogPassword = properties.getProperty("backend.db.event.password");
 
         conf.storageBackend.eventLogURL = properties.getProperty("backend.db.event.url");
+        conf.storageBackend.eventLogMaster = properties.getProperty("backend.db.event.master.host");
+        conf.storageBackend.eventLogQuorum = properties.getProperty("backend.db.event.quorum");
 
         // Pub/Sub Configuration.
         conf.pubsub.authHash = properties.getProperty("pubsub.authhash");

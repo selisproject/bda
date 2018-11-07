@@ -7,19 +7,23 @@ then
     then
         # Format the namenode directory (DO THIS ONLY ONCE, THE FIRST TIME)
         # ONLY ON THE NAMENODE NODE
-        $HADOOP_PREFIX/bin/hdfs namenode -format
+        echo "Formating namenode root fs."
+        $HADOOP_HOME/bin/hdfs namenode -format
     fi
 
     # Start the namenode daemon
     # ONLY ON THE NAMENODE NODE
-    $HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
+    echo "Starting HDFS namenode daemon."
+    $HADOOP_HOME/sbin/hadoop-daemon.sh start namenode
 
     ## Start YARN daemons
     # Start the resourcemanager daemon
     # ONLY ON THE RESOURCEMANAGER NODE
-    $HADOOP_PREFIX/sbin/yarn-daemon.sh start resourcemanager
+    echo "Starting YARN resource manager daemon."
+    $HADOOP_HOME/sbin/yarn-daemon.sh start resourcemanager
 
     # ...... . . .. ....
+    echo "Sleeping ..."
     sleep infinity
 fi
 
@@ -27,8 +31,10 @@ if [ "$1" == "worker" ]
 then
     # Start the datanode daemon
     # ON ALL SLAVES
-    $HADOOP_PREFIX/sbin/hadoop-daemon.sh start datanode
+    echo "Starting HDFS datanode daemon."
+    $HADOOP_HOME/sbin/hadoop-daemon.sh start datanode
 
     # ...... . . .. ....
+    echo "Sleeping ..."
     sleep infinity
 fi

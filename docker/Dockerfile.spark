@@ -3,36 +3,37 @@ FROM selis-hadoop-image:latest
 # Specify spark resources.
 ARG SPARK_VERSION=2.3.1
 ARG SPARK_PREFIX=/usr/local/spark
+ARG SPARK_URL=https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz
 
 # Install general packages.
-RUN apt-get update && apt-get install -y \
-        python3 \
-        python3-pip  && \
-    apt-get clean && \
-    pip3 install \
-        psycopg2 \
-        py-dateutil \
-        requests
+RUN apt-get update && apt-get install --yes --no-install-recommends python3 python3-pip  python3-setuptools && \
+    apt-get clean autoclean && \
+    pip3 install psycopg2 py-dateutil requests
+
+# Create hadoop, resources directories.
+RUN mkdir -p ${SPARK_PREFIX} /resources
 
 # Download, install spark.
-RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz && \
-    tar -xzvf spark-${SPARK_VERSION}-bin-without-hadoop.tgz && \
-    mv spark-${SPARK_VERSION}-bin-without-hadoop ${SPARK_PREFIX} && \
-	rm spark-${SPARK_VERSION}-bin-without-hadoop.tgz
+RUN curl -L ${SPARK_URL} | tar -xz --strip=1 -C ${SPARK_PREFIX}
 
 # Add configuration files.
 ADD ./bootstrap/spark/core-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
 ADD ./bootstrap/spark/yarn-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
+
+# Set yarn environment variables.
+ENV HADOOP_YARN_HOME   "${HADOOP_PREFIX}"
+ENV YARN_CONF_DIR      "${HADOOP_PREFIX}/etc/hadoop"
 
 # Set spark environment variables.
 ENV SPARK_HOME "${SPARK_PREFIX}"
 ENV PYSPARK_PYTHON "/usr/bin/python3"
 
 # Download postgresql jar.
-RUN mkdir /resources
-RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --directory-prefix /resources
+RUN curl https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --output /resources/postgresql-42.2.1.jar
 
 # Add the certificate, used to connect to pubsub.
 ADD ./bootstrap/root.crt /resources/
 
-ADD ./bootstrap/spark/entrypoint.sh /
+ADD ./bootstrap/spark/docker-entrypoint.sh /
+
+RUN chmod +x /docker-entrypoint.sh

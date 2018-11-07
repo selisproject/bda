@@ -27,11 +27,15 @@ public class HBaseConnector implements Connector {
 
         LOGGER.log(Level.INFO, "Initializing HBase Connector...");
 
+        gr.ntua.ece.cslab.selis.bda.common.Configuration bdaConfig = 
+            gr.ntua.ece.cslab.selis.bda.common.Configuration.getInstance();
+
         // Initialize HBase Configuration.
         Configuration conf = HBaseConfiguration.create();
 
         conf.set("hbase.zookeeper.property.clientPort", this.port);
-        conf.set("hbase.zookeeper.quorum", this.hostname);
+        conf.set("hbase.zookeeper.quorum", bdaConfig.storageBackend.getEventLogQuorum());
+        conf.set("hbase.master", bdaConfig.storageBackend.getEventLogMaster());
         conf.set("hbase.client.keyvalue.maxsize","0");
 
         // Check HBase Availability.

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export SPARK_DIST_CLASSPATH=$($HADOOP_PREFIX/bin/hadoop classpath)
+export SPARK_DIST_CLASSPATH=$($HADOOP_HOME/bin/hadoop classpath)
 
 cd bda-controller
 

@@ -28,6 +28,15 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <configuration>
+                <reuseForks>true</reuseForks>
+                <useSystemClassLoader>false</useSystemClassLoader>
+              </configuration>
+              <version>3.0.0-M1</version>
+            </plugin>
         </plugins>
     </build>
     <dependencies>
@@ -67,14 +76,14 @@
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase</artifactId>
-            <version>1.2.4</version>
+            <version>1.2.6</version>
             <type>pom</type>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.hbase/hbase-client -->
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
-            <version>1.2.4</version>
+            <version>1.2.6</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
