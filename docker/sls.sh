@@ -30,7 +30,6 @@ SELIS_SPARK_MASTER_CONTAINER="selis-spark-master"
 SELIS_SPARK_WORKER_CONTAINER_0="selis-spark-worker-0"
 SELIS_SPARK_WORKER_CONTAINER_1="selis-spark-worker-1"
 SELIS_PUBSUB_CONTAINER="selis-pubsub"
-SELIS_PUBSUB_SUBSCRIBER_CONTAINER="selis-subscriber"
 
 ################################################################################
 # Clean all. ###################################################################
@@ -48,7 +47,6 @@ then
     docker rm "$SELIS_SPARK_WORKER_CONTAINER_0"
     docker rm "$SELIS_SPARK_WORKER_CONTAINER_1"
     docker rm "$SELIS_PUBSUB_CONTAINER"
-    docker rm "$SELIS_PUBSUB_SUBSCRIBER_CONTAINER"
 
     docker rmi "$SELIS_BDA_IMAGE"
     docker rmi "$SELIS_POSTGRES_IMAGE"
@@ -313,21 +311,6 @@ then
             "$SELIS_PUBSUB_PULL_IMAGE"
     fi
 
-    if [ "$2" == "subscriber" ] || [ "$2" == "all" ]
-    then
-        echo "Running selis subscriber container."
-
-        docker run \
-            --detach \
-            --network "$SELIS_NETWORK" \
-            --name "$SELIS_PUBSUB_SUBSCRIBER_CONTAINER" \
-            --hostname "$SELIS_PUBSUB_SUBSCRIBER_CONTAINER" \
-            --volume "$SELIS_SRC_DIR":/code \
-            --publish 127.0.0.1:9990:9990 \
-            "$SELIS_BDA_IMAGE" \
-            /bin/bash -c "cd /code/bda-controller && src/main/scripts/selis-bda-server.sh > /code/out.txt"
-   fi
-
     if [ "$2" == "controller" ] || [ "$2" == "all" ]
     then
         echo "Running selis controller container."
@@ -359,7 +342,6 @@ then
     docker start "$SELIS_SPARK_WORKER_CONTAINER_0"
     docker start "$SELIS_SPARK_WORKER_CONTAINER_1"
     docker start "$SELIS_PUBSUB_CONTAINER"
-    #docker start "$SELIS_PUBSUB_SUBSCRIBER_CONTAINER"
     docker start "$SELIS_BDA_CONTAINER"
 
 fi
@@ -375,7 +357,6 @@ then
 
     docker stop "$SELIS_BDA_CONTAINER"
     docker stop "$SELIS_PUBSUB_CONTAINER"
-    #docker stop "$SELIS_PUBSUB_SUBSCRIBER_CONTAINER"
     docker stop "$SELIS_HBASE_CONTAINER"
     docker stop "$SELIS_POSTGRES_CONTAINER"
     docker stop "$SELIS_KEYCLOAK_CONTAINER"
