@@ -22,6 +22,7 @@ public class Recipe implements Serializable {
     private String executablePath;
     private int engineId;
     private String args;
+    private boolean shared;
 
     private boolean exists = false;
 
@@ -32,7 +33,8 @@ public class Recipe implements Serializable {
         "description         VARCHAR(256), " +
         "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
         "engine_id           INTEGER NOT NULL, " +
-        "args                VARCHAR(512)" +
+        "args                VARCHAR(512), " +
+        "shared              BOOLEAN NOT NULL DEFAULT(FALSE) " +
         ");";
 
     private final static String ALL_RECIPES_QUERY = 
@@ -60,12 +62,13 @@ public class Recipe implements Serializable {
 
     public Recipe() {}
 
-    public Recipe(String name, String description, String executablePath, int engineId, String args) {
+    public Recipe(String name, String description, String executablePath, int engineId, String args, boolean shared) {
         this.name = name;
         this.description = description;
         this.executablePath = executablePath;
         this.engineId = engineId;
         this.args = args;
+        this.shared = shared;
     }
 
     public int getId() {
@@ -158,7 +161,8 @@ public class Recipe implements Serializable {
                     resultSet.getString("description"),
                     resultSet.getString("executable_path"),
                     resultSet.getInt("engine_id"),
-                    resultSet.getString("args")
+                    resultSet.getString("args"),
+                        resultSet.getBoolean("shared")
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -193,7 +197,8 @@ public class Recipe implements Serializable {
                         resultSet.getString("description"),
                         resultSet.getString("executable_path"),
                         resultSet.getInt("engine_id"),
-                        resultSet.getString("args")
+                        resultSet.getString("args"),
+                        resultSet.getBoolean("shared")
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -227,7 +232,8 @@ public class Recipe implements Serializable {
                     resultSet.getString("description"),
                     resultSet.getString("executable_path"),
                     resultSet.getInt("engine_id"),
-                    resultSet.getString("args")
+                    resultSet.getString("args"),
+                    resultSet.getBoolean("shared")
                 );
 
                 recipe.id = resultSet.getInt("id");
