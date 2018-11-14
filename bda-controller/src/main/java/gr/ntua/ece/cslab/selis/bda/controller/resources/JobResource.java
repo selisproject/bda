@@ -38,22 +38,46 @@ public class JobResource {
         String details = "";
 
         try {
-            m.save(slug);
 
-            details = Integer.toString(m.getId());
+            boolean correctJob = false;
 
-            LOGGER.log(Level.INFO, "Inserted job.");
-            if (response != null) {
-                response.setStatus(HttpServletResponse.SC_CREATED);
+            if (m.getDepend_job_id() == 0) {
+                correctJob = true;
+            }
+            else {
+                List<JobDescription> existingJobs = JobDescription.getJobs(slug);
+
+                for (JobDescription job : existingJobs) {
+                    if (job.getId() == m.getDepend_job_id()) {
+                        correctJob = true;
+                    }
+                }
             }
 
-            MessageType msg = MessageType.getMessageById(slug,m.getMessageTypeId());
-            Recipe r = Recipe.getRecipeById(slug, m.getRecipeId());
-            JSONObject msgFormat = new JSONObject(msg.getFormat());
-            LOGGER.log(Level.INFO, "Create kpidb table..");
-            (new KPIBackend(slug)).create(new KPITable(r.getName(),
-                    new KPISchema(msgFormat)));
-            // TODO: check if job is periodical and schedule the cron job
+            if (correctJob) {
+                m.save(slug);
+
+                details = Integer.toString(m.getId());
+
+                LOGGER.log(Level.INFO, "Inserted job.");
+                if (response != null) {
+                    response.setStatus(HttpServletResponse.SC_CREATED);
+                }
+
+                MessageType msg = MessageType.getMessageById(slug, m.getMessageTypeId());
+                Recipe r = Recipe.getRecipeById(slug, m.getRecipeId());
+                JSONObject msgFormat = new JSONObject(msg.getFormat());
+                LOGGER.log(Level.INFO, "Create kpidb table..");
+                (new KPIBackend(slug)).create(new KPITable(r.getName(),
+                        new KPISchema(msgFormat)));
+                // TODO: check if job is periodical and schedule the cron job
+            }
+            else {
+                LOGGER.log(Level.WARNING, "Bad engine id provided!");
+                if (response != null) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                }
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

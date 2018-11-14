@@ -73,7 +73,7 @@ public class EntrypointTest extends AbstractTestConnector  {
         LOGGER.log(Level.INFO, "File uploaded");
 
         jobDescription = new JobDescription("recipe_job", "recipe_job", true,
-            msgType.getId(), recipe.getId(), "");
+            msgType.getId(), recipe.getId(), "", 0);
 
         LOGGER.log(Level.INFO, "About to insert new job...");
         jobResource.insert(null, SCNslug, jobDescription);
