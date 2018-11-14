@@ -222,8 +222,7 @@ public class Configuration {
         try {
             conf.pubsub.portNumber = Integer.valueOf(properties.getProperty("pubsub.port"));
         } catch (NumberFormatException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage());
-            return null;
+            LOGGER.log(Level.WARNING, e.getMessage());
         }
         conf.pubsub.authHash = properties.getProperty("pubsub.authhash");
         conf.pubsub.certificateLocation = properties.getProperty("pubsub.certificate.location");
@@ -233,7 +232,11 @@ public class Configuration {
         try {
             conf.subscriber.portNumber = Integer.valueOf(properties.getProperty("pubsub.subscriber.port"));
         } catch (NumberFormatException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage());
+            LOGGER.log(Level.WARNING, e.getMessage());
+        }
+
+        if (conf.pubsub.portNumber == 0 && conf.subscriber.getPortNumber() == 0) {
+            LOGGER.log(Level.SEVERE, "Port of pub sub server or subscriber must be given.");
             return null;
         }
 

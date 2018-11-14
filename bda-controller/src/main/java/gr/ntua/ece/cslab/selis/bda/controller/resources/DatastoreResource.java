@@ -2,8 +2,6 @@ package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
-import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubMessage;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
@@ -116,15 +114,8 @@ public class DatastoreResource {
             return new RequestResponse("ERROR", "Could not destroy SCN.");
         }
 
-        try {
-            PubSubSubscription subscriptions = PubSubSubscription.getActiveSubscriptions();
-            PubSubMessage.externalSubscribe(Entrypoint.configuration.subscriber.getHostname(),
-                    Entrypoint.configuration.subscriber.getPortNumber(),
-                    subscriptions);
-            //PubSubSubscriber.reloadMessageTypes(subscriptions);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Entrypoint.reloadSubscriptions();
+
         try {
             if (response != null) {
                 response.flushBuffer();

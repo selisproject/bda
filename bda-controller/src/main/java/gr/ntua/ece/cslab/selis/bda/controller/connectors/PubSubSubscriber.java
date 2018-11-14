@@ -5,7 +5,6 @@ import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 
 import de.tu_dresden.selis.pubsub.*;
-import de.tu_dresden.selis.pubsub.PubSubException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

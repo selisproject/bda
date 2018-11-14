@@ -1,13 +1,14 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import de.tu_dresden.selis.pubsub.Message;
 
 import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubMessage;
-import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubSubscriber;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
@@ -54,15 +55,7 @@ public class MessageResource {
             return new RequestResponse("ERROR", "Could not insert new Message Type.");
         }
 
-        try {
-            PubSubSubscription subscriptions = PubSubSubscription.getActiveSubscriptions();
-            PubSubMessage.externalSubscribe(Entrypoint.configuration.subscriber.getHostname(),
-                    Entrypoint.configuration.subscriber.getPortNumber(),
-                    subscriptions);
-            //PubSubSubscriber.reloadMessageTypes(subscriptions);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Entrypoint.reloadSubscriptions();
 
         try {
             if (response != null) {
@@ -100,13 +93,19 @@ public class MessageResource {
     @Path("/insert")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public static RequestResponse handleMessage(@Context HttpServletResponse response, Message message) {
+    public static RequestResponse handleMessage(@Context HttpServletResponse response, String message) {
 
         String status = "OK";
         String details = "";
 
         try {
-            PubSubMessage.handleMessage(message);
+            Message msg = new Message();
+            Map<String, Object> retMap = new Gson().fromJson(
+                    message, new TypeToken<HashMap<String, Object>>() {}.getType()
+            );
+            for (Map.Entry<String, Object> entry: retMap.entrySet())
+                msg.put(entry.getKey(),entry.getValue());
+            PubSubMessage.handleMessage(msg);
             LOGGER.log(Level.WARNING,"PubSub message successfully inserted in the BDA.");
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
@@ -132,18 +131,15 @@ public class MessageResource {
 
     /**
      * Message subscriptions reload method
-     * @param messageTypes the message types names to subscribe to
      */
-    @POST
+    @GET
     @Path("/reload")
-    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse reload(@Context HttpServletResponse response,
-                                  PubSubSubscription messageTypes) {
+    public RequestResponse reload(@Context HttpServletResponse response) {
         String status = "OK";
         String details = "";
 
-        PubSubSubscriber.reloadMessageTypes(messageTypes);
+        Entrypoint.reloadSubscriptions();
 
         try {
             if (response != null) {
