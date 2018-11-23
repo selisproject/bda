@@ -18,10 +18,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PubSubMessage {
-    private final static Logger LOGGER = Logger.getLogger(PubSubMessage.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
+public class PubSubMessageHandler {
+    private final static Logger LOGGER = Logger.getLogger(PubSubMessageHandler.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
 
-    public static void handleMessage(Message message) throws Exception {
+    public static void handleMessage(Message message, String SCNslug) throws Exception {
 
         gr.ntua.ece.cslab.selis.bda.datastore.beans.Message bdamessage = new gr.ntua.ece.cslab.selis.bda.datastore.beans.Message();
         String messageType = "";
@@ -33,6 +33,10 @@ public class PubSubMessage {
             if (key.matches("scn_slug")) {
                 scnSlug = entry.getValue() != null ? entry.getValue().toString() : "";
             }
+        }
+        if (!scnSlug.matches(SCNslug)) {
+            LOGGER.log(Level.WARNING,"Received message with wrong SCN slug. This should never happen.");
+            throw new Exception("Could not insert new PubSub message. Mismatch in SCN identifier.");
         }
         if (scnSlug.matches("")) {
             LOGGER.log(Level.WARNING,"Received message with no SCN slug. This should never happen.");

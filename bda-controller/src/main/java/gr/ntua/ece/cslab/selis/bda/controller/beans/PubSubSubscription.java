@@ -1,6 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
-import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
@@ -10,7 +9,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
-import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,6 +16,8 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class PubSubSubscription implements Serializable {
     private List<Tuple> subscriptions;
+    private String pubSubHostname;
+    private Integer pubSubPort;
 
     public PubSubSubscription() {
         this.subscriptions = new LinkedList<>();
@@ -31,25 +31,39 @@ public class PubSubSubscription implements Serializable {
         this.subscriptions = subscriptions;
     }
 
-    public static PubSubSubscription getActiveSubscriptions() throws SQLException, SystemConnectorException {
-        PubSubSubscription messageTypeNames = new PubSubSubscription();
-        List<Tuple> subscriptions = new LinkedList<>();
-        List<ScnDbInfo> SCNs = ScnDbInfo.getScnDbInfo();
+    public String getPubSubHostname() {
+        return pubSubHostname;
+    }
 
-        if (!(SCNs.isEmpty()))
-        {
-            for (ScnDbInfo SCN : SCNs) {
-                for (String messageType: MessageType.getActiveMessageTypeNames(SCN.getSlug())) {
-                    Tuple subscription = new Tuple();
-                    List<KeyValue> rules = new LinkedList<>();
-                    //rules.add(new KeyValue("scn_slug", SCN.getSlug()));
-                    rules.add(new KeyValue("message_type", messageType));
-                    subscription.setTuple(rules);
-                    subscriptions.add(subscription);
-                }
-            }
+    public void setPubSubHostname(String pubSubHostname) {
+        this.pubSubHostname = pubSubHostname;
+    }
+
+    public Integer getPubSubPort() {
+        return pubSubPort;
+    }
+
+    public void setPubSubPort(Integer pubSubPort) { this.pubSubPort = pubSubPort; }
+
+    public static PubSubSubscription getActiveSubscriptions(String SCNslug) throws Exception {
+        ScnDbInfo scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
+        String pubsubhost = scn.getPubsubaddress();
+        Integer pubsubport = scn.getPubsubport();
+
+        List<Tuple> messageTypeNames = new LinkedList<>();
+        for (String messageType: MessageType.getActiveMessageTypeNames(SCNslug)) {
+            Tuple subscription = new Tuple();
+            List<KeyValue> rules = new LinkedList<>();
+            //rules.add(new KeyValue("scn_slug", SCNslug));
+            rules.add(new KeyValue("message_type", messageType));
+            subscription.setTuple(rules);
+            messageTypeNames.add(subscription);
         }
-        messageTypeNames.setSubscriptions(subscriptions);
-        return messageTypeNames;
+
+        PubSubSubscription subscriptions = new PubSubSubscription();
+        subscriptions.setSubscriptions(messageTypeNames);
+        subscriptions.setPubSubHostname(pubsubhost);
+        subscriptions.setPubSubPort(pubsubport);
+        return subscriptions;
     }
 }

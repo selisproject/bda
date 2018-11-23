@@ -3,7 +3,7 @@ FROM openjdk:8-slim-stretch
 ARG HADOOP_FILE=hadoop-2.9.1
 ARG HADOOP_PREFIX=/usr/local/hadoop
 ARG HADOOP_TAR_FILE=hadoop-2.9.1.tar.gz
-ARG HADOOP_DOWNLOAD_URL=http://apache.mirrors.spacedump.net/hadoop/common/stable/hadoop-2.9.1.tar.gz
+ARG HADOOP_DOWNLOAD_URL=https://archive.apache.org/dist/hadoop/core/hadoop-2.9.1/hadoop-2.9.1.tar.gz
 
 ARG SPARK_PREFIX=/usr/local/spark
 ARG SPARK_FILE=spark-2.3.1-bin-without-hadoop
@@ -66,11 +66,6 @@ ENV PYSPARK_PYTHON "/usr/bin/python3"
 # Download postgresql jar.
 RUN mkdir /resources
 RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --directory-prefix /resources
-
-# Add two files for testing purposes...
-# TODO: Should be removed later...
-ADD ./bootstrap/sales-forecast-supplier-7-warehouse-444.json /resources/
-ADD ./bootstrap/stock-levels-supplier-7-warehouse-444.json /resources/
 
 # Add the certificate, used to connect to pubsub.
 ADD ./bootstrap/root.crt /resources/

@@ -5,8 +5,9 @@ import com.google.gson.reflect.TypeToken;
 
 import de.tu_dresden.selis.pubsub.Message;
 
-import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubMessage;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
+import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubMessageHandler;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 
@@ -55,7 +56,7 @@ public class MessageResource {
             return new RequestResponse("ERROR", "Could not insert new Message Type.");
         }
 
-        Entrypoint.reloadSubscriptions();
+        PubSubConnector.getInstance().reloadSubscriptions(slug);
 
         try {
             if (response != null) {
@@ -90,11 +91,12 @@ public class MessageResource {
      * @param message the PubSub message
      */
     @POST
-    @Path("/insert")
+    @Path("{slug}/insert")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public static RequestResponse handleMessage(@Context HttpServletResponse response, String message) {
-
+    public static RequestResponse handleMessage(@Context HttpServletResponse response,
+                                                @PathParam("slug") String scnSlug,
+                                                String message) {
         String status = "OK";
         String details = "";
 
@@ -105,7 +107,7 @@ public class MessageResource {
             );
             for (Map.Entry<String, Object> entry: retMap.entrySet())
                 msg.put(entry.getKey(),entry.getValue());
-            PubSubMessage.handleMessage(msg);
+            PubSubMessageHandler.handleMessage(msg, scnSlug);
             LOGGER.log(Level.WARNING,"PubSub message successfully inserted in the BDA.");
             if (response != null) {
                 response.setStatus(HttpServletResponse.SC_CREATED);
@@ -139,7 +141,19 @@ public class MessageResource {
         String status = "OK";
         String details = "";
 
-        Entrypoint.reloadSubscriptions();
+        try {
+            for (ScnDbInfo scn: ScnDbInfo.getScnDbInfo())
+                PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug());
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Failed to get SCN info. Aborting reload of all subscriptions.");
+
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+
+            return new RequestResponse("ERROR", "Could not reload subscriptions.");
+        }
 
         try {
             if (response != null) {

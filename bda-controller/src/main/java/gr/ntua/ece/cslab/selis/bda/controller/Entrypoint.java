@@ -3,9 +3,8 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
-import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 
+import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -15,8 +14,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
-import javax.ws.rs.client.*;
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
@@ -30,61 +27,6 @@ import static org.junit.Assert.*;
 public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
-    public static Thread subscriber;
-    //public static PubSubPublisher publisher;
-
-    private static void pubSubConnectorsInitialization() {
-        if (configuration.subscriber.getHostname().isEmpty() || String.valueOf(configuration.subscriber.getPortNumber()).isEmpty()){
-            LOGGER.log(Level.INFO, "Initializing internal PubSub subscriber...");
-            subscriber = new Thread(new PubSubSubscriber(configuration.pubsub.getAuthHash(),
-                    configuration.pubsub.getHostname(),
-                    configuration.pubsub.getPortNumber(),
-                    configuration.pubsub.getCertificateLocation()), "subscriber");
-        }
-
-        //LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
-        //publisher = new PubSubPublisher(configuration.pubsub.getHostname(),
-        //        configuration.pubsub.getPortNumber());
-    }
-
-    public static void reloadSubscriptions() {
-        PubSubSubscription subscriptions;
-        try {
-            subscriptions = PubSubSubscription.getActiveSubscriptions();
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.log(Level.WARNING, "Failed to get subscriptions.");
-            return;
-        }
-
-        String externalSubscriberHostname = configuration.subscriber.getHostname();
-        String externalSubscriberPort = String.valueOf(configuration.subscriber.getPortNumber());
-        if (externalSubscriberHostname.isEmpty() || externalSubscriberPort.isEmpty())
-            PubSubSubscriber.reloadMessageTypes(subscriptions);
-        else {
-            Client client = ClientBuilder.newClient();
-
-            WebTarget resource = client.target("http://"+externalSubscriberHostname+":"+externalSubscriberPort+"/api").path("/message/reload");
-            Invocation.Builder request = resource.request();
-
-            try{
-                Response response = request.post(Entity.json(subscriptions));
-                if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-                    LOGGER.log(Level.INFO,
-                            "SUCCESS: Request to subscribe to {0} message types has been sent.",
-                            subscriptions.getSubscriptions().size());
-                } else {
-                    LOGGER.log(Level.WARNING,
-                            "Request to subscribe has failed, got error: {0}",
-                            response.getStatusInfo().getReasonPhrase());
-                }
-            } catch (Exception e){
-                e.printStackTrace();
-                LOGGER.log(Level.WARNING,
-                        "Could not connect to subscriber.");
-            }
-        }
-    }
 
     private static void authClientBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing AuthClient backend...");
@@ -136,9 +78,6 @@ public class Entrypoint {
         }
 
         SystemConnector.init(args[0]);
-
-        // PubSub connectors initialization
-        pubSubConnectorsInitialization();
 
         // AuthClient backend initialization.
         authClientBackendInitialization();
@@ -197,13 +136,11 @@ public class Entrypoint {
         ServletContextHandler handler = new ServletContextHandler(server, "/api");
         handler.addServlet(servlet, "/*");
 
-        // start the server and the pubsub subscriber
+        // start the server and the subscribers
         try {
             LOGGER.log(Level.INFO, "Starting server");
             server.start();
-            if (subscriber!=null)
-                subscriber.start();
-            reloadSubscriptions();
+            PubSubConnector.init();
             server.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
@@ -211,8 +148,7 @@ public class Entrypoint {
         } finally {
             LOGGER.log(Level.INFO,"Terminating server");
             server.destroy();
-            if (subscriber!=null)
-                subscriber.interrupt();
+            PubSubConnector.getInstance().close();
             SystemConnector.getInstance().close();
         }
     }
