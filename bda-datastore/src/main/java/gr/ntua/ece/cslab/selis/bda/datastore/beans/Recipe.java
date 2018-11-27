@@ -7,6 +7,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector
 
 import java.io.*;
 import java.sql.*;
+import java.net.URI;
 import java.util.List;
 import java.util.Vector;
 import java.nio.file.Path;
@@ -335,17 +336,23 @@ public class Recipe implements Serializable {
     public static void ensureStorageForSlug(String slug) throws IOException {
         String storageLocationForSlug = Recipe.getStorageForSlug(slug); 
 
-        if (storageLocationForSlug.startsWith("hdfs://")) {
-            /*
+        Configuration configuration = Configuration.getInstance();
+
+        if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
             // Use HDFS storage for recipes.
-            Configuration configuration = Configuration.getInstance();
 
             org.apache.hadoop.fs.FileSystem fs = null;
             try {
-                fs = org.apache.hadoop.fs.FileSystem.get(
-                    URI.create(configuration.execEngine.getRecipeStorageLocation()), 
-                    new org.apache.hadoop.conf.Configuration()
+                org.apache.hadoop.conf.Configuration hadoopConf = 
+                    new org.apache.hadoop.conf.Configuration();
+
+                hadoopConf.set(
+                    "fs.defaultFS", configuration.storageBackend.getHDFSMasterURL()
                 );
+
+                URI uri = URI.create(configuration.storageBackend.getHDFSMasterURL());
+
+                fs = org.apache.hadoop.fs.FileSystem.get(uri, hadoopConf);
             } catch (IOException e) {
                 e.printStackTrace();
                 throw e;
@@ -365,7 +372,6 @@ public class Recipe implements Serializable {
                     throw e;
                 }
             }
-            */
         } else {
             // Use local storage for recipes.
             File path = new File(storageLocationForSlug);
@@ -392,22 +398,61 @@ public class Recipe implements Serializable {
 
         String recipeHash = DigestUtils.md5Hex(recipeBytes);
 
+        Configuration configuration = Configuration.getInstance();
+
         String recipeFilename = Paths.get(
             Recipe.getStorageForSlug(slug), recipeHash + "_" + recipeName
         ).toString();
 
-        File outputFile = new File(recipeFilename);
-        OutputStream outputStream = new FileOutputStream(outputFile);
+        if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
+            // Connect to HDFS
+            org.apache.hadoop.fs.FileSystem fs = null;
+            try {
+                org.apache.hadoop.conf.Configuration hadoopConf = 
+                    new org.apache.hadoop.conf.Configuration();
 
-        try {
-            IOUtils.write(recipeBytes, outputStream);
+                hadoopConf.set(
+                    "fs.defaultFS", configuration.storageBackend.getHDFSMasterURL()
+                );
 
-            outputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
+                URI uri = URI.create(configuration.storageBackend.getHDFSMasterURL());
+
+                fs = org.apache.hadoop.fs.FileSystem.get(uri, hadoopConf);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw e;
+            }
+ 
+            // Create HDFS file path object.
+            org.apache.hadoop.fs.Path outputFilePath = 
+                new org.apache.hadoop.fs.Path(recipeFilename);
+
+            // Write to HDFS.
+            org.apache.hadoop.fs.FSDataOutputStream outputStream = fs.create(
+                outputFilePath
+            );
+
+            try {
+                outputStream.write(recipeBytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw e;
+            } finally {
+                outputStream.close();
+            }
+        } else {
+            File outputFile = new File(recipeFilename);
+            OutputStream outputStream = new FileOutputStream(outputFile);
+
+            try {
+                IOUtils.write(recipeBytes, outputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw e;
+            } finally {
+                outputStream.close();
+            }
         }
-
         return recipeFilename;
     }
 }

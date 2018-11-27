@@ -53,6 +53,8 @@ public class Configuration {
         private String eventLogMaster = null;
         private String eventLogQuorum = null;
 
+        private String hdfsMasterURL;
+
         public StorageBackend() {
         }
 
@@ -79,6 +81,8 @@ public class Configuration {
         public String getEventLogMaster() { return eventLogMaster; }
 
         public String getEventLogQuorum() { return eventLogQuorum; }
+
+        public String getHDFSMasterURL() { return hdfsMasterURL; }
     }
     public class ExecutionEngine {
         private String sparkMaster;
@@ -90,6 +94,7 @@ public class Configuration {
         private String sparkConfExecutorMemory;
 
         private String recipeStorageLocation;
+        private String recipeStorageType;
 
         public ExecutionEngine(){}
 
@@ -108,6 +113,8 @@ public class Configuration {
         public String getSparkConfExecutorMemory() { return sparkConfExecutorMemory; }
 
         public String getRecipeStorageLocation() { return recipeStorageLocation; }
+
+        public String getRecipeStorageType() { return recipeStorageType; }
     }
     public class PubSubServer {
         private String authHash, certificateLocation;
@@ -220,6 +227,7 @@ public class Configuration {
         conf.storageBackend.eventLogURL = properties.getProperty("backend.db.event.url");
         conf.storageBackend.eventLogMaster = properties.getProperty("backend.db.event.master.host");
         conf.storageBackend.eventLogQuorum = properties.getProperty("backend.db.event.quorum");
+        conf.storageBackend.hdfsMasterURL = properties.getProperty("backend.hdfs.master.url");
 
         // Pub/Sub Configuration.
         conf.pubsub.authHash = properties.getProperty("pubsub.authhash");
@@ -247,7 +255,8 @@ public class Configuration {
         conf.execEngine.sparkConfDriverMemory = properties.getProperty("spark.conf.driver_memory");
         conf.execEngine.sparkConfExecutorCores = properties.getProperty("spark.conf.executor_cores");
         conf.execEngine.sparkConfExecutorMemory = properties.getProperty("spark.conf.executor_memory");
-        conf.execEngine.recipeStorageLocation = properties.getProperty("engines.recipe.storage");
+        conf.execEngine.recipeStorageLocation = properties.getProperty("engines.recipe.storage.prefix");
+        conf.execEngine.recipeStorageType = properties.getProperty("engines.recipe.storage.type");
 
         configuration = conf;
 

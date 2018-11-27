@@ -95,7 +95,8 @@ public class HBaseConnector implements Connector {
         }
 
         try {
-            HTableDescriptor desc = new HTableDescriptor(dbname + ":Events");
+            TableName tableName = TableName.valueOf(dbname + ":Events");
+            HTableDescriptor desc = new HTableDescriptor(tableName);
             desc.addFamily(new HColumnDescriptor("messages"));
 
             admin.createTable(desc);
