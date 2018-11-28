@@ -440,6 +440,9 @@ public class Recipe implements Serializable {
             } finally {
                 outputStream.close();
             }
+
+            // Prepend `hdfs://` before returning recipe name.
+            recipeFilename = "hdfs://" + recipeFilename;
         } else {
             File outputFile = new File(recipeFilename);
             OutputStream outputStream = new FileOutputStream(outputFile);
