@@ -47,4 +47,5 @@ spark.conf.executor_memory = 1g
 spark.conf.jars            = /resources/postgresql-42.2.1.jar
 
 # Execution Engines configuration.
-engines.recipe.storage = /uploads
+engines.recipe.storage.type = hdfs
+engines.recipe.storage.prefix = /uploads

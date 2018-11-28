@@ -33,8 +33,7 @@ if __name__ == "__main__":
         .appName("PythonPi")\
         .getOrCreate()
 
-    # partitions = int(sys.argv[1]) if len(sys.argv) > 1 else 2
-    partitions = 10
+    partitions = int(sys.argv[1]) if len(sys.argv) > 1 else 2
     n = 100000 * partitions
 
     def f(_):
