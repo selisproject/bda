@@ -49,13 +49,13 @@ public class Recipe implements Serializable {
         "FROM metadata.recipes";
 
     private final static String INSERT_RECIPE_QUERY = 
-        "INSERT INTO metadata.recipes (name, description, executable_path, engine_id, args) " +
-        "VALUES (?, ?, ?, ? ,?) " +
+        "INSERT INTO metadata.recipes (name, description, executable_path, engine_id, args, shared) " +
+        "VALUES (?, ?, ?, ? ,?, ?) " +
         "RETURNING id";
 
     private final static String UPDATE_RECIPE_QUERY = 
         "UPDATE metadata.recipes " +
-        "SET name = ?, description = ?, executable_path = ?, engine_id = ?, args = ? " +
+        "SET name = ?, description = ?, executable_path = ?, engine_id = ?, args = ?" +
         "WHERE id = ?";
 
     private final static String GET_RECIPE_BY_ID =
@@ -133,6 +133,10 @@ public class Recipe implements Serializable {
     public void setExists(boolean exists) {
         this.exists = exists;
     }
+
+    public boolean isShared() { return shared; }
+
+    public void setShared(boolean shared) { this.shared = shared; }
 
     @Override
     public String toString() {
@@ -270,6 +274,7 @@ public class Recipe implements Serializable {
             statement.setString(3, this.executablePath);
             statement.setInt(4, Integer.valueOf(this.engineId));
             statement.setString(5, this.args);
+            statement.setBoolean(6, this.shared);
 
             try {
                 ResultSet resultSet = statement.executeQuery();

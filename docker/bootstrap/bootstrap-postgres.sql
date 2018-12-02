@@ -40,6 +40,23 @@ INSERT INTO execution_engines (name, engine_path, local_engine, args)
 	('python3', '/usr/bin/python3', true, '{}'::json),
 	('pyspark', 'spark://selis-spark-master:7077', false, '{}'::json);
 
+CREATE TABLE shared_recipes (
+    id                  SERIAL PRIMARY KEY,
+    name                VARCHAR(64) NOT NULL UNIQUE,
+    description         VARCHAR(256),
+    executable_path     VARCHAR(512) NOT NULL UNIQUE,
+    engine_id           INTEGER NOT NULL,
+    args                VARCHAR(512),
+    pair_recipe_id      INTEGER NOT NULL
+);
+
+ALTER TABLE shared_recipes OWNER TO selis;
+
+INSERT INTO shared_recipes (name, description, executable_path, engine_id, args, pair_recipe_id)
+VALUES
+    ('ScikitLogisticRegressionTrain', 'Example Logistic Regression Training Code From Scikit Learn', '/code/examples/ml_files/LogisticRegressionTrain.py', 1, {}::json, 2),
+    ('ScikitLogisticRegressionPredict', 'Example Logistic Regression Prediction Code From Scikit Learn', '/code/examples/ml_files/LogisticRegressionPredict.py', 1, {}::json, 1);
+
 
 \connect selis_test_db
 

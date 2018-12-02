@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.SharedRecipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
@@ -50,6 +51,16 @@ public class RecipeResource {
             }
 
             if (correctEngine) {
+
+                // If recipe id is provided in recipe definition, it means that a shared recipe
+                // is about to be used. Import data from the corresponding SharedRecipe object.
+                if (r.getId() != 0) {
+                    SharedRecipe shRecipe = SharedRecipe.getSharedRecipeById(r.getId());
+                    r.setDescription(shRecipe.getDescription());
+                    r.setEngineId(shRecipe.getEngine_id());
+                    r.setExecutablePath(shRecipe.getExecutable_path());
+                    r.setShared(true);
+                }
                 r.save(slug);
 
                 details = Integer.toString(r.getId());
@@ -120,48 +131,57 @@ public class RecipeResource {
                 new RequestResponse("ERROR", "Upload recipe FAILED")
             ).build();
         }
-
-        // Ensure the storage location for the specified SCN exists.
-        try {
-            Recipe.ensureStorageForSlug(slug);
-        } catch (IOException | SystemConnectorException  e) {
-            e.printStackTrace();
-
+        if (recipe.isShared()) {
+            // If it is a shared recipe do not allow to upload a binary
             return Response.serverError().entity(
-                new RequestResponse("ERROR", "Upload recipe FAILED")
+                    new RequestResponse("ERROR", "No upload allowed for shared recipes")
             ).build();
         }
+        else {
+            // Ensure the storage location for the specified SCN exists.
+            try {
+                Recipe.ensureStorageForSlug(slug);
+            } catch (IOException | SystemConnectorException  e) {
+                e.printStackTrace();
 
-        // Save the binary file to the specified location.
-        String recipeFilename;
-        try {
-            recipeFilename = Recipe.saveRecipeForSlug(
-                slug, recipeBinary, recipeName
-            );
-        } catch (IOException | SystemConnectorException  e) {
-            e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Upload recipe FAILED")
+                ).build();
+            }
 
-            return Response.serverError().entity(
-                new RequestResponse("ERROR", "Upload recipe FAILED")
+            // Save the binary file to the specified location.
+            String recipeFilename;
+            try {
+                recipeFilename = Recipe.saveRecipeForSlug(
+                        slug, recipeBinary, recipeName
+                );
+            } catch (IOException | SystemConnectorException  e) {
+                e.printStackTrace();
+
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Upload recipe FAILED")
+                ).build();
+            }
+
+            // Update the `Recipe` object.
+            recipe.setExecutablePath(recipeFilename);
+
+            try {
+                recipe.save(slug);
+            } catch (SQLException | SystemConnectorException e) {
+                e.printStackTrace();
+
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Upload recipe FAILED")
+                ).build();
+            }
+
+            return Response.ok(
+                    new RequestResponse("OK", "")
             ).build();
+
         }
 
-        // Update the `Recipe` object.
-        recipe.setExecutablePath(recipeFilename);
-
-        try {
-            recipe.save(slug);
-        } catch (SQLException | SystemConnectorException e) {
-            e.printStackTrace();
-
-            return Response.serverError().entity(
-                new RequestResponse("ERROR", "Upload recipe FAILED")
-            ).build();
-        }
-
-        return Response.ok(
-                new RequestResponse("OK", "")
-        ).build();
     }
 
     /**
