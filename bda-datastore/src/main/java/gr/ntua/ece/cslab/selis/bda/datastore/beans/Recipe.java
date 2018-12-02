@@ -22,6 +22,7 @@ public class Recipe implements Serializable {
     private String executablePath;
     private int engineId;
     private String args;
+    private boolean shared;
 
     private boolean exists = false;
 
@@ -32,7 +33,8 @@ public class Recipe implements Serializable {
         "description         VARCHAR(256), " +
         "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
         "engine_id           INTEGER NOT NULL, " +
-        "args                VARCHAR(512)" +
+        "args                VARCHAR(512), " +
+        "shared              BOOLEAN NOT NULL DEFAULT(FALSE) " +
         ");";
 
     private final static String ALL_RECIPES_QUERY = 
@@ -40,13 +42,13 @@ public class Recipe implements Serializable {
         "FROM metadata.recipes";
 
     private final static String INSERT_RECIPE_QUERY = 
-        "INSERT INTO metadata.recipes (name, description, executable_path, engine_id, args) " +
-        "VALUES (?, ?, ?, ? ,?) " +
+        "INSERT INTO metadata.recipes (name, description, executable_path, engine_id, args, shared) " +
+        "VALUES (?, ?, ?, ? ,?, ?) " +
         "RETURNING id";
 
     private final static String UPDATE_RECIPE_QUERY = 
         "UPDATE metadata.recipes " +
-        "SET name = ?, description = ?, executable_path = ?, engine_id = ?, args = ? " +
+        "SET name = ?, description = ?, executable_path = ?, engine_id = ?, args = ?" +
         "WHERE id = ?";
 
     private final static String GET_RECIPE_BY_ID =
@@ -60,12 +62,13 @@ public class Recipe implements Serializable {
 
     public Recipe() {}
 
-    public Recipe(String name, String description, String executablePath, int engineId, String args) {
+    public Recipe(String name, String description, String executablePath, int engineId, String args, boolean shared) {
         this.name = name;
         this.description = description;
         this.executablePath = executablePath;
         this.engineId = engineId;
         this.args = args;
+        this.shared = shared;
     }
 
     public int getId() {
@@ -124,6 +127,10 @@ public class Recipe implements Serializable {
         this.exists = exists;
     }
 
+    public boolean isShared() { return shared; }
+
+    public void setShared(boolean shared) { this.shared = shared; }
+
     @Override
     public String toString() {
         return "Recipe{" +
@@ -158,7 +165,8 @@ public class Recipe implements Serializable {
                     resultSet.getString("description"),
                     resultSet.getString("executable_path"),
                     resultSet.getInt("engine_id"),
-                    resultSet.getString("args")
+                    resultSet.getString("args"),
+                        resultSet.getBoolean("shared")
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -193,7 +201,8 @@ public class Recipe implements Serializable {
                         resultSet.getString("description"),
                         resultSet.getString("executable_path"),
                         resultSet.getInt("engine_id"),
-                        resultSet.getString("args")
+                        resultSet.getString("args"),
+                        resultSet.getBoolean("shared")
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -227,7 +236,8 @@ public class Recipe implements Serializable {
                     resultSet.getString("description"),
                     resultSet.getString("executable_path"),
                     resultSet.getInt("engine_id"),
-                    resultSet.getString("args")
+                    resultSet.getString("args"),
+                    resultSet.getBoolean("shared")
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -257,6 +267,7 @@ public class Recipe implements Serializable {
             statement.setString(3, this.executablePath);
             statement.setInt(4, Integer.valueOf(this.engineId));
             statement.setString(5, this.args);
+            statement.setBoolean(6, this.shared);
 
             try {
                 ResultSet resultSet = statement.executeQuery();

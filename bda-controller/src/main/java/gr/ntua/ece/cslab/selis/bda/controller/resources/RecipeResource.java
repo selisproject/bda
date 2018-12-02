@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.SharedRecipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import org.apache.commons.io.IOUtils;
@@ -48,6 +49,16 @@ public class RecipeResource {
             }
 
             if (correctEngine) {
+
+                // If recipe id is provided in recipe definition, it means that a shared recipe
+                // is about to be used. Import data from the corresponding SharedRecipe object.
+                if (r.getId() != 0) {
+                    SharedRecipe shRecipe = SharedRecipe.getSharedRecipeById(r.getId());
+                    r.setDescription(shRecipe.getDescription());
+                    r.setEngineId(shRecipe.getEngine_id());
+                    r.setExecutablePath(shRecipe.getExecutable_path());
+                    r.setShared(true);
+                }
                 r.save(slug);
 
                 details = Integer.toString(r.getId());
@@ -86,26 +97,43 @@ public class RecipeResource {
     @PUT
     @Path("{slug}/upload/{id}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public RequestResponse upload(@PathParam("slug") String slug,
+    public RequestResponse upload(@Context HttpServletResponse response,
+                                  @PathParam("slug") String slug,
                                   @PathParam("id") int recipeId,
                                   @PathParam("filename") String recipeName,
                                   InputStream recipeBinary)  {
 
+
         String status = "OK";
         String details = "";
 
-        String binaryPath = "/uploads/" + recipeId + "_" + recipeName;
-
-        saveFile(recipeBinary, binaryPath);
-
         try {
+            // If upload is about to be performed for a shared recipe,
+            // cancel upload
             Recipe recipe = Recipe.getRecipeById(slug, recipeId);
-            recipe.setExecutablePath(binaryPath);
-            recipe.save(slug);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            if (recipe.isShared()) {
+                LOGGER.log(Level.WARNING, "Cannot modify shared recipe executable!");
+                status="BAD REQUEST";
+                if (response != null) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                }
+            }
+            else {
+                String binaryPath = "/uploads/" + recipeId + "_" + recipeName;
 
+                saveFile(recipeBinary, binaryPath);
+
+                recipe.setExecutablePath(binaryPath);
+                recipe.save(slug);
+            }
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            status="ERROR";
+            if (response != null) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        }
         return new RequestResponse(status, details);
     }
 
