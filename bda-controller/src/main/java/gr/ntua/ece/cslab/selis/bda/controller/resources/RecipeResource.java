@@ -85,6 +85,22 @@ public class RecipeResource {
         return new RequestResponse(status, details);
     }
 
+    /**
+     * Uploads a binary for the specified recipe id, SCN.
+     *
+     * Given an existing `Recipe` object, this REST endpoint, for a given SCN, receives a binary
+     * and stores it in the configured storage backend. Then links the `Recipe` object to the
+     * stored binary by running `recipe.setExecutablePath()`.
+     *
+     * TODO: Requires authentication/authorization.
+     * TODO: Tests.
+     *
+     * @param slug          The SCN's slug.
+     * @param recipeId      The `id` of the recipe object to which this binary corresponds.
+     * @param recipeName    The name of the recipe's binary.
+     * @param recipeBinary  The actual recipe binary.
+     * @return              An javax `Response` object.
+     */
     @PUT
     @Path("{slug}/upload/{id}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
@@ -93,7 +109,19 @@ public class RecipeResource {
                            @PathParam("id") int recipeId,
                            @PathParam("filename") String recipeName,
                            InputStream recipeBinary)  {
+        // Ensure a `Recipe` object with the given `id` exists for the specified SCN.
+        Recipe recipe;
+        try {
+            recipe = Recipe.getRecipeById(slug, recipeId);
+        } catch (SQLException | SystemConnectorException e) {
+            e.printStackTrace();
 
+            return Response.serverError().entity(
+                new RequestResponse("ERROR", "Upload recipe FAILED")
+            ).build();
+        }
+
+        // Ensure the storage location for the specified SCN exists.
         try {
             Recipe.ensureStorageForSlug(slug);
         } catch (IOException e) {
@@ -104,7 +132,8 @@ public class RecipeResource {
             ).build();
         }
 
-        String recipeFilename = null; 
+        // Save the binary file to the specified location.
+        String recipeFilename;
         try {
             recipeFilename = Recipe.saveRecipeForSlug(
                 slug, recipeBinary, recipeName
@@ -117,17 +146,7 @@ public class RecipeResource {
             ).build();
         }
 
-        Recipe recipe = null;
-        try {
-            recipe = Recipe.getRecipeById(slug, recipeId);
-        } catch (SQLException | SystemConnectorException e) {
-            e.printStackTrace();
-
-            return Response.serverError().entity(
-                new RequestResponse("ERROR", "Upload recipe FAILED")
-            ).build();
-        }
-
+        // Update the `Recipe` object.
         recipe.setExecutablePath(recipeFilename);
 
         try {

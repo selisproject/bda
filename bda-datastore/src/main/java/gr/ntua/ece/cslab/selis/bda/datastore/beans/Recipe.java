@@ -323,6 +323,17 @@ public class Recipe implements Serializable {
         LOGGER.log(Level.INFO, "SUCCESS: Create recipes table in metadata schema.");
     }
 
+    /**
+     * Returns the absolute path to the recipe storage location for the given SCN.
+     *
+     * Assumes that the recipes for each SCN are stored in a new directory
+     * under the recipe storage location specified in the `Configuration`.
+     *
+     * TODO: Tests.
+     *
+     * @param slug The SCN's slug.
+     * @return     A `String` with the absolute path of the recipe storage location.
+     */
     public static String getStorageForSlug(String slug) {
         Configuration configuration = Configuration.getInstance();
 
@@ -333,15 +344,30 @@ public class Recipe implements Serializable {
         return storageLocation;
     }
 
+    /**
+     * Checks that the recipe storage location for a given SCN exists, if not creates it.
+     *
+     * Uses `Recipe.getStorageForSlug()` to get the recipe storage location for this SCN.
+     * If the location does not exist creates it.
+     *
+     * Supports HDFS and local storage backends.
+     *
+     * TODO: Tests.
+     *
+     * @param slug The SCN's slug.
+     * @throws IOException
+     */
     public static void ensureStorageForSlug(String slug) throws IOException {
-        String storageLocationForSlug = Recipe.getStorageForSlug(slug); 
+        // Get the recipe storage location for this SCN.
+        String storageLocationForSlug = Recipe.getStorageForSlug(slug);
 
         Configuration configuration = Configuration.getInstance();
 
         if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
             // Use HDFS storage for recipes.
 
-            org.apache.hadoop.fs.FileSystem fs = null;
+            // Connect to HDFS.
+            org.apache.hadoop.fs.FileSystem fs;
             try {
                 org.apache.hadoop.conf.Configuration hadoopConf = 
                     new org.apache.hadoop.conf.Configuration();
@@ -357,7 +383,8 @@ public class Recipe implements Serializable {
                 e.printStackTrace();
                 throw e;
             }
-                
+
+            // Check if the `storageLocationForSlug` exists, if not create it.
             org.apache.hadoop.fs.Path path = new org.apache.hadoop.fs.Path(
                 storageLocationForSlug
             );
@@ -374,6 +401,8 @@ public class Recipe implements Serializable {
             }
         } else {
             // Use local storage for recipes.
+
+            // Check if the `storageLocationForSlug` exists, if not create it.
             File path = new File(storageLocationForSlug);
             if (!path.exists()) {
                 path.mkdir();
@@ -381,12 +410,25 @@ public class Recipe implements Serializable {
         }
     }
 
-    public static String saveRecipeForSlug(String slug,
-                                           InputStream recipeInStream,
-                                           String recipeName)
-                                           throws IOException {
-        byte[] recipeBytes = null;
-
+    /**
+     * Reads from `recipeInStream` a recipe binary and stores it the configured storage backend.
+     *
+     * Concatenates the `recipeName` with the md5 hash of the binary to generate a unique filename.
+     * Then uses `Recipe.getStorageForSlug()` to retrieve the location where it stores the binary.
+     *
+     * Supports HDFS and local storage backends.
+     *
+     * TODO: Tests.
+     *
+     * @param slug           The SCN's slug.
+     * @param recipeInStream A `InputStream` from where we read the recipe binary.
+     * @param recipeName     The recipe binary's name.
+     * @return               A `String` with the jecipe binary's absolute path.
+     * @throws IOException
+     */
+    public static String saveRecipeForSlug(String slug, InputStream recipeInStream, String recipeName) throws IOException {
+        // Read the binary into a byte array in memory.
+        byte[] recipeBytes;
         try {
             recipeBytes = IOUtils.toByteArray(recipeInStream);
 
@@ -396,8 +438,10 @@ public class Recipe implements Serializable {
             throw e;
         }
 
+        // Calculate binary's md5 hash.
         String recipeHash = DigestUtils.md5Hex(recipeBytes);
 
+        // Find binary's storage location.
         Configuration configuration = Configuration.getInstance();
 
         String recipeFilename = Paths.get(
@@ -405,6 +449,8 @@ public class Recipe implements Serializable {
         ).toString();
 
         if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
+            // Use HDFS storage for recipes.
+
             // Connect to HDFS
             org.apache.hadoop.fs.FileSystem fs = null;
             try {
@@ -444,9 +490,13 @@ public class Recipe implements Serializable {
             // Prepend `hdfs://` before returning recipe name.
             recipeFilename = "hdfs://" + recipeFilename;
         } else {
+            // Use local storage for recipes.
+
+            // Create file path object.
             File outputFile = new File(recipeFilename);
             OutputStream outputStream = new FileOutputStream(outputFile);
 
+            // Write to local storage.
             try {
                 IOUtils.write(recipeBytes, outputStream);
             } catch (IOException e) {
@@ -456,6 +506,7 @@ public class Recipe implements Serializable {
                 outputStream.close();
             }
         }
+
         return recipeFilename;
     }
 }
