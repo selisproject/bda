@@ -47,7 +47,7 @@ public class PubSubConnector {
     }
 
     private void initSCNsubscribers() {
-        if (configuration.subscriber.getHostname().isEmpty() || String.valueOf(configuration.subscriber.getPortNumber()).isEmpty()){
+        if (configuration.subscriber.getUrl().isEmpty()){
             isExternal = false;
 
             LOGGER.log(Level.INFO, "Initializing internal PubSub subscribers...");
@@ -66,45 +66,23 @@ public class PubSubConnector {
         }
     }
 
-    public void removeSubscriber(String SCNslug) {
-        if (!isExternal) {
-            subscribers.get(SCNslug).interrupt();
-            subscribers.remove(SCNslug);
-            subscriberRunners.remove(SCNslug);
-        }
-        else {
-            Client client = ClientBuilder.newClient();
-
-            try{
-                WebTarget resource = client.target("http://" + configuration.subscriber.getHostname() + ":" + configuration.subscriber.getPortNumber() + "/api").path("/message/"+SCNslug+"/remove");
-                Invocation.Builder request = resource.request();
-
-                Response response = request.get();
-                if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-                    LOGGER.log(Level.INFO,
-                            "SUCCESS: Request to remove scn subscriber has been sent.");
-                } else {
-                    LOGGER.log(Level.WARNING,
-                            "Request to remove subscriber has failed, got error: {0}",
-                            response.getStatusInfo().getReasonPhrase());
-                }
-            } catch (Exception e){
-                e.printStackTrace();
-                LOGGER.log(Level.WARNING, "Could not connect to subscriber.");
-            }
-        }
-    }
-
     public void reloadSubscriptions(String SCNslug) {
         PubSubSubscription subscriptions = null;
         try {
-            subscriptions = PubSubSubscription.getActiveSubscriptions(SCNslug);
+            subscriptions = PubSubSubscription.getMessageSubscriptions(SCNslug);
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING, "Failed to get subscriptions.");
+            return;
         }
 
         if (!isExternal) {
+            if (subscriptions.getSubscriptions().isEmpty() & subscriberRunners.containsKey(SCNslug)){
+                subscribers.get(SCNslug).interrupt();
+                subscribers.remove(SCNslug);
+                subscriberRunners.remove(SCNslug);
+                return;
+            }
             if (!subscriberRunners.containsKey(SCNslug)) {
                 try {
                     ScnDbInfo scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
@@ -126,24 +104,18 @@ public class PubSubConnector {
         }
         else {
             Client client = ClientBuilder.newClient();
+            WebTarget resource = client.target(configuration.subscriber.getUrl().replace("{}",SCNslug));
+            Invocation.Builder request = resource.request();
 
-            try{
-                WebTarget resource = client.target("http://" + configuration.subscriber.getHostname() + ":" + configuration.subscriber.getPortNumber() + "/api").path("/message/"+SCNslug+"/reload");
-                Invocation.Builder request = resource.request();
-
-                Response response = request.post(Entity.json(subscriptions));
-                if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-                    LOGGER.log(Level.INFO,
-                            "SUCCESS: Request to subscribe to {0} message types has been sent.",
-                            subscriptions.getSubscriptions().size());
-                } else {
-                    LOGGER.log(Level.WARNING,
-                            "Request to subscribe has failed, got error: {0}",
-                            response.getStatusInfo().getReasonPhrase());
-                }
-            } catch (Exception e){
-                e.printStackTrace();
-                LOGGER.log(Level.WARNING, "Could not connect to subscriber.");
+            Response response = request.post(Entity.json(subscriptions));
+            if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
+                LOGGER.log(Level.INFO,
+                        "SUCCESS: Request to reload subscriptions of SCN {0} has been sent.",
+                        SCNslug);
+            } else {
+                LOGGER.log(Level.SEVERE,
+                        "Request to reload subscriptions has failed, got error: {0}",
+                        response.getStatusInfo().getReasonPhrase());
             }
         }
     }

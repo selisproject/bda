@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
@@ -9,8 +10,9 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
-import java.util.LinkedList;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Vector;
 
 @XmlRootElement(name = "messageSubscription")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
@@ -20,7 +22,7 @@ public class PubSubSubscription implements Serializable {
     private Integer pubSubPort;
 
     public PubSubSubscription() {
-        this.subscriptions = new LinkedList<>();
+        this.subscriptions = new Vector<>();
     }
 
     public List<Tuple> getSubscriptions() {
@@ -45,22 +47,29 @@ public class PubSubSubscription implements Serializable {
 
     public void setPubSubPort(Integer pubSubPort) { this.pubSubPort = pubSubPort; }
 
-    public static PubSubSubscription getActiveSubscriptions(String SCNslug) throws Exception {
-        ScnDbInfo scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
+    public static PubSubSubscription getMessageSubscriptions(String SCNslug) throws SystemConnectorException {
+        ScnDbInfo scn;
+        PubSubSubscription subscriptions = new PubSubSubscription();
+        try {
+            scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
+        } catch (SQLException e){
+            return subscriptions;
+        } catch (SystemConnectorException e) {
+            throw e;
+        }
         String pubsubhost = scn.getPubsubaddress();
         Integer pubsubport = scn.getPubsubport();
 
-        List<Tuple> messageTypeNames = new LinkedList<>();
+        List<Tuple> messageTypeNames = new Vector<>();
         for (String messageType: MessageType.getActiveMessageTypeNames(SCNslug)) {
             Tuple subscription = new Tuple();
-            List<KeyValue> rules = new LinkedList<>();
-            //rules.add(new KeyValue("scn_slug", SCNslug));
+            List<KeyValue> rules = new Vector<>();
+            rules.add(new KeyValue("scn_slug", SCNslug));
             rules.add(new KeyValue("message_type", messageType));
             subscription.setTuple(rules);
             messageTypeNames.add(subscription);
         }
 
-        PubSubSubscription subscriptions = new PubSubSubscription();
         subscriptions.setSubscriptions(messageTypeNames);
         subscriptions.setPubSubHostname(pubsubhost);
         subscriptions.setPubSubPort(pubsubport);

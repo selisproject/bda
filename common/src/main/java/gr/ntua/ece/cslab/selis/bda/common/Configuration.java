@@ -110,15 +110,11 @@ public class Configuration {
 
     }
     public class PubSubSubscriber {
-        private String hostname;
-        private int portNumber;
+        private String url;
 
-        public PubSubSubscriber(){
-        }
+        public PubSubSubscriber(){ }
 
-        public String getHostname() { return hostname; }
-
-        public int getPortNumber() { return portNumber; }
+        public String getUrl() { return url; }
 
     }
     public class AuthClientBackend {
@@ -217,12 +213,7 @@ public class Configuration {
         conf.pubsub.certificateLocation = properties.getProperty("pubsub.certificate.location");
 
         // Pub/Sub Subscriber Configuration.
-        conf.subscriber.hostname = properties.getProperty("pubsub.subscriber.address");
-        try {
-            conf.subscriber.portNumber = Integer.valueOf(properties.getProperty("pubsub.subscriber.port"));
-        } catch (NumberFormatException e) {
-            LOGGER.log(Level.WARNING, e.getMessage());
-        }
+        conf.subscriber.url = properties.getProperty("pubsub.subscriber.url");
 
         // Keycloak Auth Configuration.
         conf.authClientBackend.authServerUrl = properties.getProperty("keycloak.bda.url");

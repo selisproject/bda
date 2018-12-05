@@ -63,23 +63,22 @@ public class PubSubSubscriber implements Runnable {
                             public void onMessage(Message message) {
                                 try {
                                     PubSubMessageHandler.handleMessage(message, SCNslug);
-                                    LOGGER.log(Level.WARNING,"PubSub message successfully inserted in the BDA.");
-                                    //handleMessage(message);
+                                    LOGGER.log(Level.INFO,"PubSub message successfully inserted in the BDA.");
                                 } catch (Exception e) {
                                     e.printStackTrace();
-                                    LOGGER.log(Level.WARNING,"Could not insert new PubSub message.");
+                                    LOGGER.log(Level.SEVERE,"Could not insert new PubSub message.");
                                 }
                             }
                         });
                     }
 
                     LOGGER.log(Level.INFO,
-                            "SUCCESS: Subscribed to {0} message types",
-                            subscriptions.getSubscriptions().size());
+                            String.format("SUCCESS: %s subscriber subscribed to %d message types",
+                                    SCNslug, subscriptions.getSubscriptions().size()));
                 }
                 else
                     LOGGER.log(Level.INFO,
-                            "No registered messages to subscribe to.");
+                            "{0} subscriber: No registered messages to subscribe to.", SCNslug);
             } catch (PubSubException ex) {
                 LOGGER.log(Level.WARNING,
                            "Could not subscribe, got error: {0}",
@@ -99,13 +98,13 @@ public class PubSubSubscriber implements Runnable {
                         break;
                     }
                 } catch (InterruptedException e) {
-                    LOGGER.log(Level.WARNING,"Subscriber was interrupted.");
+                    LOGGER.log(Level.WARNING,"{0} subscriber was interrupted.", SCNslug);
                     pubsub.close();
                     break;
                 }
             }
         }
         pubsub.close();
-        LOGGER.log(Level.INFO,"Subscriber finished.");
+        LOGGER.log(Level.INFO,"{0} subscriber finished.", SCNslug);
     }
 }
