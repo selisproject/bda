@@ -2,6 +2,8 @@ package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
 import de.tu_dresden.selis.pubsub.Message;
 
+import com.google.gson.Gson;
+
 import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
@@ -22,6 +24,7 @@ public class PubSubMessageHandler {
         String messageType;
         String messageId;
         String scnSlug;
+        String payload;
 
         if (!message.containsKey("scn_slug")){
             LOGGER.log(Level.SEVERE,"Received message with no SCN slug.");
@@ -58,7 +61,11 @@ public class PubSubMessageHandler {
             throw new Exception("Could not insert new PubSub message. Missing payload.");
         }
         Object payloadEntry = message.get("payload");
-        String payload = payloadEntry != null ? payloadEntry.toString() : "";
+        try {
+            payload = new Gson().toJson(payloadEntry);
+        } catch (Exception e) {
+            payload = payloadEntry != null ? payloadEntry.toString() : "";
+        }
         if (payload.isEmpty()){
             LOGGER.log(Level.SEVERE,"Received message with empty payload.");
             throw new Exception("Could not insert new PubSub message. Empty payload.");
