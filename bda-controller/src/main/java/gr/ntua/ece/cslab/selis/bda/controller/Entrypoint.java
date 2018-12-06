@@ -3,8 +3,8 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
-import gr.ntua.ece.cslab.selis.bda.controller.connectors.*;
 
+import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -15,7 +15,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,18 +27,6 @@ import static org.junit.Assert.*;
 public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
-    public static Thread subscriber;
-    public static PubSubPublisher publisher;
-
-    private static void pubSubConnectorsInitialization() {
-        LOGGER.log(Level.INFO, "Initializing PubSub subscriber...");
-        subscriber = new Thread(new PubSubSubscriber(configuration.subscriber.getAuthHash(),
-                configuration.subscriber.getHostname(),
-                configuration.subscriber.getPortNumber()), "subscriber");
-        LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
-        publisher = new PubSubPublisher(configuration.subscriber.getHostname(),
-                configuration.subscriber.getPortNumber());
-    }
 
     private static void authClientBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing AuthClient backend...");
@@ -91,9 +78,6 @@ public class Entrypoint {
         }
 
         SystemConnector.init(args[0]);
-
-        // PubSub connectors initialization
-        pubSubConnectorsInitialization();
 
         // AuthClient backend initialization.
         authClientBackendInitialization();
@@ -152,20 +136,19 @@ public class Entrypoint {
         ServletContextHandler handler = new ServletContextHandler(server, "/api");
         handler.addServlet(servlet, "/*");
 
-        // run the server and the pubsub subscriber
+        // start the server and the subscribers
         try {
             LOGGER.log(Level.INFO, "Starting server");
             server.start();
-            subscriber.start();
+            PubSubConnector.init();
             server.join();
-            subscriber.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());
             e.printStackTrace();
         } finally {
             LOGGER.log(Level.INFO,"Terminating server");
             server.destroy();
-            subscriber.interrupt();
+            PubSubConnector.getInstance().close();
             SystemConnector.getInstance().close();
         }
     }

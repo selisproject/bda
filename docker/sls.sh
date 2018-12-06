@@ -31,7 +31,6 @@ SELIS_SPARK_WORKER_CONTAINER_0="selis-spark-worker-0"
 SELIS_SPARK_WORKER_CONTAINER_1="selis-spark-worker-1"
 SELIS_PUBSUB_CONTAINER="selis-pubsub"
 
-
 ################################################################################
 # Clean all. ###################################################################
 ################################################################################

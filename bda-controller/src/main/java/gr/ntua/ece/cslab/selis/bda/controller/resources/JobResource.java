@@ -2,7 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
-import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import gr.ntua.ece.cslab.selis.bda.kpidb.KPIBackend;
 import gr.ntua.ece.cslab.selis.bda.kpidb.beans.KPISchema;
@@ -53,8 +53,7 @@ public class JobResource {
             LOGGER.log(Level.INFO, "Create kpidb table..");
             (new KPIBackend(slug)).create(new KPITable(r.getName(),
                     new KPISchema(msgFormat)));
-            //Entrypoint.analyticsComponent.getKpiCatalog().addNewKpi(r.getId(), r.getName(), r.getDescription(),
-            //        r.getEngine_id(), new JSONObject(r.getArgs()), r.getExecutable_path());
+            // TODO: check if job is periodical and schedule the cron job
 
         } catch (Exception e) {
             e.printStackTrace();

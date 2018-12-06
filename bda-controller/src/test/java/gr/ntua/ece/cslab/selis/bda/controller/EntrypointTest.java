@@ -2,7 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.controller;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.AbstractTestConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
-import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.DatastoreResource;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
@@ -38,20 +38,20 @@ public class EntrypointTest extends AbstractTestConnector  {
         jobResource = new JobResource();
         datastoreResource = new DatastoreResource();
 
-        scnDbInfo = new ScnDbInfo(SCNslug,"LLtest","","lltestdb");
-        datastoreResource.createNewScn(null, scnDbInfo);
+        scnDbInfo = new ScnDbInfo(SCNslug,"LLtest","","lltestdb", "selis-pubsub",20000);
+        //datastoreResource.createNewScn(null, scnDbInfo);
     }
 
     @org.junit.After
     public void tearDown() throws SystemConnectorException {
-        datastoreResource.destroyScn(null, scnDbInfo.getId());
+        //datastoreResource.destroyScn(null, scnDbInfo.getId());
         super.tearDown();
     }
 
     @org.junit.Test
     public void test() throws Exception {
 
-        MasterData masterData = new ObjectMapper().readValue(new File("/code/examples/master_data.json"), MasterData.class);
+        /*MasterData masterData = new ObjectMapper().readValue(new File("/code/examples/master_data.json"), MasterData.class);
         datastoreResource.bootstrap(null, SCNslug, masterData);
 
         LOGGER.log(Level.INFO, "About to insert new messageType...");
@@ -77,7 +77,7 @@ public class EntrypointTest extends AbstractTestConnector  {
         LOGGER.log(Level.INFO, "About to insert new job...");
         jobResource.insert(null, SCNslug, jobDescription);
         jobDescription = JobDescription.getJobByMessageId(SCNslug, msgType.getId());
-        LOGGER.log(Level.INFO, "Inserted : \t" + jobDescription.toString());
+        LOGGER.log(Level.INFO, "Inserted : \t" + jobDescription.toString());*/
 
         /*LOGGER.log(Level.INFO, "Running recipe with message");
         (new AnalyticsInstance(SCNslug)).run(jobDescription.getRecipeId(), String.valueOf(msgType.getId()));

@@ -1,15 +1,13 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-import java.sql.SQLException;
+import javax.ws.rs.core.Response;
 import java.util.*;
 import com.google.common.base.Splitter;
 import java.util.logging.Level;
@@ -31,10 +29,9 @@ public class DatastoreResource {
     @Path("create")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse createNewScn(@Context HttpServletResponse response, ScnDbInfo scn) {
+    public Response createNewScn(ScnDbInfo scn) {
         LOGGER.log(Level.INFO, scn.toString());
 
-        String status = "OK";
         String details = "";
 
         try {
@@ -44,15 +41,13 @@ public class DatastoreResource {
         } catch (Exception e) {
             e.printStackTrace();
 
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return new RequestResponse("ERROR", "Could not register new SCN.");
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not register new SCN.")
+            ).build();
         }
 
         try {
             StorageBackend.createNewScn(scn);
-            if (response != null) {
-                response.setStatus(HttpServletResponse.SC_CREATED);
-            }
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.INFO, "Clearing SCN registry and databases after failure.");
@@ -66,19 +61,14 @@ public class DatastoreResource {
                 e1.printStackTrace();
                 LOGGER.log(Level.SEVERE, "Could not clear SCN registry, after databases creation failed!");
             }
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return new RequestResponse("ERROR", "Could not create new SCN.");
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not create new SCN.")
+            ).build();
         }
 
-        try {
-            if (response != null) {
-                response.flushBuffer();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return new RequestResponse(status, details);
+        return Response.ok(
+                new RequestResponse("OK", details)
+        ).build();
     }
 
     /**
@@ -89,40 +79,36 @@ public class DatastoreResource {
     @Path("destroy")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse destroyScn(@Context HttpServletResponse response,
-            @QueryParam("scnId") Integer scnId) {
+    public Response destroyScn(@QueryParam("scnId") Integer scnId) {
+
+        ScnDbInfo scn;
 
         try {
-            ScnDbInfo scn = ScnDbInfo.getScnDbInfoById(scnId);
+            scn = ScnDbInfo.getScnDbInfoById(scnId);
             StorageBackend.destroyScn(scn);
         } catch (Exception e) {
             e.printStackTrace();
 
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return new RequestResponse("ERROR", "Could not destroy SCN databases.");
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not destroy SCN databases.")
+            ).build();
         }
 
         try {
             ScnDbInfo.destroy(scnId);
-            if (response != null) {
-                response.setStatus(HttpServletResponse.SC_CREATED);
-            }
         } catch (Exception e) {
             e.printStackTrace();
 
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return new RequestResponse("ERROR", "Could not destroy SCN.");
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not destroy SCN.")
+            ).build();
         }
 
-        try {
-            if (response != null) {
-                response.flushBuffer();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug());
 
-        return new RequestResponse("OK", "");
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
     }
 
     /**
@@ -133,26 +119,20 @@ public class DatastoreResource {
     @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response, 
-                                  @PathParam("slug") String slug,
+    public Response insert(@PathParam("slug") String slug,
                                   Message m) {
         LOGGER.log(Level.INFO, m.toString());
         try {
             new StorageBackend(slug).insert(m);
-            if (response != null) {
-                response.setStatus(HttpServletResponse.SC_CREATED);
-            }
         } catch (Exception e) {
             e.printStackTrace();
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not insert new message.")
+            ).build();
         }
-        try {
-            if (response != null) {
-                response.flushBuffer();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new RequestResponse("OK", "");
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
     }
 
 
@@ -165,25 +145,19 @@ public class DatastoreResource {
     @Path("{slug}/boot")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse bootstrap(@Context HttpServletResponse response,
-                                     @PathParam("slug") String slug,
+    public Response bootstrap(@PathParam("slug") String slug,
                                      MasterData masterData) {
         try {
             new StorageBackend(slug).init(masterData);
-            if (response != null) {
-                response.setStatus(HttpServletResponse.SC_CREATED);
-            }
         } catch (Exception e) {
             e.printStackTrace();
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not insert master data.")
+            ).build();
         }
-        try {
-            if (response != null) {
-                response.flushBuffer();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new RequestResponse("OK", "");
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
     }
 
     /**
