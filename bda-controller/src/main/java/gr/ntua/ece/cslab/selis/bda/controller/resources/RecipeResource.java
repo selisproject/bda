@@ -2,6 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 import org.apache.commons.io.IOUtils;
 
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.*;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -83,30 +85,83 @@ public class RecipeResource {
         return new RequestResponse(status, details);
     }
 
+    /**
+     * Uploads a binary for the specified recipe id, SCN.
+     *
+     * Given an existing `Recipe` object, this REST endpoint, for a given SCN, receives a binary
+     * and stores it in the configured storage backend. Then links the `Recipe` object to the
+     * stored binary by running `recipe.setExecutablePath()`.
+     *
+     * TODO: Requires authentication/authorization.
+     * TODO: Tests.
+     *
+     * @param slug          The SCN's slug.
+     * @param recipeId      The `id` of the recipe object to which this binary corresponds.
+     * @param recipeName    The name of the recipe's binary.
+     * @param recipeBinary  The actual recipe binary.
+     * @return              An javax `Response` object.
+     */
     @PUT
     @Path("{slug}/upload/{id}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public RequestResponse upload(@PathParam("slug") String slug,
-                                  @PathParam("id") int recipeId,
-                                  @PathParam("filename") String recipeName,
-                                  InputStream recipeBinary)  {
-
-        String status = "OK";
-        String details = "";
-
-        String binaryPath = "/uploads/" + recipeId + "_" + recipeName;
-
-        saveFile(recipeBinary, binaryPath);
-
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response upload(@PathParam("slug") String slug,
+                           @PathParam("id") int recipeId,
+                           @PathParam("filename") String recipeName,
+                           InputStream recipeBinary)  {
+        // Ensure a `Recipe` object with the given `id` exists for the specified SCN.
+        Recipe recipe;
         try {
-            Recipe recipe = Recipe.getRecipeById(slug, recipeId);
-            recipe.setExecutablePath(binaryPath);
-            recipe.save(slug);
-        } catch (Exception e) {
+            recipe = Recipe.getRecipeById(slug, recipeId);
+        } catch (SQLException | SystemConnectorException e) {
             e.printStackTrace();
+
+            return Response.serverError().entity(
+                new RequestResponse("ERROR", "Upload recipe FAILED")
+            ).build();
         }
 
-        return new RequestResponse(status, details);
+        // Ensure the storage location for the specified SCN exists.
+        try {
+            Recipe.ensureStorageForSlug(slug);
+        } catch (IOException | SystemConnectorException  e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                new RequestResponse("ERROR", "Upload recipe FAILED")
+            ).build();
+        }
+
+        // Save the binary file to the specified location.
+        String recipeFilename;
+        try {
+            recipeFilename = Recipe.saveRecipeForSlug(
+                slug, recipeBinary, recipeName
+            );
+        } catch (IOException | SystemConnectorException  e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                new RequestResponse("ERROR", "Upload recipe FAILED")
+            ).build();
+        }
+
+        // Update the `Recipe` object.
+        recipe.setExecutablePath(recipeFilename);
+
+        try {
+            recipe.save(slug);
+        } catch (SQLException | SystemConnectorException e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                new RequestResponse("ERROR", "Upload recipe FAILED")
+            ).build();
+        }
+
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
     }
 
     /**
@@ -126,24 +181,4 @@ public class RecipeResource {
 
         return recipes;
     }
-
-
-    private void saveFile(InputStream uploadedInputStream, String serverLocation) {
-
-        try {
-            File outputFile = new File(serverLocation);
-            OutputStream outputStream = new FileOutputStream(outputFile);
-
-            IOUtils.copy(uploadedInputStream, outputStream);
-
-            outputStream.close();
-            uploadedInputStream.close();
-
-        } catch (IOException e) {
-
-            e.printStackTrace();
-        }
-
-    }
-
 }

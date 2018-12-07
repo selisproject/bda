@@ -16,6 +16,15 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <configuration>
+                <reuseForks>true</reuseForks>
+                <useSystemClassLoader>false</useSystemClassLoader>
+              </configuration>
+              <version>3.0.0-M1</version>
+            </plugin>
         </plugins>
     </build>
     <name>SELIS Big Data Analytics - Analytics/ML Submodule</name>

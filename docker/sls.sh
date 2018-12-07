@@ -10,11 +10,13 @@ SELIS_BDA_DOCKERFILE="Dockerfile.bda"
 SELIS_POSTGRES_DOCKERFILE="Dockerfile.postgres"
 SELIS_HBASE_DOCKERFILE="Dockerfile.hbase"
 SELIS_SPARK_DOCKERFILE="Dockerfile.spark"
+SELIS_HADOOP_DOCKERFILE="Dockerfile.hadoop"
 
 SELIS_BDA_IMAGE="selis-bda-image:latest"
-SELIS_POSTGRES_IMAGE="selis-postgres:latest"
-SELIS_HBASE_IMAGE="selis-hbase:latest"
-SELIS_SPARK_IMAGE="selis-spark:latest"
+SELIS_POSTGRES_IMAGE="selis-postgres-image:latest"
+SELIS_HBASE_IMAGE="selis-hbase-image:latest"
+SELIS_SPARK_IMAGE="selis-spark-image:latest"
+SELIS_HADOOP_IMAGE="selis-hadoop-image:latest"
 
 SELIS_JDK_PULL_IMAGE="openjdk:8-slim-stretch"
 SELIS_POSTGRES_PULL_IMAGE="postgres:11-alpine"
@@ -23,10 +25,13 @@ SELIS_KEYCLOAK_PULL_IMAGE="jboss/keycloak:latest"
 SELIS_PUBSUB_PULL_IMAGE="tudselis/pubsub:dev-1809221630"
 
 SELIS_BDA_CONTAINER="selis-controller"
-SELIS_HBASE_CONTAINER="selis-hbase"
+SELIS_HBASE_MASTER_CONTAINER="selis-hbase-master"
+SELIS_HBASE_WORKER_CONTAINER="selis-hbase-worker"
 SELIS_POSTGRES_CONTAINER="selis-postgres"
 SELIS_KEYCLOAK_CONTAINER="selis-keycloak"
-SELIS_SPARK_MASTER_CONTAINER="selis-spark-master"
+SELIS_HADOOP_MASTER_CONTAINER="selis-hadoop-master"
+SELIS_HADOOP_WORKER_CONTAINER_0="selis-hadoop-worker-0"
+SELIS_HADOOP_WORKER_CONTAINER_1="selis-hadoop-worker-1"
 SELIS_SPARK_WORKER_CONTAINER_0="selis-spark-worker-0"
 SELIS_SPARK_WORKER_CONTAINER_1="selis-spark-worker-1"
 SELIS_PUBSUB_CONTAINER="selis-pubsub"
@@ -40,18 +45,22 @@ then
     echo "Running clean all process..."
 
     docker rm "$SELIS_BDA_CONTAINER"
-    docker rm "$SELIS_HBASE_CONTAINER"
+    docker rm "$SELIS_HBASE_MASTER_CONTAINER"
+    docker rm "$SELIS_HBASE_WORKER_CONTAINER"
     docker rm "$SELIS_POSTGRES_CONTAINER"
     docker rm "$SELIS_KEYCLOAK_CONTAINER"
-    docker rm "$SELIS_SPARK_MASTER_CONTAINER"
     docker rm "$SELIS_SPARK_WORKER_CONTAINER_0"
     docker rm "$SELIS_SPARK_WORKER_CONTAINER_1"
+    docker rm "$SELIS_HADOOP_MASTER_CONTAINER"
+    docker rm "$SELIS_HADOOP_WORKER_CONTAINER_0"
+    docker rm "$SELIS_HADOOP_WORKER_CONTAINER_1"
     docker rm "$SELIS_PUBSUB_CONTAINER"
 
     docker rmi "$SELIS_BDA_IMAGE"
     docker rmi "$SELIS_POSTGRES_IMAGE"
     docker rmi "$SELIS_HBASE_IMAGE"
     docker rmi "$SELIS_SPARK_IMAGE"
+    docker rmi "$SELIS_HADOOP_IMAGE"
 
     docker volume rm "$SELIS_POSTGRES_VOLUME"
     docker volume rm "$SELIS_HBASE_VOLUME"
@@ -171,6 +180,18 @@ then
         .
 fi
 
+SELIS_HADOOP_IMAGE_ID="$(docker images --quiet "$SELIS_HADOOP_IMAGE")"
+
+if [ "$SELIS_HADOOP_IMAGE_ID" == "" ]
+then
+    echo "Building hadoop image..."
+
+    docker build \
+        --file "$SELIS_HADOOP_DOCKERFILE" \
+        --tag "$SELIS_HADOOP_IMAGE" \
+        .
+fi
+
 SELIS_HBASE_IMAGE_ID="$(docker images --quiet "$SELIS_HBASE_IMAGE")"
 
 if [ "$SELIS_HBASE_IMAGE_ID" == "" ]
@@ -227,17 +248,64 @@ then
             "$SELIS_POSTGRES_IMAGE"
     fi
 
-    if [ "$2" == "hbase" ] || [ "$2" == "all" ]
+    if [ "$2" == "hadoop" ] || [ "$2" == "all" ]
     then
-        echo "Running selis hbase container..."
+        echo "Running selis hadoop master container."
 
         docker run \
             --detach \
             --network "$SELIS_NETWORK" \
-            --volume "$SELIS_HBASE_VOLUME":/data \
-            --hostname "$SELIS_HBASE_CONTAINER" \
-            --name "$SELIS_HBASE_CONTAINER" \
-            "$SELIS_HBASE_IMAGE"
+            --hostname "$SELIS_HADOOP_MASTER_CONTAINER" \
+            --name "$SELIS_HADOOP_MASTER_CONTAINER" \
+            "$SELIS_HADOOP_IMAGE" \
+            /docker-entrypoint.sh master first
+
+        echo "Running selis hadoop worker container."
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --hostname "$SELIS_HADOOP_WORKER_CONTAINER_0" \
+            --name "$SELIS_HADOOP_WORKER_CONTAINER_0" \
+            "$SELIS_HADOOP_IMAGE" \
+            /docker-entrypoint.sh worker
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --hostname "$SELIS_HADOOP_WORKER_CONTAINER_1" \
+            --name "$SELIS_HADOOP_WORKER_CONTAINER_1" \
+            "$SELIS_HADOOP_IMAGE" \
+            /docker-entrypoint.sh worker
+    fi
+
+    if [ "$2" == "hbase" ] || [ "$2" == "all" ]
+    then
+        echo "Running selis hbase master container..."
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --hostname "$SELIS_HBASE_MASTER_CONTAINER.$SELIS_NETWORK" \
+            --name "$SELIS_HBASE_MASTER_CONTAINER" \
+            --env ZOOKEEPER_MYID=1 \
+            "$SELIS_HBASE_IMAGE" \
+            /docker-entrypoint.sh master
+            
+        # --volume "$SELIS_HBASE_VOLUME":/data \
+
+        echo "Running selis hbase worker container..."
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --hostname "$SELIS_HBASE_WORKER_CONTAINER.$SELIS_NETWORK" \
+            --name "$SELIS_HBASE_WORKER_CONTAINER" \
+            --env ZOOKEEPER_MYID=2 \
+            "$SELIS_HBASE_IMAGE" \
+            /docker-entrypoint.sh worker
+
+        # --volume "$SELIS_HBASE_VOLUME":/data \
 
         # echo "Creating 'Events' table, if it does not exist..."
 
@@ -264,36 +332,23 @@ then
 
     if [ "$2" == "spark" ] || [ "$2" == "all" ]
     then
-        echo "Running selis spark master container."
-
-        docker run \
-            --detach \
-            --network "$SELIS_NETWORK" \
-            --publish 127.0.0.1:8080:8080 \
-            --hostname "$SELIS_SPARK_MASTER_CONTAINER" \
-            --name "$SELIS_SPARK_MASTER_CONTAINER" \
-            "$SELIS_SPARK_IMAGE" \
-            /entrypoint.sh master first
-
         echo "Running selis spark worker container."
 
         docker run \
             --detach \
             --network "$SELIS_NETWORK" \
-            --publish 127.0.0.1:8081:8081 \
             --hostname "$SELIS_SPARK_WORKER_CONTAINER_0" \
             --name "$SELIS_SPARK_WORKER_CONTAINER_0" \
             "$SELIS_SPARK_IMAGE" \
-            /entrypoint.sh worker
+            /docker-entrypoint.sh nodemanager block
 
         docker run \
             --detach \
             --network "$SELIS_NETWORK" \
-            --publish 127.0.0.1:8082:8082 \
             --hostname "$SELIS_SPARK_WORKER_CONTAINER_1" \
             --name "$SELIS_SPARK_WORKER_CONTAINER_1" \
             "$SELIS_SPARK_IMAGE" \
-            /entrypoint.sh worker
+            /docker-entrypoint.sh nodemanager block
     fi
 
     if [ "$2" == "pubsub" ] || [ "$2" == "all" ]
@@ -335,12 +390,15 @@ if [ "$1" == "startall" ]
 then
     echo "Starting all containers..."
 
-    docker start "$SELIS_HBASE_CONTAINER"
     docker start "$SELIS_POSTGRES_CONTAINER"
-    docker start "$SELIS_KEYCLOAK_CONTAINER"
-    docker start "$SELIS_SPARK_MASTER_CONTAINER"
+    docker start "$SELIS_HADOOP_MASTER_CONTAINER"
+    docker start "$SELIS_HADOOP_WORKER_CONTAINER_0"
+    docker start "$SELIS_HADOOP_WORKER_CONTAINER_1"
+    docker start "$SELIS_HBASE_MASTER_CONTAINER"
+    docker start "$SELIS_HBASE_WORKER_CONTAINER"
     docker start "$SELIS_SPARK_WORKER_CONTAINER_0"
     docker start "$SELIS_SPARK_WORKER_CONTAINER_1"
+    docker start "$SELIS_KEYCLOAK_CONTAINER"
     docker start "$SELIS_PUBSUB_CONTAINER"
     docker start "$SELIS_BDA_CONTAINER"
 
@@ -357,11 +415,14 @@ then
 
     docker stop "$SELIS_BDA_CONTAINER"
     docker stop "$SELIS_PUBSUB_CONTAINER"
-    docker stop "$SELIS_HBASE_CONTAINER"
+    docker stop "$SELIS_HBASE_MASTER_CONTAINER"
+    docker stop "$SELIS_HBASE_WORKER_CONTAINER"
     docker stop "$SELIS_POSTGRES_CONTAINER"
     docker stop "$SELIS_KEYCLOAK_CONTAINER"
-    docker stop "$SELIS_SPARK_MASTER_CONTAINER"
     docker stop "$SELIS_SPARK_WORKER_CONTAINER_0"
     docker stop "$SELIS_SPARK_WORKER_CONTAINER_1"
+    docker stop "$SELIS_HADOOP_MASTER_CONTAINER"
+    docker stop "$SELIS_HADOOP_WORKER_CONTAINER_0"
+    docker stop "$SELIS_HADOOP_WORKER_CONTAINER_1"
 
 fi

@@ -1,13 +1,20 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HDFSConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
-import java.io.Serializable;
+import java.io.*;
 import java.sql.*;
+import java.net.URI;
 import java.util.List;
 import java.util.Vector;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import java.lang.UnsupportedOperationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -174,7 +181,7 @@ public class Recipe implements Serializable {
         return recipes;
      }
 
-    public static Recipe getRecipeById(String slug, int id) throws SystemConnectorException {
+    public static Recipe getRecipeById(String slug, int id) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
@@ -186,9 +193,7 @@ public class Recipe implements Serializable {
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-
-                Recipe recipe;
-                recipe = new Recipe(
+                Recipe recipe = new Recipe(
                         resultSet.getString("name"),
                         resultSet.getString("description"),
                         resultSet.getString("executable_path"),
@@ -198,13 +203,15 @@ public class Recipe implements Serializable {
 
                 recipe.id = resultSet.getInt("id");
                 recipe.exists = true;
+
                 return recipe;
+            } else {
+                throw new SQLException("Recipe Not Found.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
-
-        return null;
     }
 
 
@@ -315,5 +322,171 @@ public class Recipe implements Serializable {
         }
 
         LOGGER.log(Level.INFO, "SUCCESS: Create recipes table in metadata schema.");
+    }
+
+    /**
+     * Returns the absolute path to the recipe storage location for the given SCN.
+     *
+     * Assumes that the recipes for each SCN are stored in a new directory
+     * under the recipe storage location specified in the `Configuration`.
+     *
+     * TODO: Tests.
+     *
+     * @param slug The SCN's slug.
+     * @return     A `String` with the absolute path of the recipe storage location.
+     */
+    public static String getStorageForSlug(String slug) {
+        Configuration configuration = Configuration.getInstance();
+
+        String storageLocation = 
+            configuration.execEngine.getRecipeStorageLocation() +
+            File.separator + slug;
+
+        return storageLocation;
+    }
+
+    /**
+     * Checks that the recipe storage location for a given SCN exists, if not creates it.
+     *
+     * Uses `Recipe.getStorageForSlug()` to get the recipe storage location for this SCN.
+     * If the location does not exist creates it.
+     *
+     * Supports HDFS and local storage backends.
+     *
+     * TODO: Tests.
+     *
+     * @param slug The SCN's slug.
+     * @throws IOException
+     */
+    public static void ensureStorageForSlug(String slug) 
+        throws IOException, SystemConnectorException  {
+
+        // Get the recipe storage location for this SCN.
+        String storageLocationForSlug = Recipe.getStorageForSlug(slug);
+
+        Configuration configuration = Configuration.getInstance();
+
+        if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
+            // Use HDFS storage for recipes.
+
+            HDFSConnector connector = (HDFSConnector )
+                SystemConnector.getInstance().getHDFSConnector();
+
+            org.apache.hadoop.fs.FileSystem fs = connector.getFileSystem();
+
+            // Check if the `storageLocationForSlug` exists, if not create it.
+            org.apache.hadoop.fs.Path path = new org.apache.hadoop.fs.Path(
+                storageLocationForSlug
+            );
+
+            if (!fs.exists(path)) {
+                try {
+                    fs.mkdirs(
+                        new org.apache.hadoop.fs.Path(storageLocationForSlug)
+                    );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw e;
+                }
+            }
+        } else {
+            // Use local storage for recipes.
+
+            // Check if the `storageLocationForSlug` exists, if not create it.
+            File path = new File(storageLocationForSlug);
+            if (!path.exists()) {
+                path.mkdir();
+            }
+        }
+    }
+
+    /**
+     * Reads from `recipeInStream` a recipe binary and stores it the configured storage backend.
+     *
+     * Concatenates the `recipeName` with the md5 hash of the binary to generate a unique filename.
+     * Then uses `Recipe.getStorageForSlug()` to retrieve the location where it stores the binary.
+     *
+     * Supports HDFS and local storage backends.
+     *
+     * TODO: Tests.
+     *
+     * @param slug           The SCN's slug.
+     * @param recipeInStream A `InputStream` from where we read the recipe binary.
+     * @param recipeName     The recipe binary's name.
+     * @return               A `String` with the jecipe binary's absolute path.
+     * @throws IOException
+     */
+    public static String saveRecipeForSlug(
+        String slug, InputStream recipeInStream, String recipeName) 
+            throws IOException, SystemConnectorException  {
+
+        // Read the binary into a byte array in memory.
+        byte[] recipeBytes;
+        try {
+            recipeBytes = IOUtils.toByteArray(recipeInStream);
+
+            recipeInStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        // Calculate binary's md5 hash.
+        String recipeHash = DigestUtils.md5Hex(recipeBytes);
+
+        // Find binary's storage location.
+        Configuration configuration = Configuration.getInstance();
+
+        String recipeFilename = Paths.get(
+            Recipe.getStorageForSlug(slug), recipeHash + "_" + recipeName
+        ).toString();
+
+        if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
+            // Use HDFS storage for recipes.
+
+            HDFSConnector connector = (HDFSConnector )
+                SystemConnector.getInstance().getHDFSConnector();
+
+            org.apache.hadoop.fs.FileSystem fs = connector.getFileSystem();
+
+            // Create HDFS file path object.
+            org.apache.hadoop.fs.Path outputFilePath = 
+                new org.apache.hadoop.fs.Path(recipeFilename);
+
+            // Write to HDFS.
+            org.apache.hadoop.fs.FSDataOutputStream outputStream = fs.create(
+                outputFilePath
+            );
+
+            try {
+                outputStream.write(recipeBytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw e;
+            } finally {
+                outputStream.close();
+            }
+
+            // Prepend `hdfs://` before returning recipe name.
+            recipeFilename = "hdfs://" + recipeFilename;
+        } else {
+            // Use local storage for recipes.
+
+            // Create file path object.
+            File outputFile = new File(recipeFilename);
+            OutputStream outputStream = new FileOutputStream(outputFile);
+
+            // Write to local storage.
+            try {
+                IOUtils.write(recipeBytes, outputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw e;
+            } finally {
+                outputStream.close();
+            }
+        }
+
+        return recipeFilename;
     }
 }

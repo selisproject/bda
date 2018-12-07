@@ -4,6 +4,7 @@ import java.util.Vector;
 import java.sql.SQLException;
 import java.lang.UnsupportedOperationException;
 
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
 public class ConnectorFactory {
@@ -24,20 +25,22 @@ public class ConnectorFactory {
 
     /** Depending on the FS string format initialize a connector from a different class.
      *  Connectors are implemented for four different filesystems: local, HBase, HDFS, PostgreSQL. **/
-    public Connector generateConnector(String FS, String Username, String Password) throws SystemConnectorException {
-        Connector connector = null;
+    public Connector generateConnector(String fs, String username, String password, Configuration configuration)
+        throws SystemConnectorException {
 
-        int connectorType = ConnectorFactory.getConnectorType(FS);
+        Connector connector;
+
+        int connectorType = ConnectorFactory.getConnectorType(fs);
 
         try{
             if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
-                connector = new HDFSConnector(FS, Username, Password);
+                connector = new HDFSConnector(fs, username, password, configuration);
             } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
-                connector = new HBaseConnector(FS, Username, Password);
+                connector = new HBaseConnector(fs, username, password, configuration);
             } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
-                connector = new PostgresqlConnector(FS, Username, Password);
+                connector = new PostgresqlConnector(fs, username, password);
             } else {
-                connector = new LocalFSConnector(FS, Username, Password);
+                connector = new LocalFSConnector(fs, username, password);
             }
         } catch (Exception e){
             e.printStackTrace();
@@ -49,9 +52,9 @@ public class ConnectorFactory {
 
     /** Creates a new database and specified schemas.
      *  Returns the jdbcUrl of the new database. **/
-    public static String createNewDatabaseWithSchemas(String fs, String username, 
-        String password, String owner, String dbname, Vector<String> schemas)
-        throws SystemConnectorException, UnsupportedOperationException {
+    public static String createNewDatabaseWithSchemas(String fs, String username, String password,
+                                                      Configuration configuration, String owner, String dbname,
+                                                      Vector<String> schemas) throws SystemConnectorException, UnsupportedOperationException {
         String databaseUrl;
         int connectorType = ConnectorFactory.getConnectorType(fs);
 
@@ -59,7 +62,7 @@ public class ConnectorFactory {
             throw new UnsupportedOperationException("Creating a database in HDFS is not supported.");
         } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
             try {
-                databaseUrl = HBaseConnector.createNamespace(fs, username, password, dbname);
+                databaseUrl = HBaseConnector.createNamespace(fs, username, password, configuration, dbname);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new SystemConnectorException("Could not create HBase namespace.");
@@ -92,9 +95,8 @@ public class ConnectorFactory {
     }
 
     /** Destroys a database. **/
-    public static void dropDatabase(String fs, String username,
-                                      String password, String owner, String dbname)
-            throws UnsupportedOperationException, SystemConnectorException {
+    public static void dropDatabase(String fs, String username, String password, Configuration configuration,
+                                    String owner, String dbname) throws UnsupportedOperationException, SystemConnectorException {
 
         int connectorType = ConnectorFactory.getConnectorType(fs);
 
@@ -102,7 +104,7 @@ public class ConnectorFactory {
             throw new UnsupportedOperationException("Dropping a database in HDFS is not supported.");
         } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
             try {
-                HBaseConnector.dropNamespace(fs, username, password, dbname);
+                HBaseConnector.dropNamespace(fs, username, password, configuration, dbname);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new SystemConnectorException("Could not drop HBase namespace.");

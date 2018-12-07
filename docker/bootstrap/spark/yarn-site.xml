@@ -15,7 +15,7 @@
 <configuration>
     <property>
         <name>yarn.resourcemanager.hostname</name>
-        <value>selis-spark-master</value>
+        <value>selis-hadoop-master</value>
         <description>The hostname of the RM.</description>
     </property>
 

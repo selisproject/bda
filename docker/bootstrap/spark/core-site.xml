@@ -19,7 +19,7 @@
 <configuration>
     <property>
         <name>fs.defaultFS</name>
-        <value>hdfs://selis-spark-master/</value>
+        <value>hdfs://selis-hadoop-master/</value>
         <description>NameNode URI</description>
     </property>
 </configuration>

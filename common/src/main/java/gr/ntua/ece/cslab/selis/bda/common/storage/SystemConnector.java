@@ -17,13 +17,14 @@ public class SystemConnector {
     private static SystemConnector systemConnector;
 
     private Connector bdaConnector;
+    private Connector hdfsConnector;
     private HashMap<String, Connector> elConnectors;
     private HashMap<String, Connector> dtConnectors;
     private HashMap<String, Connector> kpiConnectors;
 
     /** The constructor creates new connections for the EventLog FS, the Dimension
      *  tables FS and the KPI db per LL as well as the BDA db. **/
-    public SystemConnector() throws SystemConnectorException {
+    private SystemConnector() throws SystemConnectorException {
         this.elConnectors = new HashMap<String, Connector>();
         this.dtConnectors = new HashMap<String, Connector>();
         this.kpiConnectors = new HashMap<String, Connector>();
@@ -32,7 +33,15 @@ public class SystemConnector {
         bdaConnector = ConnectorFactory.getInstance().generateConnector(
                 configuration.storageBackend.getBdaDatabaseURL(),
                 configuration.storageBackend.getDbUsername(),
-                configuration.storageBackend.getDbPassword()
+                configuration.storageBackend.getDbPassword(),
+                configuration
+        );
+
+        hdfsConnector = ConnectorFactory.getInstance().generateConnector(
+            configuration.storageBackend.getHDFSMasterURL(),
+            configuration.storageBackend.getHDFSUsername(),
+            configuration.storageBackend.getHDFSPassword(),
+            configuration
         );
     }
 
@@ -67,15 +76,17 @@ public class SystemConnector {
         }
         for (ScnDbInfo SCN: SCNs){
             elConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                configuration.storageBackend.getEventLogURL()+SCN.getElDbname(),
+                configuration.storageBackend.getEventLogURL() + SCN.getElDbname(),
                 configuration.storageBackend.getDbUsername(),
-                configuration.storageBackend.getDbPassword()
+                configuration.storageBackend.getDbPassword(),
+                configuration
             ));
 
             dtConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                configuration.storageBackend.getDimensionTablesURL()+SCN.getDtDbname(),
+                configuration.storageBackend.getDimensionTablesURL() + SCN.getDtDbname(),
                 configuration.storageBackend.getDbUsername(),
-                configuration.storageBackend.getDbPassword()
+                configuration.storageBackend.getDbPassword(),
+                configuration
             ));
             /*PostgresqlPooledDataSource.init(
                     configuration.storageBackend.getBdaDatabaseURL(),
@@ -85,9 +96,10 @@ public class SystemConnector {
             );*/
 
             kpiConnectors.put(SCN.getSlug(), ConnectorFactory.getInstance().generateConnector(
-                configuration.kpiBackend.getDbUrl()+SCN.getKpiDbname(),
+                configuration.kpiBackend.getDbUrl() + SCN.getKpiDbname(),
                 configuration.kpiBackend.getDbUsername(),
-                configuration.kpiBackend.getDbPassword()
+                configuration.kpiBackend.getDbPassword(),
+                configuration
             ));
         }
     }
@@ -103,6 +115,7 @@ public class SystemConnector {
             configuration.storageBackend.getDimensionTablesURL(),
             configuration.storageBackend.getDbPrivilegedUsername(),
             configuration.storageBackend.getDbPrivilegedPassword(),
+            configuration,
             configuration.storageBackend.getDbUsername(),
             scn.getDtDbname(),
             schemas
@@ -111,7 +124,8 @@ public class SystemConnector {
         Connector dtConnector = ConnectorFactory.getInstance().generateConnector(
                 databaseUrl,
                 configuration.storageBackend.getDbUsername(),
-                configuration.storageBackend.getDbPassword()
+                configuration.storageBackend.getDbPassword(),
+                configuration
         );
 
         dtConnectors.put(scnSlug, dtConnector);
@@ -120,6 +134,7 @@ public class SystemConnector {
                 configuration.storageBackend.getEventLogURL(),
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword(),
+                configuration,
                 configuration.storageBackend.getDbUsername(),
                 scn.getElDbname(),
                 null
@@ -128,7 +143,8 @@ public class SystemConnector {
         Connector elConnector = ConnectorFactory.getInstance().generateConnector(
                 databaseUrl,
                 configuration.storageBackend.getDbUsername(),
-                configuration.storageBackend.getDbPassword()
+                configuration.storageBackend.getDbPassword(),
+                configuration
         );
 
         elConnectors.put(scnSlug, elConnector);
@@ -137,6 +153,7 @@ public class SystemConnector {
                 configuration.kpiBackend.getDbUrl(),
                 configuration.storageBackend.getDbPrivilegedUsername(),
                 configuration.storageBackend.getDbPrivilegedPassword(),
+                configuration,
                 configuration.kpiBackend.getDbUsername(),
                 scn.getKpiDbname(),
                 null
@@ -145,7 +162,8 @@ public class SystemConnector {
         Connector kpiConnector = ConnectorFactory.getInstance().generateConnector(
                 databaseUrl,
                 configuration.kpiBackend.getDbUsername(),
-                configuration.kpiBackend.getDbPassword()
+                configuration.kpiBackend.getDbPassword(),
+                configuration
         );
 
         kpiConnectors.put(scnSlug, kpiConnector);
@@ -163,6 +181,7 @@ public class SystemConnector {
                 configuration.storageBackend.getDimensionTablesURL(),
                 configuration.storageBackend.getDbPrivilegedUsername(),
                 configuration.storageBackend.getDbPrivilegedPassword(),
+                configuration,
                 configuration.storageBackend.getDbUsername(),
                 scn.getDtDbname()
         );
@@ -172,6 +191,7 @@ public class SystemConnector {
                 configuration.storageBackend.getEventLogURL(),
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword(),
+                configuration,
                 configuration.storageBackend.getDbUsername(),
                 scn.getElDbname()
         );
@@ -181,6 +201,7 @@ public class SystemConnector {
                 configuration.kpiBackend.getDbUrl(),
                 configuration.storageBackend.getDbPrivilegedUsername(),
                 configuration.storageBackend.getDbPrivilegedPassword(),
+                configuration,
                 configuration.kpiBackend.getDbUsername(),
                 scn.getKpiDbname()
         );
@@ -189,6 +210,7 @@ public class SystemConnector {
 
     public void close(){
         bdaConnector.close();
+
         for (Map.Entry<String, Connector> conn: elConnectors.entrySet()){
             conn.getValue().close();
         }
@@ -202,6 +224,10 @@ public class SystemConnector {
 
     public Connector getBDAconnector() {
         return bdaConnector;
+    }
+
+    public Connector getHDFSConnector() {
+        return hdfsConnector;
     }
 
     public Connector getELconnector(String SCN) {

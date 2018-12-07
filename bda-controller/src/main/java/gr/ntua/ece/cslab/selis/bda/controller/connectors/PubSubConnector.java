@@ -37,8 +37,7 @@ public class PubSubConnector {
     }
 
     public static void init() {
-        // parse configuration
-        configuration = Entrypoint.configuration;
+        configuration = Configuration.getInstance();
 
         if (pubSubConnector == null) {
             pubSubConnector = new PubSubConnector();
@@ -47,9 +46,12 @@ public class PubSubConnector {
     }
 
     private void initSCNsubscribers() {
-        if (configuration.subscriber.getUrl().isEmpty()){
-            isExternal = false;
+        isExternal = (
+            configuration.subscriber.getUrl() != null &&
+            !configuration.subscriber.getUrl().isEmpty()
+        );
 
+        if (!isExternal) {
             LOGGER.log(Level.INFO, "Initializing internal PubSub subscribers...");
             try {
                 for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {

@@ -34,8 +34,11 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
         Admin admin = conn.getConnection().getAdmin();
         String rowkey = null;
         if (!admin.tableExists(tableName)) {
-            HTableDescriptor desc = new HTableDescriptor(tableName);
-            desc.addFamily(new HColumnDescriptor("messages"));
+            HTableDescriptor desc = new HTableDescriptor(
+                TableName.valueOf(conn.getNamespace()));
+
+            desc.addFamily(new HColumnDescriptor("Events"));
+
             admin.createTable(desc);
         }
         else {

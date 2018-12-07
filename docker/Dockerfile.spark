@@ -1,73 +1,42 @@
-FROM openjdk:8-slim-stretch
+FROM selis-hadoop-image:latest
 
-ARG HADOOP_FILE=hadoop-2.9.1
+# Specify hadoop resources.
 ARG HADOOP_PREFIX=/usr/local/hadoop
-ARG HADOOP_TAR_FILE=hadoop-2.9.1.tar.gz
-ARG HADOOP_DOWNLOAD_URL=https://archive.apache.org/dist/hadoop/core/hadoop-2.9.1/hadoop-2.9.1.tar.gz
 
+# Specify spark resources.
+ARG SPARK_VERSION=2.3.1
 ARG SPARK_PREFIX=/usr/local/spark
-ARG SPARK_FILE=spark-2.3.1-bin-without-hadoop
-ARG SPARK_TAR_FILE=spark-2.3.1-bin-without-hadoop.tgz
-ARG SPARK_DOWNLOAD_URL=https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-without-hadoop.tgz
+ARG SPARK_URL=https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz
 
 # Install general packages.
-RUN apt-get update && apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    python3 \
-    python3-pip \ 
-    vim \
-    wget
+RUN apt-get update && apt-get install --yes --no-install-recommends python3 python3-pip  python3-setuptools && \
+    apt-get clean autoclean && \
+    pip3 install psycopg2 py-dateutil requests
 
-RUN apt-get clean
+# Create hadoop, resources directories.
+RUN mkdir -p ${SPARK_PREFIX} /resources
 
-RUN pip3 install \
-    psycopg2 \
-    py-dateutil \
-    requests
-
-# Download hadoop.
-RUN wget ${HADOOP_DOWNLOAD_URL} --directory-prefix /tmp
-# COPY ${HADOOP_TAR_FILE} /tmp
-
-# Untar and link to `/usr/local/hadoop`.
-RUN tar -xzf /tmp/${HADOOP_TAR_FILE} -C /usr/local/
-RUN rm /tmp/${HADOOP_TAR_FILE}
-RUN ln -s /usr/local/${HADOOP_FILE} ${HADOOP_PREFIX}
-
-# Set hadoop/yarn environment variables.
-ENV HADOOP_PREFIX      "${HADOOP_PREFIX}"
-ENV HADOOP_HOME        "${HADOOP_PREFIX}"
-ENV HADOOP_COMMON_HOME "${HADOOP_PREFIX}"
-ENV HADOOP_CONF_DIR    "${HADOOP_PREFIX}/etc/hadoop"
-ENV HADOOP_HDFS_HOME   "${HADOOP_PREFIX}"
-ENV HADOOP_MAPRED_HOME "${HADOOP_PREFIX}"
-ENV HADOOP_YARN_HOME   "${HADOOP_PREFIX}"
-ENV YARN_CONF_DIR      "${HADOOP_PREFIX}/etc/hadoop"
+# Download, install spark.
+RUN curl -L ${SPARK_URL} | tar -xz --strip=1 -C ${SPARK_PREFIX}
 
 # Add configuration files.
-ADD ./bootstrap/spark/hdfs-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
 ADD ./bootstrap/spark/core-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
 ADD ./bootstrap/spark/yarn-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
 
-# Download spark.
-RUN wget ${SPARK_DOWNLOAD_URL} --directory-prefix /tmp
-# COPY ${SPARK_TAR_FILE} /tmp
-
-# Untar and link to `/usr/local/spark`.
-RUN tar -xzf /tmp/${SPARK_TAR_FILE} -C /usr/local/
-RUN rm /tmp/${SPARK_TAR_FILE}
-RUN ln -s /usr/local/${SPARK_FILE} ${SPARK_PREFIX}
+# Set yarn environment variables.
+ENV HADOOP_YARN_HOME   "${HADOOP_PREFIX}"
+ENV YARN_CONF_DIR      "${HADOOP_PREFIX}/etc/hadoop"
 
 # Set spark environment variables.
 ENV SPARK_HOME "${SPARK_PREFIX}"
 ENV PYSPARK_PYTHON "/usr/bin/python3"
 
 # Download postgresql jar.
-RUN mkdir /resources
-RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --directory-prefix /resources
+RUN curl https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --output /resources/postgresql-42.2.1.jar
 
 # Add the certificate, used to connect to pubsub.
 ADD ./bootstrap/root.crt /resources/
 
-ADD ./bootstrap/spark/entrypoint.sh /
+ADD ./bootstrap/spark/docker-entrypoint.sh /
+
+RUN chmod +x /docker-entrypoint.sh

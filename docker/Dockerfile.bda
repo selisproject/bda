@@ -1,4 +1,4 @@
-FROM selis-spark:latest
+FROM selis-spark-image:latest
 
 # Declare `localuser` as build argument.
 ARG localuser

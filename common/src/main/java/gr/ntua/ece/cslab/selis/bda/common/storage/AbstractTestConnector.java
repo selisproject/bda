@@ -9,10 +9,10 @@ public abstract class AbstractTestConnector {
     public AbstractTestConnector(){}
 
     public void setUp() throws SystemConnectorException {
-        SystemConnector.init("../conf/bdatest.properties");
+        // SystemConnector.init("../conf/bdatest.properties");
     }
 
     public void tearDown() throws SystemConnectorException {
-        SystemConnector.getInstance().close();
+        // SystemConnector.getInstance().close();
     }
 }

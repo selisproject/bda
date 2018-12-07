@@ -22,6 +22,7 @@ public class StorageBackendTest extends AbstractTestConnector {
 
     @org.junit.Test
     public void test() throws SystemConnectorException {
+        /*
         String SCNslug = "testll";
         StorageBackend backend = new StorageBackend(SCNslug);
 
@@ -37,6 +38,8 @@ public class StorageBackendTest extends AbstractTestConnector {
         hmap.put("latitude", "31.456");
         hmap.put("longitude", "36.542");
         hmap.put("timestamp", "2017-05-02.23:48:57");
+
+        */
 
         // Insert message in EventLog
         //backend.insert(hmap);
