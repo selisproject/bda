@@ -124,7 +124,7 @@ public class RecipeResource {
         // Ensure the storage location for the specified SCN exists.
         try {
             Recipe.ensureStorageForSlug(slug);
-        } catch (IOException e) {
+        } catch (IOException | SystemConnectorException  e) {
             e.printStackTrace();
 
             return Response.serverError().entity(
@@ -138,7 +138,7 @@ public class RecipeResource {
             recipeFilename = Recipe.saveRecipeForSlug(
                 slug, recipeBinary, recipeName
             );
-        } catch (IOException e) {
+        } catch (IOException | SystemConnectorException  e) {
             e.printStackTrace();
 
             return Response.serverError().entity(

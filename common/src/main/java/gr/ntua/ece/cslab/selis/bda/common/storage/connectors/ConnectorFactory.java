@@ -34,7 +34,7 @@ public class ConnectorFactory {
 
         try{
             if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
-                connector = new HDFSConnector(fs, username, password);
+                connector = new HDFSConnector(fs, username, password, configuration);
             } else if (connectorType == ConnectorFactory.CONNECTOR_HBASE_TYPE) {
                 connector = new HBaseConnector(fs, username, password, configuration);
             } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {

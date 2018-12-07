@@ -54,6 +54,8 @@ public class Configuration {
         private String eventLogQuorum = null;
 
         private String hdfsMasterURL;
+        private String hdfsUsername;
+        private String hdfsPassword;
 
         public StorageBackend() {
         }
@@ -83,6 +85,11 @@ public class Configuration {
         public String getEventLogQuorum() { return eventLogQuorum; }
 
         public String getHDFSMasterURL() { return hdfsMasterURL; }
+
+        public String getHDFSUsername() { return hdfsUsername; }
+
+        public String getHDFSPassword() { return hdfsPassword; }
+
     }
     public class ExecutionEngine {
         private String sparkMaster;
@@ -227,6 +234,7 @@ public class Configuration {
         conf.storageBackend.eventLogURL = properties.getProperty("backend.db.event.url");
         conf.storageBackend.eventLogMaster = properties.getProperty("backend.db.event.master.host");
         conf.storageBackend.eventLogQuorum = properties.getProperty("backend.db.event.quorum");
+
         conf.storageBackend.hdfsMasterURL = properties.getProperty("backend.hdfs.master.url");
 
         // Pub/Sub Configuration.

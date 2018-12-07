@@ -17,6 +17,7 @@ public class SystemConnector {
     private static SystemConnector systemConnector;
 
     private Connector bdaConnector;
+    private Connector hdfsConnector;
     private HashMap<String, Connector> elConnectors;
     private HashMap<String, Connector> dtConnectors;
     private HashMap<String, Connector> kpiConnectors;
@@ -34,6 +35,13 @@ public class SystemConnector {
                 configuration.storageBackend.getDbUsername(),
                 configuration.storageBackend.getDbPassword(),
                 configuration
+        );
+
+        hdfsConnector = ConnectorFactory.getInstance().generateConnector(
+            configuration.storageBackend.getHDFSMasterURL(),
+            configuration.storageBackend.getHDFSUsername(),
+            configuration.storageBackend.getHDFSPassword(),
+            configuration
         );
     }
 
@@ -202,6 +210,7 @@ public class SystemConnector {
 
     public void close(){
         bdaConnector.close();
+
         for (Map.Entry<String, Connector> conn: elConnectors.entrySet()){
             conn.getValue().close();
         }
@@ -215,6 +224,10 @@ public class SystemConnector {
 
     public Connector getBDAconnector() {
         return bdaConnector;
+    }
+
+    public Connector getHDFSConnector() {
+        return hdfsConnector;
     }
 
     public Connector getELconnector(String SCN) {

@@ -3,6 +3,7 @@ package gr.ntua.ece.cslab.selis.bda.datastore.beans;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HDFSConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 
 import java.io.*;
@@ -357,7 +358,9 @@ public class Recipe implements Serializable {
      * @param slug The SCN's slug.
      * @throws IOException
      */
-    public static void ensureStorageForSlug(String slug) throws IOException {
+    public static void ensureStorageForSlug(String slug) 
+        throws IOException, SystemConnectorException  {
+
         // Get the recipe storage location for this SCN.
         String storageLocationForSlug = Recipe.getStorageForSlug(slug);
 
@@ -366,23 +369,10 @@ public class Recipe implements Serializable {
         if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
             // Use HDFS storage for recipes.
 
-            // Connect to HDFS.
-            org.apache.hadoop.fs.FileSystem fs;
-            try {
-                org.apache.hadoop.conf.Configuration hadoopConf = 
-                    new org.apache.hadoop.conf.Configuration();
+            HDFSConnector connector = (HDFSConnector )
+                SystemConnector.getInstance().getHDFSConnector();
 
-                hadoopConf.set(
-                    "fs.defaultFS", configuration.storageBackend.getHDFSMasterURL()
-                );
-
-                URI uri = URI.create(configuration.storageBackend.getHDFSMasterURL());
-
-                fs = org.apache.hadoop.fs.FileSystem.get(uri, hadoopConf);
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw e;
-            }
+            org.apache.hadoop.fs.FileSystem fs = connector.getFileSystem();
 
             // Check if the `storageLocationForSlug` exists, if not create it.
             org.apache.hadoop.fs.Path path = new org.apache.hadoop.fs.Path(
@@ -426,7 +416,10 @@ public class Recipe implements Serializable {
      * @return               A `String` with the jecipe binary's absolute path.
      * @throws IOException
      */
-    public static String saveRecipeForSlug(String slug, InputStream recipeInStream, String recipeName) throws IOException {
+    public static String saveRecipeForSlug(
+        String slug, InputStream recipeInStream, String recipeName) 
+            throws IOException, SystemConnectorException  {
+
         // Read the binary into a byte array in memory.
         byte[] recipeBytes;
         try {
@@ -451,24 +444,11 @@ public class Recipe implements Serializable {
         if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
             // Use HDFS storage for recipes.
 
-            // Connect to HDFS
-            org.apache.hadoop.fs.FileSystem fs = null;
-            try {
-                org.apache.hadoop.conf.Configuration hadoopConf = 
-                    new org.apache.hadoop.conf.Configuration();
+            HDFSConnector connector = (HDFSConnector )
+                SystemConnector.getInstance().getHDFSConnector();
 
-                hadoopConf.set(
-                    "fs.defaultFS", configuration.storageBackend.getHDFSMasterURL()
-                );
+            org.apache.hadoop.fs.FileSystem fs = connector.getFileSystem();
 
-                URI uri = URI.create(configuration.storageBackend.getHDFSMasterURL());
-
-                fs = org.apache.hadoop.fs.FileSystem.get(uri, hadoopConf);
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw e;
-            }
- 
             // Create HDFS file path object.
             org.apache.hadoop.fs.Path outputFilePath = 
                 new org.apache.hadoop.fs.Path(recipeFilename);
