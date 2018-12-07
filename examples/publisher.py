@@ -22,6 +22,38 @@ if __name__ == '__main__':
                 'warehouse_id': 444
             }
         }
+    elif len(sys.argv) > 1 and sys.argv[1] == '--stocks':
+        message = {
+          'message_type': 'SonaeStockLevels',
+          'scn_slug': 'sonae_slug',
+          'warehouse_id': '444',
+          'supplier_id': '7',
+          'stock_levels_date': '2018-03-06T00:00:00.000Z',
+          'payload': {
+            'stock_levels': [
+              {
+                'sku': 'Test_Product_1',
+                'stock': 30
+              },
+              {
+                'sku': 'Test_Product_2',
+                'stock': 6
+              },
+              {
+                'sku': 'Test_Product_3',
+                'stock': 74
+              },
+              {
+                'sku': 'Test_Product_4',
+                'stock': 33
+              },
+              {
+                'sku': 'Test_Product_5',
+                'stock': 42
+              }
+            ]
+          }
+        }
     else:
         message = {
             'message_type': 'SonaeOrderForecast',

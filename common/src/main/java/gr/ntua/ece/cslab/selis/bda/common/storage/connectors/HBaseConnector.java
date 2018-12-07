@@ -1,7 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.common.storage.connectors;
 
 import com.google.protobuf.ServiceException;
-import org.apache.hadoop.conf.Configuration;
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 
@@ -10,66 +10,98 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class HBaseConnector implements Connector {
-    // TODO: Should setup connection using username/password.
-
     private final static Logger LOGGER = Logger.getLogger(HBaseConnector.class.getCanonicalName());
 
-    private String port;
-    private String hostname;
     private String namespace;
     private Connection connection;
+    private org.apache.hadoop.conf.Configuration hbaseConfiguration;
 
-    public HBaseConnector(String FS, String username, String password) throws IOException, ServiceException {
-        // Store Connection Parameters.
-        this.port = getHBaseConnectionPort(FS);
-        this.hostname = getHBaseConnectionURL(FS);
-        this.namespace = getHBaseNamespace(FS);
+    /**
+     * Creates a new `HBaseConnector` instance, checks HBase availability and initializes a connection.
+     *
+     * TODO: Should use `usename`, `password` for connection.
+     *
+     * @param fs            The URL of the SCN's EventLog database.
+     * @param username      The username to connect to the EventLog database.
+     * @param password      The password to connect to the EventLog database.
+     * @param configuration The Global BDA configuration.
+     * @throws IOException
+     * @throws ServiceException
+     */
+    public HBaseConnector(String fs, String username, String password, Configuration configuration)
+        throws IOException, ServiceException {
+        LOGGER.log(Level.INFO, "Initializing HBase Connector.");
 
-        LOGGER.log(Level.INFO, "Initializing HBase Connector...");
-
-        gr.ntua.ece.cslab.selis.bda.common.Configuration bdaConfig = 
-            gr.ntua.ece.cslab.selis.bda.common.Configuration.getInstance();
+        // Get the EventLog's Namespace for this SCN.
+        namespace = getHBaseNamespace(fs);
 
         // Initialize HBase Configuration.
-        Configuration conf = HBaseConfiguration.create();
-
-        conf.set("hbase.zookeeper.property.clientPort", this.port);
-        conf.set("hbase.zookeeper.quorum", bdaConfig.storageBackend.getEventLogQuorum());
-        conf.set("hbase.master", bdaConfig.storageBackend.getEventLogMaster());
-        conf.set("hbase.client.keyvalue.maxsize","0");
+        hbaseConfiguration = createHBaseConfiguration(fs, configuration);
 
         // Check HBase Availability.
         try {
-            HBaseAdmin.checkHBaseAvailable(conf);
+            HBaseAdmin.checkHBaseAvailable(hbaseConfiguration);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
             throw e;
         }
 
         // Initialize HBase Connection.
-        this.connection = null;
+        connection = null;
         try {
-            this.connection = ConnectionFactory.createConnection(conf);
-            LOGGER.log(Level.INFO, "HBase connection initialized.");
+            connection = ConnectionFactory.createConnection(hbaseConfiguration);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Connection Failed! Check output console.");
             throw e;
         }
+
+        LOGGER.log(Level.INFO, "HBase Connector initialized.");
     }
 
-    public Connection getConnection() {
-        return connection;
+    /**
+     * Creates a new `HBaseConfiguration` instance based on `fs` and `configuration`.
+     *
+     * The `fs` String contains the name of the EventLog database for the selected
+     * SCN, however this name is not used in the case of HBase since we create Namespaces.
+     *
+     * @param fs            The URL of the SCN's EventLog database.
+     * @param configuration The Global BDA configuration.
+     * @return              A `org.apache.hadoop.conf.Configuration` instance.
+     */
+    private static org.apache.hadoop.conf.Configuration createHBaseConfiguration(String fs, Configuration configuration) {
+        org.apache.hadoop.conf.Configuration localHBaseConfiguration = HBaseConfiguration.create();
+
+        localHBaseConfiguration.set("hbase.zookeeper.property.clientPort", getHBaseConnectionPort(fs));
+        localHBaseConfiguration.set("hbase.zookeeper.quorum", configuration.storageBackend.getEventLogQuorum());
+        localHBaseConfiguration.set("hbase.master", configuration.storageBackend.getEventLogMaster());
+        localHBaseConfiguration.set("hbase.client.keyvalue.maxsize","0");
+
+        return localHBaseConfiguration;
     }
 
-    public static String createNamespace(String fs, String username, String password, String dbname) throws IOException, ServiceException {
+    /**
+     * Creates a new Namespace for the given SCN at the EventLog database.
+     *
+     * Based on the given `dbname` creates a new Namespace with the name `dbname + ":Events"`.
+     *
+     * @param fs            The URL of the SCN's EventLog database.
+     * @param username      The username to connect to the EventLog database.
+     * @param password      The password to connect to the EventLog database.
+     * @param configuration The Global BDA configuration.
+     * @param dbname        The name of the new Namespace to create.
+     * @return              A String with the full path to the Namespace (including server URL).
+     * @throws IOException
+     * @throws ServiceException
+     */
+    public static String createNamespace(String fs, String username, String password, Configuration configuration,
+                                         String dbname) throws IOException, ServiceException {
         // Initialize HBase Configuration.
-        Configuration conf = HBaseConfiguration.create();
-        conf.set("hbase.zookeeper.property.clientPort",getHBaseConnectionPort(fs));
-        conf.set("hbase.zookeeper.quorum", getHBaseConnectionURL(fs));
+        org.apache.hadoop.conf.Configuration localHbaseConfiguration = HBaseConnector.createHBaseConfiguration(
+            fs, configuration);
 
         // Check HBase Availability.
         try {
-            HBaseAdmin.checkHBaseAvailable(conf);
+            HBaseAdmin.checkHBaseAvailable(localHbaseConfiguration);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
             throw e;
@@ -78,21 +110,23 @@ public class HBaseConnector implements Connector {
         // Initialize HBase Connection.
         Admin admin;
         try {
-            admin = ConnectionFactory.createConnection(conf).getAdmin();
-            LOGGER.log(Level.INFO, "HBase connection initialized.");
+            admin = ConnectionFactory.createConnection(localHbaseConfiguration).getAdmin();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
             throw e;
         }
 
+        LOGGER.log(Level.INFO, "HBase connection initialized.");
+
         // Create HBase namespace
         try {
             admin.createNamespace(NamespaceDescriptor.create(dbname).build());
-            LOGGER.log(Level.INFO, "HBase namespace created.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of namespace failed! Check output console.");
             throw e;
         }
+
+        LOGGER.log(Level.INFO, "HBase namespace created.");
 
         try {
             TableName tableName = TableName.valueOf(dbname + ":Events");
@@ -101,24 +135,25 @@ public class HBaseConnector implements Connector {
 
             admin.createTable(desc);
             admin.close();
-            LOGGER.log(Level.INFO, "HBase namespace created.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Creation of Events table in namespace failed! Check output console.");
             throw e;
         }
 
+        LOGGER.log(Level.INFO, "HBase namespace created.");
+
         return fs + dbname;
     }
 
-    public static void dropNamespace(String fs, String username, String password, String dbname) throws IOException, ServiceException {
+    public static void dropNamespace(String fs, String username, String password, Configuration configuration,
+                                     String dbname) throws IOException, ServiceException {
         // Initialize HBase Configuration.
-        Configuration conf = HBaseConfiguration.create();
-        conf.set("hbase.zookeeper.property.clientPort",getHBaseConnectionPort(fs));
-        conf.set("hbase.zookeeper.quorum", getHBaseConnectionURL(fs));
+        org.apache.hadoop.conf.Configuration localHbaseConfiguration = HBaseConnector.createHBaseConfiguration(
+                fs, configuration);
 
         // Check HBase Availability.
         try {
-            HBaseAdmin.checkHBaseAvailable(conf);
+            HBaseAdmin.checkHBaseAvailable(localHbaseConfiguration);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "HBase Availability Check Failed.");
             throw e;
@@ -127,12 +162,13 @@ public class HBaseConnector implements Connector {
         // Initialize HBase Admin Connection.
         Admin admin;
         try {
-            admin = ConnectionFactory.createConnection(conf).getAdmin();
-            LOGGER.log(Level.INFO, "HBase Admin connection initialized.");
+            admin = ConnectionFactory.createConnection(localHbaseConfiguration).getAdmin();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Admin Connection Failed! Check output console.");
             throw e;
         }
+
+        LOGGER.log(Level.INFO, "HBase Admin connection initialized.");
 
         // Delete HBase table and namespace
         try {
@@ -141,11 +177,12 @@ public class HBaseConnector implements Connector {
             admin.deleteTable(table);
             admin.deleteNamespace(dbname);
             admin.close();
-            LOGGER.log(Level.INFO, "HBase namespace deleted.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Destroy of namespace failed! Check output console.");
             throw e;
         }
+
+        LOGGER.log(Level.INFO, "HBase namespace deleted.");
     }
 
     public void close(){
@@ -156,11 +193,15 @@ public class HBaseConnector implements Connector {
         }
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
+
     /**
      * Extracts the port from a HBase Connection URL.
      */
-    private static String getHBaseConnectionPort(String FS) {
-        String[] tokens = FS.split(":");
+    private static String getHBaseConnectionPort(String fs) {
+        String[] tokens = fs.split(":");
         
         tokens = tokens[tokens.length - 1].split("/");
 
@@ -170,8 +211,8 @@ public class HBaseConnector implements Connector {
     /**
      * Extracts the host from a HBase Connection URL.
      */
-    private static String getHBaseConnectionURL(String FS) {
-        String[] tokens = FS.split("://")[1].split(":");
+    private static String getHBaseConnectionURL(String fs) {
+        String[] tokens = fs.split("://")[1].split(":");
 
         return tokens[0];
     }
@@ -179,8 +220,8 @@ public class HBaseConnector implements Connector {
     /**
      * Extracts the namespace from a HBase Connection URL.
      */
-    private static String getHBaseNamespace(String FS) {
-        String[] tokens = FS.split("/");
+    private static String getHBaseNamespace(String fs) {
+        String[] tokens = fs.split("/");
 
         return tokens[tokens.length - 1];
     }
