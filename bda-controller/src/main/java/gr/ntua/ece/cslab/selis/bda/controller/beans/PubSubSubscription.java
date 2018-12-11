@@ -17,6 +17,7 @@ import java.util.Vector;
 @XmlRootElement(name = "messageSubscription")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class PubSubSubscription implements Serializable {
+    private String scnSlug;
     private List<Tuple> subscriptions;
     private String pubSubHostname;
     private Integer pubSubPort;
@@ -47,9 +48,15 @@ public class PubSubSubscription implements Serializable {
 
     public void setPubSubPort(Integer pubSubPort) { this.pubSubPort = pubSubPort; }
 
+    public String getScnSlug() { return scnSlug; }
+
+    public void setScnSlug(String scnSlug) { this.scnSlug = scnSlug; }
+
     public static PubSubSubscription getMessageSubscriptions(String SCNslug) throws SystemConnectorException {
         ScnDbInfo scn;
         PubSubSubscription subscriptions = new PubSubSubscription();
+        subscriptions.setScnSlug(SCNslug);
+
         try {
             scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
         } catch (SQLException e){

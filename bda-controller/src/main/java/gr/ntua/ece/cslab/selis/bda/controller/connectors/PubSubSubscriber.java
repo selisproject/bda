@@ -29,9 +29,11 @@ public class PubSubSubscriber implements Runnable {
         this.SCNslug = scn;
     }
 
-    public String getSCNslug() { return SCNslug; }
-
     public void reloadSubscriptions(PubSubSubscription subscriptions) {
+        if (!subscriptions.getScnSlug().matches(this.SCNslug)){
+            LOGGER.log(Level.SEVERE, "Asked to reload subscriptions of different SCN subscriber! This should never happen.");
+            return;
+        }
         this.subscriptions = subscriptions;
         this.reloadSubscriptionsFlag = true;
     }

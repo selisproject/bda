@@ -2,7 +2,6 @@ package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
-import gr.ntua.ece.cslab.selis.bda.controller.Entrypoint;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
 
 import javax.ws.rs.client.*;
@@ -69,7 +68,7 @@ public class PubSubConnector {
     }
 
     public void reloadSubscriptions(String SCNslug) {
-        PubSubSubscription subscriptions = null;
+        PubSubSubscription subscriptions;
         try {
             subscriptions = PubSubSubscription.getMessageSubscriptions(SCNslug);
         } catch (Exception e) {
@@ -93,6 +92,7 @@ public class PubSubConnector {
                             scn.getPubsubport(),
                             configuration.pubsub.getCertificateLocation(),
                             scn.getSlug());
+                    subscriber.reloadSubscriptions(subscriptions);
                     subscriberRunners.put(scn.getSlug(), subscriber);
                     Thread s = new Thread(subscriber, "Subscriber_" + scn.getSlug());
                     subscribers.put(scn.getSlug(), s);
@@ -102,18 +102,19 @@ public class PubSubConnector {
                     LOGGER.log(Level.WARNING, "Could not create internal subscriber.");
                 }
             }
-            subscriberRunners.get(SCNslug).reloadSubscriptions(subscriptions);
+            else
+                subscriberRunners.get(SCNslug).reloadSubscriptions(subscriptions);
         }
         else {
             Client client = ClientBuilder.newClient();
-            WebTarget resource = client.target(configuration.subscriber.getUrl().replace("{}",SCNslug));
+            WebTarget resource = client.target(configuration.subscriber.getUrl());
             Invocation.Builder request = resource.request();
 
             Response response = request.post(Entity.json(subscriptions));
             if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
                 LOGGER.log(Level.INFO,
                         "SUCCESS: Request to reload subscriptions of SCN {0} has been sent.",
-                        SCNslug);
+                        subscriptions.getScnSlug());
             } else {
                 LOGGER.log(Level.SEVERE,
                         "Request to reload subscriptions has failed, got error: {0}",

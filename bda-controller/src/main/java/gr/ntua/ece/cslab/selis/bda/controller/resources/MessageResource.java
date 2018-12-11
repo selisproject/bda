@@ -107,12 +107,12 @@ public class MessageResource {
      */
     @GET
     @Path("/reload")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public HashMap<String, PubSubSubscription> reload() {
-        HashMap<String, PubSubSubscription> subscriptions = null;
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<PubSubSubscription> reload() {
+        List subscriptions = new Vector();
         try {
             for (ScnDbInfo scn: ScnDbInfo.getScnDbInfo())
-                subscriptions.put(scn.getSlug(), PubSubSubscription.getMessageSubscriptions(scn.getSlug()));
+                subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug()));
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING, "Failed to get SCN info. Aborting reload of all subscriptions.");
