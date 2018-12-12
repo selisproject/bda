@@ -1,13 +1,18 @@
 package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HDFSConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.Serializable;
+import java.io.*;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,6 +47,7 @@ public class SharedRecipe implements Serializable {
             "SELECT * " +
             "FROM shared_recipes" +
             "WHERE name=?;";
+
 
 
     public SharedRecipe() { }
@@ -96,7 +102,16 @@ public class SharedRecipe implements Serializable {
 
     public void setPair_recipe_id(int pair_recipe_id) { this.pair_recipe_id = pair_recipe_id; }
 
-    // Method to return all available shared recipes
+    /**
+     * Returns a list of all the recipes stored in bda database, which can be used
+     * from all living labs instantiated.
+     *
+     * TODO: Tests.
+     *
+     * @return A List of all the shared recipes included in the BDA
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static List<SharedRecipe> getSharedRecipes() throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
@@ -129,7 +144,17 @@ public class SharedRecipe implements Serializable {
     }
 
 
-    // Method to return a specific shared Recipe using its unique ID
+    /**
+     * Returns a description of a shared recipe as an object. The shared recipe is
+     * acquired through its unique identifier.
+     *
+     * TODO: Tests.
+     *
+     * @param id The Shared Recipe's id
+     * @return SharedRecipe object that represents the shared recipe with the given id
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static SharedRecipe getSharedRecipeById(int id) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
@@ -161,6 +186,17 @@ public class SharedRecipe implements Serializable {
     }
 
 
+    /**
+     * Returns a description of a shared recipe as an object. The shared recipe is
+     * acquired through its unique name.
+     *
+     * TODO: Tests.
+     *
+     * @param name The shared recipe's name as a String
+     * @return SharedRecipe object that represents the shared recipe with the given name
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static SharedRecipe getSharedRecipeByName(String name) throws SQLException, SystemConnectorException{
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
@@ -177,7 +213,7 @@ public class SharedRecipe implements Serializable {
                         resultSet.getString("description"),
                         resultSet.getString("executable_path"),
                         resultSet.getInt("engine_id"),
-                        resultSet.getString("String args"),
+                        resultSet.getString("args"),
                         resultSet.getInt("pair_recipe_id")
                 );
 
@@ -190,4 +226,5 @@ public class SharedRecipe implements Serializable {
 
         throw new SQLException("SharedRecipe object not found.");
     }
+
 }

@@ -54,8 +54,8 @@ ALTER TABLE shared_recipes OWNER TO selis;
 
 INSERT INTO shared_recipes (name, description, executable_path, engine_id, args, pair_recipe_id)
 VALUES
-    ('ScikitLogisticRegressionTrain', 'Example Logistic Regression Training Code From Scikit Learn', '/code/examples/ml_files/LogisticRegressionTrain.py', 1, {}::json, 2),
-    ('ScikitLogisticRegressionPredict', 'Example Logistic Regression Prediction Code From Scikit Learn', '/code/examples/ml_files/LogisticRegressionPredict.py', 1, {}::json, 1);
+    ('ScikitLogisticRegressionTrain', 'Example Logistic Regression Training Code From Scikit Learn', '/code/examples/ml_files/LogisticRegressionTrain.py', 1, '{}'::json, 2),
+    ('ScikitLogisticRegressionPredict', 'Example Logistic Regression Prediction Code From Scikit Learn', '/code/examples/ml_files/LogisticRegressionPredict.py', 1, '{}'::json, 1);
 
 
 \connect selis_test_db

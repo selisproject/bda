@@ -64,12 +64,15 @@ public class JobResource {
                     response.setStatus(HttpServletResponse.SC_CREATED);
                 }
 
-                MessageType msg = MessageType.getMessageById(slug, m.getMessageTypeId());
-                Recipe r = Recipe.getRecipeById(slug, m.getRecipeId());
-                JSONObject msgFormat = new JSONObject(msg.getFormat());
-                LOGGER.log(Level.INFO, "Create kpidb table..");
-                (new KPIBackend(slug)).create(new KPITable(r.getName(),
-                        new KPISchema(msgFormat)));
+                // Create KPI tables only for analytic jobs, not ML
+                if (!(m.getJob_type().equals("ml"))) {
+                    MessageType msg = MessageType.getMessageById(slug, m.getMessageTypeId());
+                    Recipe r = Recipe.getRecipeById(slug, m.getRecipeId());
+                    JSONObject msgFormat = new JSONObject(msg.getFormat());
+                    LOGGER.log(Level.INFO, "Create kpidb table..");
+                    (new KPIBackend(slug)).create(new KPITable(r.getName(),
+                            new KPISchema(msgFormat)));
+                }
                 // TODO: check if job is periodical and schedule the cron job
             }
             else {
