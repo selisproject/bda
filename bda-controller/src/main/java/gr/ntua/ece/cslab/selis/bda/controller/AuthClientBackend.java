@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
+import org.keycloak.representations.idm.RoleRepresentation;
 
 public class AuthClientBackend {
     private static AuthClientBackend authClientBackend = null;
@@ -23,6 +24,8 @@ public class AuthClientBackend {
         configuration = new Configuration(
             authServerUrl, realm, clientId, credentials, null
         );
+        //Configuration configuration = new Configuration("");
+
     }
 
     public static AuthClientBackend getInstance() {
@@ -32,4 +35,5 @@ public class AuthClientBackend {
 
         return authClientBackend;
     }
+
 }

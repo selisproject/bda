@@ -12,9 +12,12 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
+import org.keycloak.authorization.client.AuthzClient;
+import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,12 +34,22 @@ public class Entrypoint {
     private static void authClientBackendInitialization() {
         LOGGER.log(Level.INFO, "Initializing AuthClient backend...");
 
-        AuthClientBackend.init(
-            configuration.authClientBackend.getAuthServerUrl(),
-            configuration.authClientBackend.getRealm(),
-            configuration.authClientBackend.getClientId(),
-            configuration.authClientBackend.getSecret()
-        );
+        System.out.println(configuration.authClientBackend.getSecret());
+        if (configuration.authClientBackend.getSecret().equals("0")) {
+            PublicClientBackend.init(
+                    configuration.authClientBackend.getAuthServerUrl(),
+                    configuration.authClientBackend.getRealm(),
+                    configuration.authClientBackend.getClientId()
+            );
+        }
+        else {
+            AuthClientBackend.init(
+                    configuration.authClientBackend.getAuthServerUrl(),
+                    configuration.authClientBackend.getRealm(),
+                    configuration.authClientBackend.getClientId(),
+                    configuration.authClientBackend.getSecret()
+            );
+        }
     }
 
     public static void create_folders() {
@@ -80,7 +93,18 @@ public class Entrypoint {
         SystemConnector.init(args[0]);
 
         // AuthClient backend initialization.
+
         authClientBackendInitialization();
+
+        String token;
+        if (configuration.authClientBackend.getSecret().equals("0")) {
+            token = PublicClientBackend.getInstance().getAccessToken("admin", "admin");
+            PublicClientBackend.getInstance().getRoles("83112615-d415-4ef1-b2a8-66ebde56d90c", token);
+        }
+        else
+            token = AuthClientBackend.getInstance().authzClient.obtainAccessToken("admin", "admin").getToken();
+
+        LOGGER.log(Level.INFO, "Auth token : " + token);
 
         // testKeycloakAuthentication();
 

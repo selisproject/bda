@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.controller.PublicClientBackend;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
@@ -29,46 +30,60 @@ public class DatastoreResource {
     @Path("create")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response createNewScn(ScnDbInfo scn) {
-        LOGGER.log(Level.INFO, scn.toString());
+    public Response createNewScn(ScnDbInfo scn,
+                                 @QueryParam("userId") String userId) {
 
-        String details = "";
+        String token = PublicClientBackend.getInstance().getAccessToken("admin", "admin");
 
-        try {
-            scn.save();
+        List<String> roles = PublicClientBackend.getInstance().getRoles(userId, token);
 
-            details = Integer.toString(scn.getId());
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (roles.contains("admin")) {
 
-            return Response.serverError().entity(
-                    new RequestResponse("ERROR", "Could not register new SCN.")
+            LOGGER.log(Level.INFO, scn.toString());
+
+            String details = "";
+
+            try {
+                scn.save();
+
+                details = Integer.toString(scn.getId());
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not register new SCN.")
+                ).build();
+            }
+
+            try {
+                StorageBackend.createNewScn(scn);
+            } catch (Exception e) {
+                e.printStackTrace();
+                LOGGER.log(Level.INFO, "Clearing SCN registry and databases after failure.");
+                try {
+                    StorageBackend.destroyScn(scn);
+                } catch (Exception e1) {
+                }
+                try {
+                    ScnDbInfo.destroy(scn.getId());
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                    LOGGER.log(Level.SEVERE, "Could not clear SCN registry, after databases creation failed!");
+                }
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not create new SCN.")
+                ).build();
+            }
+
+            return Response.ok(
+                    new RequestResponse("OK", details)
             ).build();
         }
-
-        try {
-            StorageBackend.createNewScn(scn);
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.log(Level.INFO, "Clearing SCN registry and databases after failure.");
-            try {
-                StorageBackend.destroyScn(scn);
-            } catch (Exception e1) {
-            }
-            try {
-                ScnDbInfo.destroy(scn.getId());
-            } catch (Exception e1) {
-                e1.printStackTrace();
-                LOGGER.log(Level.SEVERE, "Could not clear SCN registry, after databases creation failed!");
-            }
+        else {
             return Response.serverError().entity(
-                    new RequestResponse("ERROR", "Could not create new SCN.")
+                    new RequestResponse("ERROR", "Unauthorized access for this user.")
             ).build();
         }
-
-        return Response.ok(
-                new RequestResponse("OK", details)
-        ).build();
     }
 
     /**

@@ -166,12 +166,12 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-jetty94-adapter</artifactId>
-            <version>4.0.0.Beta2</version>
+            <version>4.6.0.Final</version>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-authz-client</artifactId>
-            <version>4.0.0.Beta2</version>
+            <version>4.6.0.Final</version>
         </dependency>
 
         <!-- Sibling SELIS dependencies -->
