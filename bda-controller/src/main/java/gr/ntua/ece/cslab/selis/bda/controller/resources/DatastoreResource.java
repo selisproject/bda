@@ -277,15 +277,25 @@ public class DatastoreResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Tuple> getSelectedEntries(
             @QueryParam("filters") String filters,
-            @PathParam("slug") String slug
+            @PathParam("slug") String slug,
+            @QueryParam("userId") String userId
     ) {
-        try {
-            Map<String,String> map= Splitter.on(';').withKeyValueSeparator(":").split(filters);
-            HashMap<String, String> mapfilters = new HashMap<String, String>(map);
-            return new StorageBackend(slug).select(mapfilters);
-        } catch (Exception e) {
-            e.printStackTrace();
+        String token = PublicClientBackend.getInstance().getAccessToken("admin", "admin");
+
+        List<String> roles = PublicClientBackend.getInstance().getRoles(userId, token);
+
+        if (roles.contains("admin")) {
+
+            try {
+                Map<String, String> map = Splitter.on(';').withKeyValueSeparator(":").split(filters);
+                HashMap<String, String> mapfilters = new HashMap<String, String>(map);
+                return new StorageBackend(slug).select(mapfilters);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
+
         return new LinkedList<>();
     }
 }
