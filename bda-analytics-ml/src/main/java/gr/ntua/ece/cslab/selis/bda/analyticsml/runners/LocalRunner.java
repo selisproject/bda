@@ -11,16 +11,19 @@ public class LocalRunner extends ArgumentParser implements Runnable {
     String scnSlug;
     Recipe recipe;
     ExecutionEngine engine;
+    int dependingOnJob;
 
     public LocalRunner(Recipe recipe,
-                    ExecutionEngine engine,
-                    String messageId,
-                    String SCNslug) {
+                       ExecutionEngine engine,
+                       String messageId,
+                       String SCNslug,
+                       int dependingOnJob
+    ) {
         this.recipe = recipe;
         this.engine = engine;
         this.messageId = messageId;
         this.scnSlug = SCNslug;
-
+        this.dependingOnJob = dependingOnJob;
     }
 
     public void run() {

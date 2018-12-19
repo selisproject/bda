@@ -16,12 +16,13 @@ public class RunnerFactory {
 	public Runnable getRunner(Recipe recipe,
 							  ExecutionEngine engine,
 							  String message,
-                              String scnSlug
+                              String scnSlug,
+							  int dependingOnJob
 	) {
 
 		if (engine.isLocal_engine())
-			return new LocalRunner(recipe, engine, message, scnSlug);
+			return new LocalRunner(recipe, engine, message, scnSlug, dependingOnJob);
 		else
-			return new SparkRunner(recipe, engine, message, scnSlug);
+			return new SparkRunner(recipe, engine, message, scnSlug, dependingOnJob);
 	}
 }

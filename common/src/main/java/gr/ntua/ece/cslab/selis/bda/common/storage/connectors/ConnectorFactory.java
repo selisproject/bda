@@ -55,7 +55,7 @@ public class ConnectorFactory {
     public static String createNewDatabaseWithSchemas(String fs, String username, String password,
                                                       Configuration configuration, String owner, String dbname,
                                                       Vector<String> schemas) throws SystemConnectorException, UnsupportedOperationException {
-        String databaseUrl;
+        String databaseUrl = "";
         int connectorType = ConnectorFactory.getConnectorType(fs);
 
         if (connectorType == ConnectorFactory.CONNECTOR_HDFS_TYPE) {
@@ -65,7 +65,7 @@ public class ConnectorFactory {
                 databaseUrl = HBaseConnector.createNamespace(fs, username, password, configuration, dbname);
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new SystemConnectorException("Could not create HBase namespace.");
+                //throw new SystemConnectorException("Could not create HBase namespace.");
             }
         } else if (connectorType == ConnectorFactory.CONNECTOR_POSTGRES_TYPE) {
             // 0. Create new database.

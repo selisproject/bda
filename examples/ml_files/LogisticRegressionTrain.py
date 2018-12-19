@@ -25,4 +25,4 @@ model = LogisticRegression().fit(X, y)
 
 model_file = open('example.model', 'wb')
 pickle.dump(model, model_file)
-
+print('Model trained finished.')

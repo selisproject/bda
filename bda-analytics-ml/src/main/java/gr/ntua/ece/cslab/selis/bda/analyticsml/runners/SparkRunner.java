@@ -20,14 +20,16 @@ public class SparkRunner extends ArgumentParser implements Runnable {
     String scnSlug;
     Recipe recipe;
     ExecutionEngine engine;
+    int dependingOnJob;
 
     public SparkRunner(Recipe recipe, ExecutionEngine engine,
-                       String messageId, String scnSlug) {
+                       String messageId, String scnSlug, int dependingOnJob) {
 
         this.messageId = messageId;
         this.scnSlug = scnSlug;
         this.recipe = recipe;
         this.engine = engine;
+        this.dependingOnJob = dependingOnJob;
     }
 
     @Override
