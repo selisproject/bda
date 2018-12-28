@@ -17,6 +17,9 @@ public class PostgresqlConnector implements Connector {
     private final static String DROP_DATABASE_QUERY = "DROP DATABASE %s;";
 
     private final static String CREATE_DATABASE_SCHEMA_QUERY = "CREATE SCHEMA %s AUTHORIZATION %s;";
+
+    private final static String DROP_OPEN_CONNECTIONS_QUERY = "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM "+
+            "pg_stat_activity WHERE pg_stat_activity.datname = '%s' AND pid <> pg_backend_pid();";
  
     // The method creates a connection to the database provided in the 'jdbcURL' parameter.
     // The database should be up and running.
@@ -118,11 +121,19 @@ public class PostgresqlConnector implements Connector {
         }
 
         try {
+            Statement st = localConnection.createStatement();
+            ResultSet rs = st.executeQuery(String.format(DROP_OPEN_CONNECTIONS_QUERY,dbname));
+            rs.close();
+
+            LOGGER.log(Level.INFO, "Postgres connections to the database were closed.");
+
             PreparedStatement statement = localConnection.prepareStatement(
                     String.format(DROP_DATABASE_QUERY, dbname));
 
             statement.executeUpdate();
             localConnection.close();
+
+            LOGGER.log(Level.INFO, "Postgres database dropped.");
         }
         catch (Exception e){
             localConnection.close();
