@@ -43,6 +43,7 @@ keycloak.bda.secret   = a2581f5d-129b-437e-ad01-f17e6fd291b4
 keycloak.bda.url      = http://selis-keycloak:8080/auth
 
 # Spark configuration
+spark.livy.url             = http://selis-livy:8998
 spark.master               = yarn
 spark.master.url           = spark://selis-spark-master:7077
 spark.deploy_mode          = cluster

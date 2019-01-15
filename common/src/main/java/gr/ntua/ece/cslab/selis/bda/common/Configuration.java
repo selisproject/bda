@@ -103,6 +103,8 @@ public class Configuration {
         private String recipeStorageLocation;
         private String recipeStorageType;
 
+        private String livyURL;
+
         public ExecutionEngine(){}
 
         public String getSparkMaster() { return sparkMaster; }
@@ -122,6 +124,8 @@ public class Configuration {
         public String getRecipeStorageLocation() { return recipeStorageLocation; }
 
         public String getRecipeStorageType() { return recipeStorageType; }
+
+        public String getLivyURL() { return livyURL; }
     }
     public class PubSubServer {
         private String authHash, certificateLocation;
@@ -265,6 +269,7 @@ public class Configuration {
         conf.execEngine.sparkConfExecutorMemory = properties.getProperty("spark.conf.executor_memory");
         conf.execEngine.recipeStorageLocation = properties.getProperty("engines.recipe.storage.prefix");
         conf.execEngine.recipeStorageType = properties.getProperty("engines.recipe.storage.type");
+        conf.execEngine.livyURL = properties.getProperty("spark.livy.url");
 
         configuration = conf;
 

@@ -38,7 +38,8 @@ ALTER TABLE execution_engines OWNER TO selis;
 INSERT INTO execution_engines (name, engine_path, local_engine, args)
     VALUES
 	('python3', '/usr/bin/python3', true, '{}'::json),
-	('pyspark', 'spark://selis-spark-master:7077', false, '{}'::json);
+	('spark', 'spark://selis-spark-master:7077', false, '{}'::json),
+	('livy', 'http://selis-livy:8998', false, '{}'::json);
 
 
 \connect selis_test_db
@@ -68,4 +69,5 @@ ALTER TABLE execution_engines OWNER TO selis;
 INSERT INTO execution_engines (name, engine_path, local_engine, args)
     VALUES
 	('python3', '/usr/bin/python3', true, '{}'::json),
-	('pyspark', 'spark://selis-spark-master:7077', false, '{}'::json);
+	('spark', 'spark://selis-spark-master:7077', false, '{}'::json),
+	('livy', 'http://selis-livy:8998', false, '{}'::json);

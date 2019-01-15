@@ -11,12 +11,14 @@ SELIS_POSTGRES_DOCKERFILE="Dockerfile.postgres"
 SELIS_HBASE_DOCKERFILE="Dockerfile.hbase"
 SELIS_SPARK_DOCKERFILE="Dockerfile.spark"
 SELIS_HADOOP_DOCKERFILE="Dockerfile.hadoop"
+SELIS_LIVY_DOCKERFILE="Dockerfile.livy"
 
 SELIS_BDA_IMAGE="selis-bda-image:latest"
 SELIS_POSTGRES_IMAGE="selis-postgres-image:latest"
 SELIS_HBASE_IMAGE="selis-hbase-image:latest"
 SELIS_SPARK_IMAGE="selis-spark-image:latest"
 SELIS_HADOOP_IMAGE="selis-hadoop-image:latest"
+SELIS_LIVY_IMAGE="selis-livy-image:latest"
 
 SELIS_JDK_PULL_IMAGE="openjdk:8-slim-stretch"
 SELIS_POSTGRES_PULL_IMAGE="postgres:11-alpine"
@@ -35,6 +37,7 @@ SELIS_HADOOP_WORKER_CONTAINER_1="selis-hadoop-worker-1"
 SELIS_SPARK_WORKER_CONTAINER_0="selis-spark-worker-0"
 SELIS_SPARK_WORKER_CONTAINER_1="selis-spark-worker-1"
 SELIS_PUBSUB_CONTAINER="selis-pubsub"
+SELIS_LIVY_CONTAINER="selis-livy"
 
 ################################################################################
 # Clean all. ###################################################################
@@ -49,6 +52,7 @@ then
     docker rm "$SELIS_HBASE_WORKER_CONTAINER"
     docker rm "$SELIS_POSTGRES_CONTAINER"
     docker rm "$SELIS_KEYCLOAK_CONTAINER"
+    docker rm "$SELIS_LIVY_CONTAINER"
     docker rm "$SELIS_SPARK_WORKER_CONTAINER_0"
     docker rm "$SELIS_SPARK_WORKER_CONTAINER_1"
     docker rm "$SELIS_HADOOP_MASTER_CONTAINER"
@@ -61,6 +65,7 @@ then
     docker rmi "$SELIS_HBASE_IMAGE"
     docker rmi "$SELIS_SPARK_IMAGE"
     docker rmi "$SELIS_HADOOP_IMAGE"
+    docker rmi "$SELIS_LIVY_IMAGE"
 
     docker volume rm "$SELIS_POSTGRES_VOLUME"
     docker volume rm "$SELIS_HBASE_VOLUME"
@@ -216,6 +221,18 @@ then
         .
 fi
 
+SELIS_LIVY_IMAGE_ID="$(docker images --quiet "$SELIS_LIVY_IMAGE")"
+
+if [ "$SELIS_LIVY_IMAGE_ID" == "" ]
+then
+    echo "Building livy image..."
+
+    docker build \
+        --file "$SELIS_LIVY_DOCKERFILE" \
+        --tag "$SELIS_LIVY_IMAGE" \
+        .
+fi
+
 SELIS_BDA_IMAGE_ID="$(docker images --quiet "$SELIS_BDA_IMAGE")"
 
 if [ "$SELIS_BDA_IMAGE_ID" == "" ]
@@ -366,6 +383,19 @@ then
             "$SELIS_PUBSUB_PULL_IMAGE"
     fi
 
+    if [ "$2" == "livy" ] || [ "$2" == "all" ]
+    then
+        echo "Running livy container."
+
+        docker run \
+            --detach \
+            --network "$SELIS_NETWORK" \
+            --name "$SELIS_LIVY_CONTAINER" \
+            --hostname "$SELIS_LIVY_CONTAINER" \
+            "$SELIS_LIVY_IMAGE" \
+            /docker-entrypoint.sh
+    fi
+
     if [ "$2" == "controller" ] || [ "$2" == "all" ]
     then
         echo "Running selis controller container."
@@ -400,6 +430,7 @@ then
     docker start "$SELIS_SPARK_WORKER_CONTAINER_1"
     docker start "$SELIS_KEYCLOAK_CONTAINER"
     docker start "$SELIS_PUBSUB_CONTAINER"
+    docker start "$SELIS_LIVY_CONTAINER"
     docker start "$SELIS_BDA_CONTAINER"
 
 fi
@@ -419,6 +450,7 @@ then
     docker stop "$SELIS_HBASE_WORKER_CONTAINER"
     docker stop "$SELIS_POSTGRES_CONTAINER"
     docker stop "$SELIS_KEYCLOAK_CONTAINER"
+    docker stop "$SELIS_LIVY_CONTAINER"
     docker stop "$SELIS_SPARK_WORKER_CONTAINER_0"
     docker stop "$SELIS_SPARK_WORKER_CONTAINER_1"
     docker stop "$SELIS_HADOOP_MASTER_CONTAINER"
