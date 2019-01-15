@@ -1,12 +1,17 @@
 package gr.ntua.ece.cslab.selis.bda.analyticsml.runners;
 
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
-import org.json.JSONObject;
 
+import org.json.JSONObject;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,6 +34,14 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
     @Override
     public void run() {
+        ScnDbInfo scn = null;
+        try {
+            scn = ScnDbInfo.getScnDbInfoBySlug(scnSlug);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (SystemConnectorException e) {
+            e.printStackTrace();
+        }
         Configuration configuration = Configuration.getInstance();
 
         Client client = ClientBuilder.newClient();
@@ -40,20 +53,25 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         // Create session and upload binaries
         JSONObject data = new JSONObject();
         data.put("kind","pyspark");
-        data.put("files", "[\""+recipe.getExecutablePath()+"\"]"); //,\"/RecipeDataLoader.py\"]");
+        List<String> files = new ArrayList<>();
+        files.add(recipe.getExecutablePath());
+        //files.add("/RecipeDataLoader.py");
+        data.put("files", files);
         if (configuration.execEngine.getSparkConfJars() != null) {
-            data.put("jars", configuration.execEngine.getSparkConfJars());
-            data.put("conf", "{\"--driver-class-path\",\"" + configuration.execEngine.getSparkConfJars()+ "\"}");
+            List<String> jars = new ArrayList<>();
+            jars.add("local:/"+configuration.execEngine.getSparkConfJars());
+            data.put("jars", jars);
+            //data.put("conf", "{\"--driver-class-path\",\"" + configuration.execEngine.getSparkConfJars()+ "\"}");
         }
         data.put("driverMemory", configuration.execEngine.getSparkConfDriverMemory());
         data.put("executorMemory", configuration.execEngine.getSparkConfExecutorMemory());
-        data.put("executorCores", configuration.execEngine.getSparkConfExecutorCores());
+        data.put("executorCores", Integer.valueOf(configuration.execEngine.getSparkConfExecutorCores()));
 
-        Response response = request.post(Entity.json(data));
+        Response response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
             LOGGER.log(Level.INFO,
                     "SUCCESS: Request to create session for executable has been sent.");
-            sessionId = new JSONObject(response.getEntity()).getString("id");
+            sessionId = new JSONObject(response.readEntity(String.class)).get("id").toString();
             LOGGER.log(Level.INFO, sessionId);
         } else {
             LOGGER.log(Level.SEVERE,
@@ -68,7 +86,8 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         String state = "not_started";
         while (!state.matches("idle")) {
             if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-                state = new JSONObject(response.getEntity()).getString("state");
+                response = request.get();
+                state = new JSONObject(response.readEntity(String.class)).get("state").toString();
                 if (state.matches("shutting_down") || state.matches("error") || state.matches("dead") || state.matches("success")){
                     LOGGER.log(Level.SEVERE, "Session is not alive, status: {0}", state);
                     return;
@@ -90,15 +109,15 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         request = resource.path("/sessions/"+sessionId+"/statements").request();
         data = new JSONObject();
         //String code = "import dataloader; dataloader.load(); import job; job.run(textFile);";
-        String code = "skus_dataframe = spark.read.jdbc(url=\""+configuration.storageBackend.getBdaDatabaseURL()+
-                    "\",properties={'user':'"+configuration.storageBackend.getDbUsername()+"','password':'"+
+        String code = "skus_dataframe = spark.read.jdbc(url='"+configuration.storageBackend.getDimensionTablesURL()+scn.getDtDbname()+
+                    "',properties={'user':'"+configuration.storageBackend.getDbUsername()+"','password':'"+
                     configuration.storageBackend.getDbPassword()+"'},table='inventoryitems'); skus_dataframe.show();";
         data.put("code",code);
-        response = request.post(Entity.json(data));
+        response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
             LOGGER.log(Level.INFO,
                     "SUCCESS: Request to create session for executable has been sent.");
-            statementId = new JSONObject(response.getEntity()).getString("id");
+            statementId = new JSONObject(response.readEntity(String.class)).get("id").toString();
             LOGGER.log(Level.INFO, statementId);
         } else {
             LOGGER.log(Level.SEVERE,
@@ -111,9 +130,12 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         request = resource.path("/sessions/"+sessionId+"/statements/"+statementId).request();
         response = request.get();
         state = "waiting";
+        JSONObject result = null;
         while (!state.matches("available")) {
             if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-                state = new JSONObject(response.getEntity()).getString("state");
+                response = request.get();
+                result = new JSONObject(response.readEntity(String.class));
+                state = result.get("state").toString();
                 if (state.matches("error") || state.contains("cancel")){
                     LOGGER.log(Level.SEVERE, "Job has failed, status: {0}", state);
                     return;
@@ -130,7 +152,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                 return;
             }
         }
-        String result = new JSONObject(new JSONObject(response.getEntity()).getString("output")).getString("data");
-        LOGGER.log(Level.INFO, result);
+        String output = new JSONObject(result.get("output").toString()).get("data").toString();
+        LOGGER.log(Level.INFO, output);
     }
 }
