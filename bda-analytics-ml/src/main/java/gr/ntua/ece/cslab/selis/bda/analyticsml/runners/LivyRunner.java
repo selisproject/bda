@@ -71,7 +71,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         data.put("kind","pyspark");
         List<String> files = new ArrayList<>();
         files.add(recipe.getExecutablePath());
-        //files.add("file:///resources/RecipeDataLoader.py");
+        files.add("/RecipeDataLoader.py");
         data.put("files", files);
         if (configuration.execEngine.getSparkConfJars() != null) {
             List<String> jars = new ArrayList<>();
@@ -128,9 +128,10 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         request = resource.path("/sessions/"+sessionId+"/statements").request();
         data = new JSONObject();
         //String code = "import dataloader; dataloader.load(); import job; job.run(textFile);";
-        String code = "skus_dataframe = spark.read.jdbc(url='"+configuration.storageBackend.getDimensionTablesURL()+scn.getDtDbname()+
-                    "',properties={'user':'"+configuration.storageBackend.getDbUsername()+"','password':'"+
-                    configuration.storageBackend.getDbPassword()+"'},table='inventoryitems'); skus_dataframe.show();";
+        String code = "import RecipeDataLoader; skus_dataframe = RecipeDataLoader.fetch_from_master_data(spark, '" +
+                    configuration.storageBackend.getDimensionTablesURL()+scn.getDtDbname()+"','"+
+                    configuration.storageBackend.getDbUsername()+"','"+
+                    configuration.storageBackend.getDbPassword()+"', 'inventoryitems'); skus_dataframe.show();";
         data.put("code",code);
         response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
@@ -173,9 +174,14 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                 return;
             }
         }
-        String output = new JSONObject(result.get("output").toString()).get("data").toString();
-        LOGGER.log(Level.INFO, "Job result: " +output);
-
+        if (new JSONObject(result.get("output").toString()).get("status").toString().equals("error")) {
+            LOGGER.log(Level.SEVERE,
+                    "Job error: {0}",
+                    new JSONObject(result.get("output").toString()).get("traceback").toString());
+        } else {
+            String output = new JSONObject(result.get("output").toString()).get("data").toString();
+            LOGGER.log(Level.INFO, "Job result: " + output);
+        }
         // Delete session
         deleteSession(sessionId);
     }

@@ -1,10 +1,13 @@
 package gr.ntua.ece.cslab.selis.bda.controller;
 
+import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HDFSConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -15,6 +18,9 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,6 +55,60 @@ public class Entrypoint {
         theDir = new File("/results/");
         if (!theDir.exists()) {
             theDir.mkdir();
+        }
+
+        ClassLoader classLoader = RunnerInstance.class.getClassLoader();
+        InputStream fileInStream = classLoader.getResourceAsStream("RecipeDataLoader.py");
+
+        byte[] recipeBytes = new byte[0];
+        try {
+            recipeBytes = IOUtils.toByteArray(fileInStream);
+
+            fileInStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
+            // Use HDFS storage for recipes.
+
+            HDFSConnector connector = null;
+            try {
+                connector = (HDFSConnector)
+                        SystemConnector.getInstance().getHDFSConnector();
+            } catch (SystemConnectorException e) {
+                e.printStackTrace();
+            }
+
+            org.apache.hadoop.fs.FileSystem fs = connector.getFileSystem();
+
+            // Create HDFS file path object.
+            org.apache.hadoop.fs.Path outputFilePath =
+                    new org.apache.hadoop.fs.Path("/RecipeDataLoader.py");
+
+            // Write to HDFS.
+            org.apache.hadoop.fs.FSDataOutputStream outputStream = null;
+            try {
+                outputStream = fs.create(
+                        outputFilePath
+                );
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                outputStream.write(recipeBytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } else {
+            // Use local storage
         }
 
     }
