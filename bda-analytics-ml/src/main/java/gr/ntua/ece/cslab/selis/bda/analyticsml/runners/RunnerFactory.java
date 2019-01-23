@@ -15,16 +15,17 @@ public class RunnerFactory {
 	}
 	public Runnable getRunner(Recipe recipe,
 							  ExecutionEngine engine,
-							  String message,
+							  String messageId,
+                              String messageFormat,
                               String scnSlug
 	) throws Exception {
 
 		if (engine.isLocal_engine())
-			return new LocalRunner(recipe, engine, message, scnSlug);
+			return new LocalRunner(recipe, engine, messageId, scnSlug);
 		else if (engine.getName().matches("spark"))
-			return new SparkRunner(recipe, engine, message, scnSlug);
+			return new SparkRunner(recipe, engine, messageId, scnSlug);
 		else if (engine.getName().matches("livy"))
-			return new LivyRunner(recipe, engine, message, scnSlug);
+			return new LivyRunner(recipe, engine, messageId, messageFormat, scnSlug);
 		else
 			throw new Exception("Unknown engine type. Could not relate to existing runners.");
 	}

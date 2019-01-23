@@ -8,10 +8,7 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import org.json.JSONObject;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,6 +16,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(LivyRunner.class.getCanonicalName());
 
     private String messageId;
+    private String messageFormat;
     private String scnSlug;
     private Recipe recipe;
     private ExecutionEngine engine;
@@ -26,9 +24,10 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private Configuration configuration;
 
     public LivyRunner(Recipe recipe, ExecutionEngine engine,
-                       String messageId, String scnSlug) {
+                       String messageId, String messageFormat, String scnSlug) {
 
         this.messageId = messageId;
+        this.messageFormat = messageFormat;
         this.scnSlug = scnSlug;
         this.recipe = recipe;
         this.engine = engine;
@@ -145,9 +144,14 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         //            configuration.storageBackend.getDimensionTablesURL()+scn.getDtDbname()+"','"+
         //            configuration.storageBackend.getDbUsername()+"','"+
         //            configuration.storageBackend.getDbPassword()+"', 'inventoryitems'); skus_dataframe.show();";
-        String code = "import RecipeDataLoader; skus_dataframe = RecipeDataLoader.fetch_from_eventlog_from_url(spark, '" +
-                scn.getElDbname()+"','"+
-                messageId +"'); skus_dataframe.show();";
+        List<String> columns = new ArrayList<>();
+        columns.addAll(new JSONObject(messageFormat).keySet());
+        columns.remove("scn_slug");
+        columns.remove("message_type");
+        columns.remove("payload");
+        columns.add("message");
+        String code = "import RecipeDataLoader; skus_dataframe = RecipeDataLoader.fetch_from_eventlog_one(spark, '" +
+                scn.getElDbname()+"','"+ messageId +"', '"+columns+"'); skus_dataframe.show();";
         data.put("code",code);
         response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {

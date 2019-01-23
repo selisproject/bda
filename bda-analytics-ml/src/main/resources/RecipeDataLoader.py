@@ -1,12 +1,12 @@
 import json
-from datetime import timedelta, datetime
+from datetime import datetime
 
 from pyspark.sql import Row
 
 DIMENSION_TABLES_QUERY = '''\
     (SELECT * FROM {}) {}'''
 
-def fetch_from_eventlog_from_url(spark, dbname, message_id):
+def fetch_from_eventlog_one(spark, dbname, message_id, message_columns):
     '''Fetches messages from the EventLog.
 
     TODO: documentation.
@@ -14,6 +14,8 @@ def fetch_from_eventlog_from_url(spark, dbname, message_id):
     :param message_id:
 
     '''
+    columns = message_columns.replace(" ", "").replace('[','').replace(']','').split(',')
+
     catalog = """
     {
         "table": {
@@ -22,12 +24,12 @@ def fetch_from_eventlog_from_url(spark, dbname, message_id):
         },
         "rowkey": "key",
         "columns": {
-            "message_id":{"cf":"rowkey", "col":"key", "type":"string"},
-            "message":{"cf":"messages", "col":"message", "type":"string"},
-            "stock_levels_date":{"cf":"messages", "col":"stock_levels_date", "type":"string"},
-            "supplier_id":{"cf":"messages", "col":"supplier_id", "type":"string"},
-            "topic":{"cf":"messages", "col":"topic", "type":"string"},
-            "warehouse_id":{"cf":"messages", "col":"warehouse_id", "type":"string"}
+            "message_id":{"cf":"rowkey", "col":"key", "type":"string"},"""
+    for column in columns:
+        catalog+="""
+            \""""+column+"""\":{"cf":"messages", "col":\""""+column+"""\", "type":"string"},"""
+    catalog=catalog[0:-1]
+    catalog+="""
         }
     }"""
 
