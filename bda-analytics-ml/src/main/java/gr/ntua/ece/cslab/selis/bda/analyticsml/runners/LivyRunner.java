@@ -40,6 +40,47 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
     }
 
+    private String createSession(){
+        Invocation.Builder request = resource.path("/sessions").request();
+        JSONObject data = new JSONObject();
+        data.put("kind","pyspark");
+        List<String> files = new ArrayList<>();
+        files.add(recipe.getExecutablePath());
+        files.add("/RecipeDataLoader.py");
+        data.put("files", files);
+
+        Map<String, String> classpath = new HashMap<>();
+        if (configuration.execEngine.getSparkConfJars() != null) {
+            List<String> jars = new ArrayList<>();
+            jars.add("file://" + configuration.execEngine.getSparkConfJars());
+            data.put("jars", jars);
+            classpath.put("spark.driver.extraClassPath","file://" + configuration.execEngine.getSparkConfJars());
+        }
+        if (configuration.execEngine.getSparkConfPackages() != null) {
+            classpath.put("spark.jars.packages",configuration.execEngine.getSparkConfPackages());
+        }
+        if (configuration.execEngine.getSparkConfRepositories() != null) {
+            classpath.put("spark.jars.repositories", configuration.execEngine.getSparkConfRepositories());
+        }
+        if (!classpath.isEmpty())
+            data.put("conf", classpath);
+        data.put("driverMemory", configuration.execEngine.getSparkConfDriverMemory());
+        data.put("executorMemory", configuration.execEngine.getSparkConfExecutorMemory());
+        data.put("executorCores", Integer.valueOf(configuration.execEngine.getSparkConfExecutorCores()));
+
+        Response response = request.post(Entity.json(data.toString()));
+        if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
+            LOGGER.log(Level.INFO,
+                    "SUCCESS: Request to create session has been sent. Waiting for session to start..");
+            return new JSONObject(response.readEntity(String.class)).get("id").toString();
+        } else {
+            LOGGER.log(Level.SEVERE,
+                    "Request to create session has failed, got error: {0}",
+                    response.getStatusInfo().getReasonPhrase());
+            return null;
+        }
+    }
+
     private void deleteSession(String sessionId){
         Invocation.Builder request = resource.path("/sessions/"+sessionId).request();
         Response response = request.delete();
@@ -66,41 +107,13 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         String sessionId, statementId;
 
         // Create session and upload binaries
-        Invocation.Builder request = resource.path("/sessions").request();
-        JSONObject data = new JSONObject();
-        data.put("kind","pyspark");
-        List<String> files = new ArrayList<>();
-        files.add(recipe.getExecutablePath());
-        files.add("/RecipeDataLoader.py");
-        data.put("files", files);
-        if (configuration.execEngine.getSparkConfJars() != null) {
-            List<String> jars = new ArrayList<>();
-            jars.add("file://"+configuration.execEngine.getSparkConfJars());
-            data.put("jars", jars);
-
-            Map<String, String> classpath = new HashMap<>();
-            classpath.put("spark.driver.extraClassPath","file://"+configuration.execEngine.getSparkConfJars());
-            data.put("conf", classpath);
-        }
-        data.put("driverMemory", configuration.execEngine.getSparkConfDriverMemory());
-        data.put("executorMemory", configuration.execEngine.getSparkConfExecutorMemory());
-        data.put("executorCores", Integer.valueOf(configuration.execEngine.getSparkConfExecutorCores()));
-
-        Response response = request.post(Entity.json(data.toString()));
-        if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-            LOGGER.log(Level.INFO,
-                    "SUCCESS: Request to create session has been sent. Waiting for session to start..");
-            sessionId = new JSONObject(response.readEntity(String.class)).get("id").toString();
-        } else {
-            LOGGER.log(Level.SEVERE,
-                    "Request to create session has failed, got error: {0}",
-                    response.getStatusInfo().getReasonPhrase());
+        sessionId = createSession();
+        if (sessionId.isEmpty())
             return;
-        }
 
         // Check that session is ready to receive job
-        request = resource.path("/sessions/"+sessionId+"/state").request();
-        response = request.get();
+        Invocation.Builder request = resource.path("/sessions/"+sessionId+"/state").request();
+        Response response = request.get();
         String state = "not_started";
         while (!state.matches("idle")) {
             if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
@@ -126,12 +139,15 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         // Launch job
         request = resource.path("/sessions/"+sessionId+"/statements").request();
-        data = new JSONObject();
+        JSONObject data = new JSONObject();
         //String code = "import dataloader; dataloader.load(); import job; job.run(textFile);";
-        String code = "import RecipeDataLoader; skus_dataframe = RecipeDataLoader.fetch_from_master_data(spark, '" +
-                    configuration.storageBackend.getDimensionTablesURL()+scn.getDtDbname()+"','"+
-                    configuration.storageBackend.getDbUsername()+"','"+
-                    configuration.storageBackend.getDbPassword()+"', 'inventoryitems'); skus_dataframe.show();";
+        //String code = "import RecipeDataLoader; skus_dataframe = RecipeDataLoader.fetch_from_master_data(spark, '" +
+        //            configuration.storageBackend.getDimensionTablesURL()+scn.getDtDbname()+"','"+
+        //            configuration.storageBackend.getDbUsername()+"','"+
+        //            configuration.storageBackend.getDbPassword()+"', 'inventoryitems'); skus_dataframe.show();";
+        String code = "import RecipeDataLoader; skus_dataframe = RecipeDataLoader.fetch_from_eventlog_from_url(spark, '" +
+                scn.getElDbname()+"','"+
+                messageId +"'); skus_dataframe.show();";
         data.put("code",code);
         response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {

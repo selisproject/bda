@@ -22,6 +22,7 @@ RUN curl -L ${SPARK_URL} | tar -xz --strip=1 -C ${SPARK_PREFIX}
 # Add configuration files.
 ADD ./bootstrap/spark/core-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
 ADD ./bootstrap/spark/yarn-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
+ADD ./bootstrap/spark/hbase-site.xml "${SPARK_PREFIX}/conf/"
 
 # Set yarn environment variables.
 ENV HADOOP_YARN_HOME   "${HADOOP_PREFIX}"

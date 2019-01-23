@@ -51,6 +51,8 @@ spark.conf.driver_memory   = 512m
 spark.conf.executor_cores  = 1
 spark.conf.executor_memory = 1g
 spark.conf.jars            = /resources/postgresql-42.2.1.jar
+spark.conf.packages        = com.hortonworks:shc-core:1.1.1-2.1-s_2.11
+spark.conf.repositories    = https://repo.hortonworks.com/content/groups/public/
 
 # Execution Engines configuration.
 engines.recipe.storage.type = hdfs

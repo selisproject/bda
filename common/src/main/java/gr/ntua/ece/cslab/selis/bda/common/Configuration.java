@@ -96,6 +96,8 @@ public class Configuration {
         private String sparkMasterURL;
         private String sparkDeployMode;
         private String sparkConfJars;
+        private String sparkConfPackages;
+        private String sparkConfRepositories;
         private String sparkConfDriverMemory;
         private String sparkConfExecutorCores;
         private String sparkConfExecutorMemory;
@@ -114,6 +116,10 @@ public class Configuration {
         public String getSparkDeployMode() { return sparkDeployMode; }
 
         public String getSparkConfJars() { return sparkConfJars; }
+
+        public String getSparkConfPackages() { return sparkConfPackages; }
+
+        public String getSparkConfRepositories() { return sparkConfRepositories; }
 
         public String getSparkConfDriverMemory() { return sparkConfDriverMemory; }
 
@@ -264,6 +270,8 @@ public class Configuration {
         conf.execEngine.sparkMasterURL = properties.getProperty("spark.master.url");
         conf.execEngine.sparkDeployMode = properties.getProperty("spark.deploy_mode");
         conf.execEngine.sparkConfJars = properties.getProperty("spark.conf.jars");
+        conf.execEngine.sparkConfPackages = properties.getProperty("spark.conf.packages");
+        conf.execEngine.sparkConfRepositories = properties.getProperty("spark.conf.repositories");
         conf.execEngine.sparkConfDriverMemory = properties.getProperty("spark.conf.driver_memory");
         conf.execEngine.sparkConfExecutorCores = properties.getProperty("spark.conf.executor_cores");
         conf.execEngine.sparkConfExecutorMemory = properties.getProperty("spark.conf.executor_memory");
