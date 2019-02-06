@@ -3,6 +3,7 @@ package gr.ntua.ece.cslab.selis.bda.analyticsml.runners;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 
 import org.json.JSONObject;
@@ -16,18 +17,18 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(LivyRunner.class.getCanonicalName());
 
     private String messageId;
-    private String messageFormat;
     private String scnSlug;
+    private MessageType msgInfo;
     private Recipe recipe;
     private ExecutionEngine engine;
     private WebTarget resource;
     private Configuration configuration;
 
-    public LivyRunner(Recipe recipe, ExecutionEngine engine,
-                       String messageId, String messageFormat, String scnSlug) {
+    public LivyRunner(Recipe recipe, ExecutionEngine engine, MessageType msgInfo,
+                       String messageId, String scnSlug) {
 
         this.messageId = messageId;
-        this.messageFormat = messageFormat;
+        this.msgInfo = msgInfo;
         this.scnSlug = scnSlug;
         this.recipe = recipe;
         this.engine = engine;
@@ -93,6 +94,17 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
     }
 
+    private List<String> getMessageColumns(String messageFormat) {
+        List<String> columns = new ArrayList<>();
+        columns.addAll(new JSONObject(messageFormat).keySet());
+        columns.remove("scn_slug");
+        columns.remove("payload");
+        columns.remove("message_type");
+        columns.add("message");
+        columns.add("topic");
+        return columns;
+    }
+
     @Override
     public void run() {
         ScnDbInfo scn;
@@ -137,21 +149,56 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
 
         // Launch job
+        List<String> dimension_tables = new ArrayList<>();
+        dimension_tables.add("inventoryitems");
+        dimension_tables.add("items");
+        dimension_tables.add("minimumquantities");
+        dimension_tables.add("agreements");
+        dimension_tables.add("transportuncaps");
+
+        List<String> eventlog_messages = new ArrayList<>();
+        eventlog_messages.add("SonaeSalesForecast");
+
+        String[] recipe_library_export = recipe.getExecutablePath().split("\\.");
+        recipe_library_export = recipe_library_export[recipe_library_export.length - 2].split("/");
+        String recipe_library = recipe_library_export[recipe_library_export.length - 1];
+
         request = resource.path("/sessions/"+sessionId+"/statements").request();
         JSONObject data = new JSONObject();
-        //String code = "import dataloader; dataloader.load(); import job; job.run(textFile);";
-        //String code = "import RecipeDataLoader; skus_dataframe = RecipeDataLoader.fetch_from_master_data(spark, '" +
-        //            configuration.storageBackend.getDimensionTablesURL()+scn.getDtDbname()+"','"+
-        //            configuration.storageBackend.getDbUsername()+"','"+
-        //            configuration.storageBackend.getDbPassword()+"', 'inventoryitems'); skus_dataframe.show();";
-        List<String> columns = new ArrayList<>();
-        columns.addAll(new JSONObject(messageFormat).keySet());
-        columns.remove("scn_slug");
-        columns.remove("message_type");
-        columns.remove("payload");
-        columns.add("message");
-        String code = "import RecipeDataLoader; skus_dataframe = RecipeDataLoader.fetch_from_eventlog_one(spark, '" +
-                scn.getElDbname()+"','"+ messageId +"', '"+columns+"'); skus_dataframe.show();";
+        String code = "import RecipeDataLoader;";// import "+recipe_library+"; ";
+
+        for (String dimension_table: dimension_tables)
+            code = code+dimension_table+" = RecipeDataLoader.fetch_from_master_data(spark, '" +
+                    configuration.storageBackend.getDimensionTablesURL()+scn.getDtDbname()+"','"+
+                    configuration.storageBackend.getDbUsername()+"','"+
+                    configuration.storageBackend.getDbPassword()+"', '"+dimension_table+"'); ";
+
+        for (String eventlog_message: eventlog_messages) {
+            List<String> columns;
+            try {
+                MessageType msgInfo = MessageType.getMessageByName(this.scnSlug, eventlog_message);
+                columns = getMessageColumns(msgInfo.getFormat());
+            } catch (Exception e) {
+                e.printStackTrace();
+                return;
+            }
+            code = code + eventlog_message + " = RecipeDataLoader.fetch_from_eventlog(spark, '" +
+                    scn.getElDbname() + "','" + eventlog_message + "', '" + columns + "'); ";
+        }
+
+        List<String> columns;
+        try {
+            columns = getMessageColumns(msgInfo.getFormat());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+        code = code+msgInfo.getName()+" = RecipeDataLoader.fetch_from_eventlog_one(spark, '" +
+                scn.getElDbname()+"','"+ messageId +"', '"+columns+"'); ";
+
+        //String dataframes = msgInfo.getName()+", "+String.join(",",dimension_tables)+","+String.join(",",eventlog_messages);
+        //code = code+recipe_library+".run(spark, "+dataframes+");";
+        code = code+"SonaeStockLevels.show(); SonaeSalesForecast.show(); inventoryitems.show();";
         data.put("code",code);
         response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
