@@ -197,7 +197,13 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                 scn.getElDbname()+"','"+ messageId +"', '"+columns+"'); ";
 
         String dataframes = msgInfo.getName()+", "+String.join(",",dimension_tables)+","+String.join(",",eventlog_messages);
-        code = code+recipe_library+".run(spark, "+dataframes+");";
+        code = code+"result = "+recipe_library+".run(spark, "+dataframes+"); ";
+        code = code+"RecipeDataLoader.save_results_to_kpi_database('"+
+                    //configuration.kpiBackend.getDbUrl()+
+                    scn.getKpiDbname()+"','"+
+                    configuration.kpiBackend.getDbUsername()+"','"+
+                    configuration.kpiBackend.getDbPassword()+"','"+
+                    recipe.getName()+"','',result);";
         data.put("code",code);
         response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {

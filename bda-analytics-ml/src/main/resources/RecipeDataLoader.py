@@ -1,8 +1,13 @@
 import json
+import psycopg2
 from datetime import datetime
 
 DIMENSION_TABLES_QUERY = '''\
     (SELECT * FROM {}) {}'''
+
+KPI_DB_QUERY = '''\
+    INSERT INTO {} (timestamp, result)\
+    VALUES ('{}', '{}'::json)'''
 
 def fetch_from_eventlog_one(spark, namespace, message_id, message_columns):
     '''Fetches messages from the EventLog.
@@ -79,22 +84,35 @@ def fetch_from_master_data(spark, dimension_tables_url, username, password, tabl
         properties={'user':username,'password':password},
         table=query)
 
-def save_results_to_kpi_database(spark, kpi_db_url, username, password, message, results_list, kpi_table):
+def save_results_to_kpi_database(kpi_db_url, username, password, kpi_table, message, result):
     '''Connects to KPI DB and stores the `results_list`.
 
     TODO: documentation.
 
-    :param results_list:
+    :param result:
 
     '''
-    result = spark.createDataFrame([(
+    KPI_DB_SETTINGS = {
+        'dbname': kpi_db_url,
+        'host': 'selis-postgres',
+        'port': '5432',
+        'user': username,
+        'password': password,
+    }
+    query = KPI_DB_QUERY.format(
+        kpi_table,
         datetime.now(),
-        message['supplier_id'],
-        message['warehouse_id'],
-        json.dumps(results_list))],
-        ['timestamp', 'supplier_id', 'warehouse_id', 'result'])
+        json.dumps(result),
+    )
 
-    result.write.mode("append").jdbc(
-        url=kpi_db_url,
-        properties={'user':username,'password':password},
-        table=kpi_table)
+    try:
+        connection = psycopg2.connect(**KPI_DB_SETTINGS)
+        cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+    except Exception:
+        print('Unable to connect to the database.')
+        raise
+    finally:
+        cursor.close()
+        connection.close()
