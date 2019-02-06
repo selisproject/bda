@@ -1,8 +1,6 @@
 import json
 from datetime import datetime
 
-from pyspark.sql import Row
-
 DIMENSION_TABLES_QUERY = '''\
     (SELECT * FROM {}) {}'''
 

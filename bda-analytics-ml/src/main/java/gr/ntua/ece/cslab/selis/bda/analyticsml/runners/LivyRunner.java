@@ -165,7 +165,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         request = resource.path("/sessions/"+sessionId+"/statements").request();
         JSONObject data = new JSONObject();
-        String code = "import RecipeDataLoader;";// import "+recipe_library+"; ";
+        String code = "import RecipeDataLoader; import "+recipe_library+"; ";
 
         for (String dimension_table: dimension_tables)
             code = code+dimension_table+" = RecipeDataLoader.fetch_from_master_data(spark, '" +
@@ -196,9 +196,8 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         code = code+msgInfo.getName()+" = RecipeDataLoader.fetch_from_eventlog_one(spark, '" +
                 scn.getElDbname()+"','"+ messageId +"', '"+columns+"'); ";
 
-        //String dataframes = msgInfo.getName()+", "+String.join(",",dimension_tables)+","+String.join(",",eventlog_messages);
-        //code = code+recipe_library+".run(spark, "+dataframes+");";
-        code = code+"SonaeStockLevels.show(); SonaeSalesForecast.show(); inventoryitems.show();";
+        String dataframes = msgInfo.getName()+", "+String.join(",",dimension_tables)+","+String.join(",",eventlog_messages);
+        code = code+recipe_library+".run(spark, "+dataframes+");";
         data.put("code",code);
         response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
