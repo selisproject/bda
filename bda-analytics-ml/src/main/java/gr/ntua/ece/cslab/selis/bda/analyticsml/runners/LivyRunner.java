@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.analyticsml.runners;
 
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
@@ -9,6 +10,7 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import org.json.JSONObject;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,13 +42,13 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
     }
 
-    private String createSession(){
+    private String createSession(String kind, String dataloader){
         Invocation.Builder request = resource.path("/sessions").request();
         JSONObject data = new JSONObject();
-        data.put("kind","pyspark");
+        data.put("kind",kind);
         List<String> files = new ArrayList<>();
         files.add(recipe.getExecutablePath());
-        files.add("/RecipeDataLoader.py");
+        files.add(dataloader);
         data.put("files", files);
 
         Map<String, String> classpath = new HashMap<>();
@@ -105,6 +107,59 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         return columns;
     }
 
+    public String buildPythonCode(ScnDbInfo scn) throws SQLException, SystemConnectorException {
+        List<String> dimension_tables = new ArrayList<>();
+        dimension_tables.add("inventoryitems");
+        dimension_tables.add("items");
+        dimension_tables.add("minimumquantities");
+        dimension_tables.add("agreements");
+        dimension_tables.add("transportuncaps");
+
+        List<String> eventlog_messages = new ArrayList<>();
+        eventlog_messages.add("SonaeSalesForecast");
+
+        String[] recipe_library_export = recipe.getExecutablePath().split("\\.");
+        recipe_library_export = recipe_library_export[recipe_library_export.length - 2].split("/");
+        String recipe_library = recipe_library_export[recipe_library_export.length - 1];
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("import RecipeDataLoader; import ").append(recipe_library).append("; ");
+
+        for (String dimension_table: dimension_tables)
+            builder.append(dimension_table).append(" = RecipeDataLoader.fetch_from_master_data(spark, '")
+                    .append(configuration.storageBackend.getDimensionTablesURL()).append(scn.getDtDbname()).append("','")
+                    .append(configuration.storageBackend.getDbUsername()).append("','")
+                    .append(configuration.storageBackend.getDbPassword()).append("','")
+                    .append(dimension_table).append("'); ");
+
+        for (String eventlog_message: eventlog_messages) {
+            MessageType msgInfo = MessageType.getMessageByName(this.scnSlug, eventlog_message);
+            List<String> columns = getMessageColumns(msgInfo.getFormat());
+            builder.append(eventlog_message).append(" = RecipeDataLoader.fetch_from_eventlog(spark, '")
+                    .append(scn.getElDbname()).append("','")
+                    .append(eventlog_message).append("','")
+                    .append(columns).append("'); ");
+        }
+
+        List<String> columns = getMessageColumns(msgInfo.getFormat());
+        builder.append(msgInfo.getName()).append(" = RecipeDataLoader.fetch_from_eventlog_one(spark, '")
+                .append(scn.getElDbname()).append("','")
+                .append(messageId).append("','")
+                .append(columns).append("'); ");
+
+        String dataframes = msgInfo.getName()+", "+String.join(",",dimension_tables)+","+String.join(",",eventlog_messages);
+        builder.append("result = ").append(recipe_library).append(".run(spark, ").append(dataframes).append("); ");
+        builder.append("RecipeDataLoader.save_results_to_kpi_database('")
+                //.append(configuration.kpiBackend.getDbUrl())
+                .append(scn.getKpiDbname()).append("','")
+                .append(configuration.kpiBackend.getDbUsername()).append("','")
+                .append(configuration.kpiBackend.getDbPassword()).append("','")
+                .append(recipe.getName()).append("',")
+                .append(msgInfo.getName()).append(",'")
+                .append(columns).append("',result);");
+        return builder.toString();
+    }
+
     @Override
     public void run() {
         ScnDbInfo scn;
@@ -115,10 +170,10 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             return;
         }
 
-        String sessionId, statementId;
+        String sessionId, statementId, code;
 
         // Create session and upload binaries
-        sessionId = createSession();
+        sessionId = createSession("pyspark","/RecipeDataLoader.py");
         if (sessionId.isEmpty())
             return;
 
@@ -149,61 +204,17 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
 
         // Launch job
-        List<String> dimension_tables = new ArrayList<>();
-        dimension_tables.add("inventoryitems");
-        dimension_tables.add("items");
-        dimension_tables.add("minimumquantities");
-        dimension_tables.add("agreements");
-        dimension_tables.add("transportuncaps");
-
-        List<String> eventlog_messages = new ArrayList<>();
-        eventlog_messages.add("SonaeSalesForecast");
-
-        String[] recipe_library_export = recipe.getExecutablePath().split("\\.");
-        recipe_library_export = recipe_library_export[recipe_library_export.length - 2].split("/");
-        String recipe_library = recipe_library_export[recipe_library_export.length - 1];
-
         request = resource.path("/sessions/"+sessionId+"/statements").request();
         JSONObject data = new JSONObject();
-        String code = "import RecipeDataLoader; import "+recipe_library+"; ";
 
-        for (String dimension_table: dimension_tables)
-            code = code+dimension_table+" = RecipeDataLoader.fetch_from_master_data(spark, '" +
-                    configuration.storageBackend.getDimensionTablesURL()+scn.getDtDbname()+"','"+
-                    configuration.storageBackend.getDbUsername()+"','"+
-                    configuration.storageBackend.getDbPassword()+"', '"+dimension_table+"'); ";
-
-        for (String eventlog_message: eventlog_messages) {
-            List<String> columns;
-            try {
-                MessageType msgInfo = MessageType.getMessageByName(this.scnSlug, eventlog_message);
-                columns = getMessageColumns(msgInfo.getFormat());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return;
-            }
-            code = code + eventlog_message + " = RecipeDataLoader.fetch_from_eventlog(spark, '" +
-                    scn.getElDbname() + "','" + eventlog_message + "', '" + columns + "'); ";
-        }
-
-        List<String> columns;
         try {
-            columns = getMessageColumns(msgInfo.getFormat());
+            code = buildPythonCode(scn);
         } catch (Exception e) {
+            LOGGER.log(Level.SEVERE,"Building the code for the job execution has failed.");
             e.printStackTrace();
+            deleteSession(sessionId);
             return;
         }
-        code = code+msgInfo.getName()+" = RecipeDataLoader.fetch_from_eventlog_one(spark, '" +
-                scn.getElDbname()+"','"+ messageId +"', '"+columns+"'); ";
-
-        String dataframes = msgInfo.getName()+", "+String.join(",",dimension_tables)+","+String.join(",",eventlog_messages);
-        code = code+"result = "+recipe_library+".run(spark, "+dataframes+"); ";
-        code = code+"RecipeDataLoader.save_results_to_kpi_database('"+
-                    //configuration.kpiBackend.getDbUrl()+
-                    scn.getKpiDbname()+"','"+
-                    configuration.kpiBackend.getDbUsername()+"','"+
-                    configuration.kpiBackend.getDbPassword()+"','"+
-                    recipe.getName()+"',"+msgInfo.getName()+",'"+columns+"',result);";
         data.put("code",code);
         response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
