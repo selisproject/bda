@@ -203,7 +203,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                     scn.getKpiDbname()+"','"+
                     configuration.kpiBackend.getDbUsername()+"','"+
                     configuration.kpiBackend.getDbPassword()+"','"+
-                    recipe.getName()+"','',result);";
+                    recipe.getName()+"',"+msgInfo.getName()+",'"+columns+"',result);";
         data.put("code",code);
         response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {

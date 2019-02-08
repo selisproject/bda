@@ -6,8 +6,8 @@ DIMENSION_TABLES_QUERY = '''\
     (SELECT * FROM {}) {}'''
 
 KPI_DB_QUERY = '''\
-    INSERT INTO {} (timestamp, result)\
-    VALUES ('{}', '{}'::json)'''
+    INSERT INTO {} (timestamp, result{})\
+    VALUES ('{}', '{}'::json{})'''
 
 def fetch_from_eventlog_one(spark, namespace, message_id, message_columns):
     '''Fetches messages from the EventLog.
@@ -84,7 +84,7 @@ def fetch_from_master_data(spark, dimension_tables_url, username, password, tabl
         properties={'user':username,'password':password},
         table=query)
 
-def save_results_to_kpi_database(kpi_db_url, username, password, kpi_table, message, result):
+def save_results_to_kpi_database(kpi_db_url, username, password, kpi_table, message, message_columns, result):
     '''Connects to KPI DB and stores the `results_list`.
 
     TODO: documentation.
@@ -92,6 +92,7 @@ def save_results_to_kpi_database(kpi_db_url, username, password, kpi_table, mess
     :param result:
 
     '''
+
     KPI_DB_SETTINGS = {
         'dbname': kpi_db_url,
         'host': 'selis-postgres',
@@ -99,10 +100,22 @@ def save_results_to_kpi_database(kpi_db_url, username, password, kpi_table, mess
         'user': username,
         'password': password,
     }
+    columns = message_columns.replace(" ", "").replace('[','').replace(']','').split(',')
+    columns.remove("message")
+    columns.remove("topic")
+    columns_str = ','+','.join(columns)
+    fields = []
+    message_data = message.collect()[0]
+    for column in columns:
+        fields.append(message_data[column])
+    fields_str = ",'"+"','".join(fields)+"'"
+
     query = KPI_DB_QUERY.format(
         kpi_table,
+        '',#columns_str,
         datetime.now(),
         json.dumps(result),
+        ''#fields_str
     )
 
     try:
@@ -116,3 +129,6 @@ def save_results_to_kpi_database(kpi_db_url, username, password, kpi_table, mess
     finally:
         cursor.close()
         connection.close()
+
+def publish_result(result):
+    return
