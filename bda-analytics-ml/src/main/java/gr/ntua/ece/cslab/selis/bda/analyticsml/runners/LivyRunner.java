@@ -5,6 +5,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionLanguage;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 
@@ -24,19 +25,19 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private MessageType msgInfo;
     private Recipe recipe;
     private ExecutionEngine engine;
-    private Boolean resultPersist;
+    private JobDescription job;
     private WebTarget resource;
     private Configuration configuration;
 
     public LivyRunner(Recipe recipe, ExecutionEngine engine, MessageType msgInfo,
-                       String messageId, Boolean resultPersist, String scnSlug) {
+                      String messageId, JobDescription job, String scnSlug) {
 
         this.messageId = messageId;
         this.msgInfo = msgInfo;
         this.scnSlug = scnSlug;
         this.recipe = recipe;
         this.engine = engine;
-        this.resultPersist = resultPersist;
+        this.job = job;
         this.configuration = Configuration.getInstance();
 
         Client client = ClientBuilder.newClient();
@@ -151,8 +152,8 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         String dataframes = msgInfo.getName()+", "+String.join(",",dimension_tables)+","+String.join(",",eventlog_messages);
         builder.append("result = ").append(recipe_library).append(".run(spark, ").append(dataframes).append("); ");
-        if (this.resultPersist){
-            builder.append("RecipeDataLoader.save_results_to_kpi_database('")
+        if (this.job.isJobResultPersist()){
+            builder.append("RecipeDataLoader.save_result_to_kpidb('")
                     //.append(configuration.kpiBackend.getDbUrl())
                    .append(scn.getKpiDbname()).append("','")
                    .append(configuration.kpiBackend.getDbUsername()).append("','")
@@ -161,12 +162,12 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                    .append(msgInfo.getName()).append(",'")
                    .append(columns).append("',result);");
         } else {
-            builder.append("RecipeDataLoader.publish_results('")
+            builder.append("RecipeDataLoader.publish_result('")
                     .append(scn.getPubsubaddress()).append("','")
                     .append(scn.getPubsubport()).append("','")
-                    .append(recipe.getName()).append("',")
-                    .append(msgInfo.getName()).append(",'")
-                    .append(columns).append("',result);");
+                    .append(configuration.pubsub.getCertificateLocation()).append("','")
+                    .append(scn.getSlug()).append("','")
+                    .append(recipe.getName()).append("_").append(job.getId()).append("',result);");
         }
         return builder.toString();
     }

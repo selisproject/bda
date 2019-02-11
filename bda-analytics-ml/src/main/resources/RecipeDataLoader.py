@@ -1,5 +1,8 @@
 import json
 import psycopg2
+import ssl
+import urllib.request
+
 from datetime import datetime
 
 DIMENSION_TABLES_QUERY = '''\
@@ -84,7 +87,7 @@ def fetch_from_master_data(spark, dimension_tables_url, username, password, tabl
         properties={'user':username,'password':password},
         table=query)
 
-def save_results_to_kpi_database(kpi_db_url, username, password, kpi_table, message, message_columns, result):
+def save_result_to_kpidb(kpi_db_url, username, password, kpi_table, message, message_columns, result):
     '''Connects to KPI DB and stores the `results_list`.
 
     TODO: documentation.
@@ -129,6 +132,24 @@ def save_results_to_kpi_database(kpi_db_url, username, password, kpi_table, mess
     finally:
         cursor.close()
         connection.close()
+    print("Result saved in KPI db")
 
-def publish_result(result):
-    return
+def publish_result(pubsub_address, pubsub_port, pubsub_cert, scn_slug, message_type, result):
+    PUBSUB_SERVICE_URL = 'https://'+pubsub_address+':'+pubsub_port+'/publish'
+    ctx = ssl.create_default_context(cafile=pubsub_cert)
+
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    message = {
+        'message_type': message_type,
+        'scn_slug': scn_slug,
+        'payload': result
+    }
+
+    request = urllib.request.Request(PUBSUB_SERVICE_URL, json.dumps(message).encode('utf-8'), headers)
+    response = urllib.request.urlopen(request, context=ctx)
+
+    print(response.code)
+    print(response.read().decode("utf8"))
+    response.close()
