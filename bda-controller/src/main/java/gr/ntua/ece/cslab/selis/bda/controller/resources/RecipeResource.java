@@ -1,10 +1,10 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionLanguage;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
-import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
@@ -49,7 +49,16 @@ public class RecipeResource {
                 }
             }
 
-            if (correctEngine) {
+            List<ExecutionLanguage> languages = ExecutionLanguage.getLanguages();
+
+            boolean correctLanguage = false;
+            for (ExecutionLanguage language : languages) {
+                if (language.getId() == r.getLanguageId()) {
+                    correctLanguage = true;
+                }
+            }
+
+            if (correctEngine && correctLanguage) {
                 r.save(slug);
 
                 details = Integer.toString(r.getId());
@@ -59,7 +68,7 @@ public class RecipeResource {
                 }
             }
             else {
-                LOGGER.log(Level.WARNING, "Bad engine id provided!");
+                LOGGER.log(Level.WARNING, "Bad engine id or language id provided!");
                 if (response != null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }

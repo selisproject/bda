@@ -3,6 +3,7 @@ package gr.ntua.ece.cslab.selis.bda.analyticsml.runners;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionLanguage;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
@@ -23,18 +24,19 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private MessageType msgInfo;
     private Recipe recipe;
     private ExecutionEngine engine;
+    private Boolean resultPersist;
     private WebTarget resource;
     private Configuration configuration;
 
     public LivyRunner(Recipe recipe, ExecutionEngine engine, MessageType msgInfo,
-                       String messageId, String scnSlug) {
+                       String messageId, Boolean resultPersist, String scnSlug) {
 
         this.messageId = messageId;
         this.msgInfo = msgInfo;
         this.scnSlug = scnSlug;
         this.recipe = recipe;
         this.engine = engine;
-
+        this.resultPersist = resultPersist;
         this.configuration = Configuration.getInstance();
 
         Client client = ClientBuilder.newClient();
@@ -149,14 +151,23 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         String dataframes = msgInfo.getName()+", "+String.join(",",dimension_tables)+","+String.join(",",eventlog_messages);
         builder.append("result = ").append(recipe_library).append(".run(spark, ").append(dataframes).append("); ");
-        builder.append("RecipeDataLoader.save_results_to_kpi_database('")
-                //.append(configuration.kpiBackend.getDbUrl())
-                .append(scn.getKpiDbname()).append("','")
-                .append(configuration.kpiBackend.getDbUsername()).append("','")
-                .append(configuration.kpiBackend.getDbPassword()).append("','")
-                .append(recipe.getName()).append("',")
-                .append(msgInfo.getName()).append(",'")
-                .append(columns).append("',result);");
+        if (this.resultPersist){
+            builder.append("RecipeDataLoader.save_results_to_kpi_database('")
+                    //.append(configuration.kpiBackend.getDbUrl())
+                   .append(scn.getKpiDbname()).append("','")
+                   .append(configuration.kpiBackend.getDbUsername()).append("','")
+                   .append(configuration.kpiBackend.getDbPassword()).append("','")
+                   .append(recipe.getName()).append("',")
+                   .append(msgInfo.getName()).append(",'")
+                   .append(columns).append("',result);");
+        } else {
+            builder.append("RecipeDataLoader.publish_results('")
+                    .append(scn.getPubsubaddress()).append("','")
+                    .append(scn.getPubsubport()).append("','")
+                    .append(recipe.getName()).append("',")
+                    .append(msgInfo.getName()).append(",'")
+                    .append(columns).append("',result);");
+        }
         return builder.toString();
     }
 
@@ -170,10 +181,22 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             return;
         }
 
-        String sessionId, statementId, code;
+        String sessionId, statementId, language, code = null, livyLanguage = null, recipeDataLoader = null;
 
-        // Create session and upload binaries
-        sessionId = createSession("pyspark","/RecipeDataLoader.py");
+        // Create session, upload binaries and prepare code
+        try {
+            language = ExecutionLanguage.getLanguageById(recipe.getLanguageId()).getName();
+            if (language.matches("python")){
+                livyLanguage = "pyspark";
+                recipeDataLoader = "/RecipeDataLoader.py";
+                code = buildPythonCode(scn);
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE,"Getting the execution language and building the code has failed.");
+            e.printStackTrace();
+            return;
+        }
+        sessionId = createSession(livyLanguage,recipeDataLoader);
         if (sessionId.isEmpty())
             return;
 
@@ -206,15 +229,6 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         // Launch job
         request = resource.path("/sessions/"+sessionId+"/statements").request();
         JSONObject data = new JSONObject();
-
-        try {
-            code = buildPythonCode(scn);
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE,"Building the code for the job execution has failed.");
-            e.printStackTrace();
-            deleteSession(sessionId);
-            return;
-        }
         data.put("code",code);
         response = request.post(Entity.json(data.toString()));
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {

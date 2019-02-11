@@ -48,7 +48,7 @@ public class RunnerInstance {
         }
 
         LOGGER.log(Level.INFO, "Launching " + job.getName() + " recipe.");
-        Runnable runner = RunnerFactory.getInstance().getRunner(recipe, engine, msgInfo, messageId, this.scnSlug);
+        Runnable runner = RunnerFactory.getInstance().getRunner(recipe, engine, msgInfo, messageId, job.isJobResultPersist(), this.scnSlug);
         Thread thread = new Thread(runner);
 
         thread.start();

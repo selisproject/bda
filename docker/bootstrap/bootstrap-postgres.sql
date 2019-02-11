@@ -41,6 +41,17 @@ INSERT INTO execution_engines (name, engine_path, local_engine, args)
 	('spark', 'spark://selis-spark-master:7077', false, '{}'::json),
 	('livy', 'http://selis-livy:8998', false, '{}'::json);
 
+CREATE TABLE execution_languages (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(64) NOT NULL UNIQUE
+);
+
+ALTER TABLE execution_languages OWNER TO selis;
+
+INSERT INTO execution_languages (name)
+    VALUES
+	('python');
+
 
 \connect selis_test_db
 
@@ -71,3 +82,14 @@ INSERT INTO execution_engines (name, engine_path, local_engine, args)
 	('python3', '/usr/bin/python3', true, '{}'::json),
 	('spark', 'spark://selis-spark-master:7077', false, '{}'::json),
 	('livy', 'http://selis-livy:8998', false, '{}'::json);
+
+CREATE TABLE execution_languages (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(64) NOT NULL UNIQUE
+);
+
+ALTER TABLE execution_languages OWNER TO selis;
+
+INSERT INTO execution_languages (name)
+    VALUES
+	('python');

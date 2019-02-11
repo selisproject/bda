@@ -26,6 +26,7 @@ public class Recipe implements Serializable {
     private transient int id;
     private String name;
     private String description;
+    private int languageId;
     private String executablePath;
     private int engineId;
     private String args;
@@ -37,6 +38,7 @@ public class Recipe implements Serializable {
         "id                  SERIAL PRIMARY KEY, " +
         "name                VARCHAR(64) NOT NULL UNIQUE, " +
         "description         VARCHAR(256), " +
+        "language_id         INTEGER NOT NULL, " +
         "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
         "engine_id           INTEGER NOT NULL, " +
         "args                VARCHAR(512)" +
@@ -47,13 +49,13 @@ public class Recipe implements Serializable {
         "FROM metadata.recipes";
 
     private final static String INSERT_RECIPE_QUERY = 
-        "INSERT INTO metadata.recipes (name, description, executable_path, engine_id, args) " +
-        "VALUES (?, ?, ?, ? ,?) " +
+        "INSERT INTO metadata.recipes (name, description, language_id, executable_path, engine_id, args) " +
+        "VALUES (?, ?, ?, ? ,?, ?) " +
         "RETURNING id";
 
     private final static String UPDATE_RECIPE_QUERY = 
         "UPDATE metadata.recipes " +
-        "SET name = ?, description = ?, executable_path = ?, engine_id = ?, args = ? " +
+        "SET name = ?, description = ?, language_id = ?, executable_path = ?, engine_id = ?, args = ? " +
         "WHERE id = ?";
 
     private final static String GET_RECIPE_BY_ID =
@@ -67,9 +69,10 @@ public class Recipe implements Serializable {
 
     public Recipe() {}
 
-    public Recipe(String name, String description, String executablePath, int engineId, String args) {
+    public Recipe(String name, String description, int languageId, String executablePath, int engineId, String args) {
         this.name = name;
         this.description = description;
+        this.languageId = languageId;
         this.executablePath = executablePath;
         this.engineId = engineId;
         this.args = args;
@@ -98,6 +101,10 @@ public class Recipe implements Serializable {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public int getLanguageId() { return languageId; }
+
+    public void setLanguageId(int languageId) { this.languageId = languageId; }
 
     public String getExecutablePath() {
         return executablePath;
@@ -137,6 +144,7 @@ public class Recipe implements Serializable {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", language='" + languageId + '\'' +
                 ", executablePath='" + executablePath + '\'' +
                 ", engineId=" + engineId +
                 ", args=" + args +
@@ -163,6 +171,7 @@ public class Recipe implements Serializable {
                 recipe = new Recipe(
                     resultSet.getString("name"),
                     resultSet.getString("description"),
+                    resultSet.getInt("language_id"),
                     resultSet.getString("executable_path"),
                     resultSet.getInt("engine_id"),
                     resultSet.getString("args")
@@ -196,6 +205,7 @@ public class Recipe implements Serializable {
                 Recipe recipe = new Recipe(
                         resultSet.getString("name"),
                         resultSet.getString("description"),
+                        resultSet.getInt("language_id"),
                         resultSet.getString("executable_path"),
                         resultSet.getInt("engine_id"),
                         resultSet.getString("args")
@@ -232,6 +242,7 @@ public class Recipe implements Serializable {
                 recipe = new Recipe(
                     resultSet.getString("name"),
                     resultSet.getString("description"),
+                    resultSet.getInt("language_id"),
                     resultSet.getString("executable_path"),
                     resultSet.getInt("engine_id"),
                     resultSet.getString("args")
@@ -261,9 +272,10 @@ public class Recipe implements Serializable {
 
             statement.setString(1, this.name);
             statement.setString(2, this.description);
-            statement.setString(3, this.executablePath);
-            statement.setInt(4, Integer.valueOf(this.engineId));
-            statement.setString(5, this.args);
+            statement.setInt(3, this.languageId);
+            statement.setString(4, this.executablePath);
+            statement.setInt(5, Integer.valueOf(this.engineId));
+            statement.setString(6, this.args);
 
             try {
                 ResultSet resultSet = statement.executeQuery();
@@ -288,10 +300,11 @@ public class Recipe implements Serializable {
 
             statement.setString(1, this.name);
             statement.setString(2, this.description);
-            statement.setString(3, this.executablePath);
-            statement.setInt(4, Integer.valueOf(this.engineId));
-            statement.setString(5, this.args.toString());
-            statement.setInt(6, Integer.valueOf(this.id));
+            statement.setInt(3, this.languageId);
+            statement.setString(4, this.executablePath);
+            statement.setInt(5, Integer.valueOf(this.engineId));
+            statement.setString(6, this.args.toString());
+            statement.setInt(7, Integer.valueOf(this.id));
 
             try {
                 statement.executeUpdate();
