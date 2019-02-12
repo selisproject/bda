@@ -111,15 +111,6 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     }
 
     public String buildPythonCode(ScnDbInfo scn) throws SQLException, SystemConnectorException {
-        List<String> dimension_tables = new ArrayList<>();
-        dimension_tables.add("inventoryitems");
-        dimension_tables.add("items");
-        dimension_tables.add("minimumquantities");
-        dimension_tables.add("agreements");
-        dimension_tables.add("transportuncaps");
-
-        List<String> eventlog_messages = new ArrayList<>();
-        eventlog_messages.add("SonaeSalesForecast");
 
         String[] recipe_library_export = recipe.getExecutablePath().split("\\.");
         recipe_library_export = recipe_library_export[recipe_library_export.length - 2].split("/");
@@ -128,13 +119,20 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         StringBuilder builder = new StringBuilder();
         builder.append("import RecipeDataLoader; import ").append(recipe_library).append("; ");
 
-        for (String dimension_table: dimension_tables)
+        StringBuilder arguments = new StringBuilder();
+        arguments.append(msgInfo.getName());
+
+        List<String> dimension_tables = recipe.getArgs().getDimension_tables();
+        for (String dimension_table: dimension_tables) {
             builder.append(dimension_table).append(" = RecipeDataLoader.fetch_from_master_data(spark, '")
                     .append(configuration.storageBackend.getDimensionTablesURL()).append(scn.getDtDbname()).append("','")
                     .append(configuration.storageBackend.getDbUsername()).append("','")
                     .append(configuration.storageBackend.getDbPassword()).append("','")
                     .append(dimension_table).append("'); ");
+            arguments.append(",").append(dimension_table);
+        }
 
+        List<String> eventlog_messages = recipe.getArgs().getMessage_types();
         for (String eventlog_message: eventlog_messages) {
             MessageType msgInfo = MessageType.getMessageByName(this.scnSlug, eventlog_message);
             List<String> columns = getMessageColumns(msgInfo.getFormat());
@@ -142,6 +140,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                     .append(scn.getElDbname()).append("','")
                     .append(eventlog_message).append("','")
                     .append(columns).append("'); ");
+            arguments.append(",").append(eventlog_message);
         }
 
         List<String> columns = getMessageColumns(msgInfo.getFormat());
@@ -150,8 +149,11 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                 .append(messageId).append("','")
                 .append(columns).append("'); ");
 
-        String dataframes = msgInfo.getName()+", "+String.join(",",dimension_tables)+","+String.join(",",eventlog_messages);
-        builder.append("result = ").append(recipe_library).append(".run(spark, ").append(dataframes).append("); ");
+        List<String> other_args = recipe.getArgs().getOther_args();
+        for (String arg: other_args)
+            arguments.append(",").append(arg);
+
+        builder.append("result = ").append(recipe_library).append(".run(spark, ").append(arguments).append("); ");
         if (this.job.isJobResultPersist()){
             builder.append("RecipeDataLoader.save_result_to_kpidb('")
                     //.append(configuration.kpiBackend.getDbUrl())

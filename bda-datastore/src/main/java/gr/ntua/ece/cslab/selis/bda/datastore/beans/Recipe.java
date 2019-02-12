@@ -8,13 +8,17 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector
 
 import java.io.*;
 import java.sql.*;
-import java.net.URI;
 import java.util.List;
 import java.util.Vector;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.codec.digest.DigestUtils;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
+
 import java.lang.UnsupportedOperationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,7 +33,7 @@ public class Recipe implements Serializable {
     private int languageId;
     private String executablePath;
     private int engineId;
-    private String args;
+    private RecipeArguments args;
 
     private boolean exists = false;
 
@@ -41,7 +45,7 @@ public class Recipe implements Serializable {
         "language_id         INTEGER NOT NULL, " +
         "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
         "engine_id           INTEGER NOT NULL, " +
-        "args                VARCHAR(512)" +
+        "args                JSON" +
         ");";
 
     private final static String ALL_RECIPES_QUERY = 
@@ -50,12 +54,12 @@ public class Recipe implements Serializable {
 
     private final static String INSERT_RECIPE_QUERY = 
         "INSERT INTO metadata.recipes (name, description, language_id, executable_path, engine_id, args) " +
-        "VALUES (?, ?, ?, ? ,?, ?) " +
+        "VALUES (?, ?, ?, ? ,?, ?::json) " +
         "RETURNING id";
 
     private final static String UPDATE_RECIPE_QUERY = 
         "UPDATE metadata.recipes " +
-        "SET name = ?, description = ?, language_id = ?, executable_path = ?, engine_id = ?, args = ? " +
+        "SET name = ?, description = ?, language_id = ?, executable_path = ?, engine_id = ?, args = ?::json " +
         "WHERE id = ?";
 
     private final static String GET_RECIPE_BY_ID =
@@ -69,7 +73,7 @@ public class Recipe implements Serializable {
 
     public Recipe() {}
 
-    public Recipe(String name, String description, int languageId, String executablePath, int engineId, String args) {
+    public Recipe(String name, String description, int languageId, String executablePath, int engineId, RecipeArguments args) {
         this.name = name;
         this.description = description;
         this.languageId = languageId;
@@ -122,11 +126,11 @@ public class Recipe implements Serializable {
         this.engineId = engineId;
     }
 
-    public String getArgs() {
+    public RecipeArguments getArgs() {
         return args;
     }
 
-    public void setArgs(String args) {
+    public void setArgs(RecipeArguments args) {
         this.args = args;
     }
 
@@ -147,7 +151,7 @@ public class Recipe implements Serializable {
                 ", language='" + languageId + '\'' +
                 ", executablePath='" + executablePath + '\'' +
                 ", engineId=" + engineId +
-                ", args=" + args +
+                ", args=" + args.toString() +
                 ", exists=" + exists +
                 '}';
     }
@@ -174,7 +178,7 @@ public class Recipe implements Serializable {
                     resultSet.getInt("language_id"),
                     resultSet.getString("executable_path"),
                     resultSet.getInt("engine_id"),
-                    resultSet.getString("args")
+                    new Gson().fromJson(new JsonParser().parse(resultSet.getString("args")).getAsJsonObject(), RecipeArguments.class)
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -208,7 +212,7 @@ public class Recipe implements Serializable {
                         resultSet.getInt("language_id"),
                         resultSet.getString("executable_path"),
                         resultSet.getInt("engine_id"),
-                        resultSet.getString("args")
+                        new Gson().fromJson(new JsonParser().parse(resultSet.getString("args")).getAsJsonObject(), RecipeArguments.class)
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -245,7 +249,7 @@ public class Recipe implements Serializable {
                     resultSet.getInt("language_id"),
                     resultSet.getString("executable_path"),
                     resultSet.getInt("engine_id"),
-                    resultSet.getString("args")
+                    new Gson().fromJson(new JsonParser().parse(resultSet.getString("args")).getAsJsonObject(), RecipeArguments.class)
                 );
 
                 recipe.id = resultSet.getInt("id");
@@ -275,7 +279,7 @@ public class Recipe implements Serializable {
             statement.setInt(3, this.languageId);
             statement.setString(4, this.executablePath);
             statement.setInt(5, Integer.valueOf(this.engineId));
-            statement.setString(6, this.args);
+            statement.setString(6, new Gson().toJson(this.args));
 
             try {
                 ResultSet resultSet = statement.executeQuery();
@@ -303,7 +307,7 @@ public class Recipe implements Serializable {
             statement.setInt(3, this.languageId);
             statement.setString(4, this.executablePath);
             statement.setInt(5, Integer.valueOf(this.engineId));
-            statement.setString(6, this.args.toString());
+            statement.setString(6, new Gson().toJson(this.args));
             statement.setInt(7, Integer.valueOf(this.id));
 
             try {
@@ -451,7 +455,8 @@ public class Recipe implements Serializable {
         Configuration configuration = Configuration.getInstance();
 
         String recipeFilename = Paths.get(
-            Recipe.getStorageForSlug(slug), recipeHash + "_" + recipeName
+            Recipe.getStorageForSlug(slug),
+            FilenameUtils.getBaseName(recipeName)+"_"+recipeHash+"."+FilenameUtils.getExtension(recipeName)
         ).toString();
 
         if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
