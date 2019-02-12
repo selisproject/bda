@@ -1,10 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.datastore.connectors;
 
-import com.google.protobuf.ServiceException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HBaseConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
-import gr.ntua.ece.cslab.selis.bda.datastore.DatastoreException;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.*;
@@ -46,7 +44,7 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
             Long timestamp = Timestamp.valueOf(LocalDateTime.now()).getTime();
             String topic="";
             for (KeyValue fields: row.getEntries()){
-                if (fields.getKey().matches("topic"))
+                if (fields.getKey().matches("message_type"))
                     topic = fields.getValue();
             }
             rowkey = timestamp + "_"+topic;

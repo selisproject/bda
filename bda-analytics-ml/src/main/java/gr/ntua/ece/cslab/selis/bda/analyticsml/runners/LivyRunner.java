@@ -99,17 +99,6 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
     }
 
-    private List<String> getMessageColumns(String messageFormat) {
-        List<String> columns = new ArrayList<>();
-        columns.addAll(new JSONObject(messageFormat).keySet());
-        columns.remove("scn_slug");
-        columns.remove("payload");
-        columns.remove("message_type");
-        columns.add("message");
-        columns.add("topic");
-        return columns;
-    }
-
     public String buildPythonCode(ScnDbInfo scn) throws SQLException, SystemConnectorException {
 
         String[] recipe_library_export = recipe.getExecutablePath().split("\\.");
@@ -134,8 +123,8 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         List<String> eventlog_messages = recipe.getArgs().getMessage_types();
         for (String eventlog_message: eventlog_messages) {
-            MessageType msgInfo = MessageType.getMessageByName(this.scnSlug, eventlog_message);
-            List<String> columns = getMessageColumns(msgInfo.getFormat());
+            MessageType msg = MessageType.getMessageByName(this.scnSlug, eventlog_message);
+            List<String> columns = msg.getMessageColumns();
             builder.append(eventlog_message).append(" = RecipeDataLoader.fetch_from_eventlog(spark, '")
                     .append(scn.getElDbname()).append("','")
                     .append(eventlog_message).append("','")
@@ -143,7 +132,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             arguments.append(",").append(eventlog_message);
         }
 
-        List<String> columns = getMessageColumns(msgInfo.getFormat());
+        List<String> columns = msgInfo.getMessageColumns();
         builder.append(msgInfo.getName()).append(" = RecipeDataLoader.fetch_from_eventlog_one(spark, '")
                 .append(scn.getElDbname()).append("','")
                 .append(messageId).append("','")

@@ -40,7 +40,7 @@ def fetch_from_eventlog_one(spark, namespace, message_id, message_columns):
     }"""
 
     messages = spark.read.format("org.apache.spark.sql.execution.datasources.hbase").options(catalog=catalog).load()
-    return messages.filter(messages["message_id"] == message_id).drop(messages["topic"]).drop(messages["message_id"])
+    return messages.filter(messages["message_id"] == message_id).drop(messages["message_type"]).drop(messages["message_id"]).drop(messages["scn_slug"])
 
 def fetch_from_eventlog(spark, namespace, message_type, message_columns):
     '''Fetches messages from the EventLog.
@@ -70,7 +70,7 @@ def fetch_from_eventlog(spark, namespace, message_type, message_columns):
     }"""
 
     messages = spark.read.format("org.apache.spark.sql.execution.datasources.hbase").options(catalog=catalog).load()
-    return messages.filter(messages["topic"] == message_type).drop(messages["topic"]).drop(messages["message_id"])
+    return messages.filter(messages["message_type"] == message_type).drop(messages["message_type"]).drop(messages["message_id"]).drop(messages["scn_slug"])
 
 def fetch_from_master_data(spark, dimension_tables_url, username, password, table):
     '''Fetches master data from a Dimension table.
@@ -104,8 +104,9 @@ def save_result_to_kpidb(kpi_db_url, username, password, kpi_table, message, mes
         'password': password,
     }
     columns = message_columns.replace(" ", "").replace('[','').replace(']','').split(',')
-    columns.remove("message")
-    columns.remove("topic")
+    columns.remove("payload")
+    columns.remove("message_type")
+    columns.remove("scn_slug")
     columns_str = ','+','.join(columns)
     fields = []
     message_data = message.collect()[0]

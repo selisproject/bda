@@ -72,8 +72,8 @@ public class PubSubMessageHandler {
         }
 
         List<KeyValue> entries = new LinkedList<>();
-        entries.add(new KeyValue("topic", messageType));
-        entries.add(new KeyValue("message", payload));
+        entries.add(new KeyValue("message_type", messageType));
+        entries.add(new KeyValue("payload", payload));
         // parse payload from clms adapter
         //value = payload.replaceAll("=", "\":\"").replaceAll("\\s+", "").replaceAll(":\"\\[", ":[").replaceAll("\\{", "{\"").replaceAll(",", "\",\"").replaceAll("}", "\"}").replaceAll("}\",\"\\{", "},{").replaceAll("]\",", "],");
         //JsonObject payloadjson = new JsonParser().parse(value).getAsJsonObject();
@@ -82,7 +82,7 @@ public class PubSubMessageHandler {
         //    try {
         //        entries.add(new KeyValue(field.getKey(), field.getValue().getAsString()));
         //    } catch (Exception e) {
-        //        entries.add(new KeyValue("message", "{\"" + field.getKey() + "\": " + field.getValue() + "}"));
+        //        entries.add(new KeyValue("payload", "{\"" + field.getKey() + "\": " + field.getValue() + "}"));
         //    }
         //}
 
