@@ -87,13 +87,13 @@ public class PublicClientBackend {
     }
 
 
-    public List<String> getRoles(String userId, String authorizationToken) {
-        String POST_URL = authServerUrl + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings";
+    public List<String> getRermissions(String authorizationToken) {
+        String POST_URL = "http://api:8080/userP?token="+authorizationToken; //authServerUrl + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings";
 
         HttpClient httpclient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(POST_URL);
         httpGet.setHeader("Content-Type", "application/json");
-        httpGet.setHeader("Authorization", "bearer " + authorizationToken);
+        //httpGet.setHeader("Authorization", "bearer " + authorizationToken);
 
 
         //Execute and get the response.
@@ -113,8 +113,10 @@ public class PublicClientBackend {
 
         }
 
-        JSONObject responseObject = new JSONObject(results);
+        JSONObject permissions = new JSONObject(results);
 
+	
+	/*
         JSONArray realmMappings = (JSONArray) responseObject.get("realmMappings");
 
         List<String> roles = new ArrayList<>();
@@ -122,8 +124,8 @@ public class PublicClientBackend {
             JSONObject asJsonObj = (JSONObject) obj;
             roles.add((String) asJsonObj.get("name"));
         }
-
-        return roles;
+*/
+        return permissions;
 
     }
 
