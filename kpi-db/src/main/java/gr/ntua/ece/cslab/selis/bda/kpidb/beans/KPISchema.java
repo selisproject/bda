@@ -28,12 +28,14 @@ public class KPISchema {
     public KPISchema(JSONObject msgFormat) {
         this.columnNames = new ArrayList<>();
         this.columnTypes = new ArrayList<>();
-        JSONObject schema = msgFormat.getJSONObject("payload");
-        Iterator<String> columns = schema.keys();
+
+        Iterator<String> columns = msgFormat.keys();
         while (columns.hasNext()) {
             String name = columns.next();
-            this.columnNames.add(name);
-            this.columnTypes.add(new KeyValue(name, schema.getString(name)));
+            if (!name.matches("message_type") && !name.matches("scn_slug") && !name.matches("payload")) {
+                this.columnNames.add(name);
+                this.columnTypes.add(new KeyValue(name, msgFormat.getString(name)));
+            }
         }
         this.columnNames.add("result");
         this.columnTypes.add(new KeyValue("result", "jsonb"));

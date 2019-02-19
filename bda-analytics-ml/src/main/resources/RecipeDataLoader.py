@@ -116,10 +116,10 @@ def save_result_to_kpidb(kpidb_host, kpidb_port, kpidb_name, username, password,
 
     query = KPI_DB_QUERY.format(
         kpi_table,
-        '',#columns_str,
+        columns_str,
         datetime.now(),
         json.dumps(result),
-        ''#fields_str
+        fields_str
     )
 
     try:
