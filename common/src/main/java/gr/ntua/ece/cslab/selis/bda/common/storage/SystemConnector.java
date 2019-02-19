@@ -173,9 +173,12 @@ public class SystemConnector {
             throws UnsupportedOperationException, SystemConnectorException {
 
         String scnSlug = scn.getSlug();
-        getDTconnector(scnSlug).close();
-        getELconnector(scnSlug).close();
-        getKPIconnector(scnSlug).close();
+        if (dtConnectors.containsKey(scnSlug))
+            getDTconnector(scnSlug).close();
+        if (elConnectors.containsKey(scnSlug))
+            getELconnector(scnSlug).close();
+        if (kpiConnectors.containsKey(scnSlug))
+            getKPIconnector(scnSlug).close();
 
         ConnectorFactory.dropDatabase(
                 configuration.storageBackend.getDimensionTablesURL(),
