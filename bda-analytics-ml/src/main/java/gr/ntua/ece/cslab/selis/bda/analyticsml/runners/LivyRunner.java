@@ -5,6 +5,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionLanguage;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
@@ -145,7 +146,8 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         builder.append("result = ").append(recipe_library).append(".run(spark, ").append(arguments).append("); ");
         if (this.job.isJobResultPersist()){
             builder.append("RecipeDataLoader.save_result_to_kpidb('")
-                    //.append(configuration.kpiBackend.getDbUrl())
+                   .append(PostgresqlConnector.getPostgresConnectionHost(configuration.kpiBackend.getDbUrl())).append("','")
+                   .append(PostgresqlConnector.getPostgresConnectionPort(configuration.kpiBackend.getDbUrl())).append("','")
                    .append(scn.getKpiDbname()).append("','")
                    .append(configuration.kpiBackend.getDbUsername()).append("','")
                    .append(configuration.kpiBackend.getDbPassword()).append("','")

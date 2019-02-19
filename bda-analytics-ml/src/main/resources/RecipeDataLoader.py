@@ -87,7 +87,7 @@ def fetch_from_master_data(spark, dimension_tables_url, username, password, tabl
         properties={'user':username,'password':password},
         table=query)
 
-def save_result_to_kpidb(kpi_db_url, username, password, kpi_table, message, message_columns, result):
+def save_result_to_kpidb(kpidb_host, kpidb_port, kpidb_name, username, password, kpi_table, message, message_columns, result):
     '''Connects to KPI DB and stores the `results_list`.
 
     TODO: documentation.
@@ -97,9 +97,9 @@ def save_result_to_kpidb(kpi_db_url, username, password, kpi_table, message, mes
     '''
 
     KPI_DB_SETTINGS = {
-        'dbname': kpi_db_url,
-        'host': 'selis-postgres',
-        'port': '5432',
+        'dbname': kpidb_name,
+        'host': kpidb_host,
+        'port': kpidb_port,
         'user': username,
         'password': password,
     }
