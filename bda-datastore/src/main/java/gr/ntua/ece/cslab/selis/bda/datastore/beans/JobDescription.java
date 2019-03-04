@@ -21,56 +21,61 @@ public class JobDescription implements Serializable {
     private String name;
     private String description;
     private boolean active;
-    private int messageTypeId, recipeId;
-    private String job_type;
+    private int messageTypeId;
+    private int recipeId;
+    private String jobType;
+    private boolean jobResultPersist;
 
     private boolean exists = false;
 
     private final static String CREATE_JOBS_TABLE_QUERY =
         "CREATE TABLE metadata.jobs ( " +
-        "id              SERIAL PRIMARY KEY, " +
-        "name            VARCHAR(64) NOT NULL UNIQUE, " +
-        "description     VARCHAR(256), " +
-        "message_type_id INTEGER REFERENCES metadata.message_type(id), " +
-        "recipe_id       INTEGER REFERENCES metadata.recipes(id), " +
-        "job_type        VARCHAR(20), " +
-        "active          BOOLEAN DEFAULT(true) " +
+        "id                 SERIAL PRIMARY KEY, " +
+        "name               VARCHAR(64) NOT NULL UNIQUE, " +
+        "description        VARCHAR(256), " +
+        "message_type_id    INTEGER REFERENCES metadata.message_type(id), " +
+        "recipe_id          INTEGER REFERENCES metadata.recipes(id), " +
+        "job_type           VARCHAR(20), " +
+        "job_result_persist BOOLEAN NOT NULL," +
+        "active             BOOLEAN DEFAULT(true) " +
         ");";
 
     private final static String JOBS_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist " +
         "FROM metadata.jobs";
 
     private final static String ACTIVE_JOBS_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist " +
         "FROM metadata.jobs " +
         "WHERE active = true;";
 
     private final static String GET_JOB_BY_ID_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist " +
         "FROM metadata.jobs " +
         "WHERE id = ?;";
 
     private final static String GET_JOB_BY_MESSAGE_ID_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist " +
         "FROM metadata.jobs " +
         "WHERE message_type_id = ?;";
 
     private final static String INSERT_JOB_QUERY =
-        "INSERT INTO metadata.jobs (name, description, active, message_type_id, recipe_id, job_type) " +
-        "VALUES (?, ?, ?, ?, ?, ?) " +
+        "INSERT INTO metadata.jobs (name, description, active, message_type_id, recipe_id, job_type, job_result_persist) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?) " +
         "RETURNING id;";
 
     public JobDescription() { }
 
     public JobDescription(String name, String description, boolean active,
-                          int messageTypeId, int recipeId, String job_type) {
+                          int messageTypeId, int recipeId, String jobType,
+                          boolean jobResultPersist) {
         this.name = name;
         this.description = description;
         this.active = active;
         this.messageTypeId = messageTypeId;
         this.recipeId = recipeId;
-        this.job_type = job_type;
+        this.jobType = jobType;
+        this.jobResultPersist = jobResultPersist;
     }
 
     public String getName() {
@@ -116,13 +121,17 @@ public class JobDescription implements Serializable {
         this.recipeId = recipeId;
     }
 
-    public String getJob_type() {
-        return job_type;
+    public String getJobType() {
+        return jobType;
     }
 
-    public void setJob_type(String job_type) {
-        this.job_type = job_type;
+    public void setJobType(String jobType) {
+        this.jobType = jobType;
     }
+
+    public boolean isJobResultPersist() { return jobResultPersist; }
+
+    public void setJobResultPersist(boolean jobResultPersist) { this.jobResultPersist = jobResultPersist; }
 
     @Override
     public String toString() {
@@ -132,6 +141,8 @@ public class JobDescription implements Serializable {
                 ", active=" + this.active +
                 ", messageTypeId=" + this.messageTypeId +
                 ", recipeId=" + this.recipeId +
+                ", jobType=" + this.jobType +
+                ", jobResultPersist=" + this.jobResultPersist +
                 '}';
     }
 
@@ -155,7 +166,8 @@ public class JobDescription implements Serializable {
                     resultSet.getBoolean("active"),
                     resultSet.getInt("message_type_id"),
                     resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type")
+                    resultSet.getString("job_type"),
+                    resultSet.getBoolean("job_result_persist")
                 );
 
                 job.id = resultSet.getInt("id");
@@ -191,7 +203,8 @@ public class JobDescription implements Serializable {
                     resultSet.getBoolean("active"),
                     resultSet.getInt("message_type_id"),
                     resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type")
+                    resultSet.getString("job_type"),
+                    resultSet.getBoolean("job_result_persist")
                 );
 
                 job.id = resultSet.getInt("id");
@@ -227,7 +240,8 @@ public class JobDescription implements Serializable {
                     resultSet.getBoolean("active"),
                     resultSet.getInt("message_type_id"),
                     resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type")
+                    resultSet.getString("job_type"),
+                    resultSet.getBoolean("job_result_persist")
                 );
 
                 job.id = resultSet.getInt("id");
@@ -262,7 +276,8 @@ public class JobDescription implements Serializable {
                         resultSet.getBoolean("active"),
                         resultSet.getInt("message_type_id"),
                         resultSet.getInt("recipe_id"),
-                        resultSet.getString("job_type")
+                        resultSet.getString("job_type"),
+                        resultSet.getBoolean("job_result_persist")
                 );
 
                 job.id = resultSet.getInt("id");
@@ -292,7 +307,8 @@ public class JobDescription implements Serializable {
             statement.setBoolean(3, this.active);
             statement.setInt(4, this.messageTypeId);
             statement.setInt(5, this.recipeId);
-            statement.setString(6, this.job_type);
+            statement.setString(6, this.jobType);
+            statement.setBoolean(7, this.jobResultPersist);
 
             try {
                 ResultSet resultSet = statement.executeQuery();

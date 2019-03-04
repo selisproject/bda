@@ -30,8 +30,7 @@ public class LocalRunner extends ArgumentParser implements Runnable {
             }
 
             ProcessBuilder pb = new ProcessBuilder(Arrays.asList(
-                    engine.getEngine_path(), recipe.getExecutablePath(), messageId,
-                    recipe.getArgs()));
+                    engine.getEngine_path(), recipe.getExecutablePath(), messageId));
 
             //File out = new File("/results/" + recipe.getName() + ".out");
             //pb.redirectError(ProcessBuilder.Redirect.to(out));

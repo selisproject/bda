@@ -6,10 +6,13 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector
 
 import java.io.Serializable;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.google.gson.JsonParser;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -64,12 +67,16 @@ public class MessageType implements Serializable {
         this.active = active;
     }
 
-    public String getFormat() {
-        return format;
-    }
+    public String getFormat() { return format; }
 
     public void setFormat(String format) {
         this.format = format;
+    }
+
+    public List<String> getMessageColumns() {
+        List<String> columns = new ArrayList<>();
+        columns.addAll(new JsonParser().parse(this.format).getAsJsonObject().keySet());
+        return columns;
     }
 
     @Override

@@ -80,12 +80,12 @@ public class StorageBackend {
         for (String column : fields)
             if (!msg.containsKey(column))
                 msg.put(column, "null");
-        msg.put("message", json.toJSONString());
+        msg.put("payload", json.toJSONString());
         msg.put("event_timestamp", String.valueOf(LocalDateTime.now()));
 
-        if (msg.containsKey("message") && msg.containsKey("event_type") && msg.size() == 3)
+        if (msg.containsKey("payload") && msg.containsKey("message_type") && msg.containsKey("scn_slug") && msg.size() == 4)
             throw new Exception("Message does not contain any foreign keys.");
-        else if (json.isEmpty() || !msg.containsKey("event_type") || msg.size() < 3)
+        else if (json.isEmpty() || !msg.containsKey("message_type") || msg.size() < 4)
             throw new Exception("Message contains strange event format. Append aborted.");*/
         return ELconnector.put(message);
     }

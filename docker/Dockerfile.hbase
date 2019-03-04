@@ -19,7 +19,7 @@ RUN mkdir -p \
     /bootstrap-hbase.d
 
 # Download, install zookeeper.
-RUN curl -L ${ZOOKEEPER_URL} | tar -xz --strip=1 -C ${ZOOKEEPER_PREFIX}
+RUN curl -k -L ${ZOOKEEPER_URL} | tar -xz --strip=1 -C ${ZOOKEEPER_PREFIX}
 
 # Download, install hbase.
 RUN curl -L ${HBASE_URL} | tar -xz --strip=1 -C ${HBASE_PREFIX}

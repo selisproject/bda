@@ -4,9 +4,9 @@ FROM selis-hadoop-image:latest
 ARG HADOOP_PREFIX=/usr/local/hadoop
 
 # Specify spark resources.
-ARG SPARK_VERSION=2.3.1
+ARG SPARK_VERSION=2.3.2
 ARG SPARK_PREFIX=/usr/local/spark
-ARG SPARK_URL=https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz
+ARG SPARK_URL=https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop2.7.tgz
 
 # Install general packages.
 RUN apt-get update && apt-get install --yes --no-install-recommends python3 python3-pip  python3-setuptools && \
@@ -22,6 +22,7 @@ RUN curl -L ${SPARK_URL} | tar -xz --strip=1 -C ${SPARK_PREFIX}
 # Add configuration files.
 ADD ./bootstrap/spark/core-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
 ADD ./bootstrap/spark/yarn-site.xml "${HADOOP_PREFIX}/etc/hadoop/"
+ADD ./bootstrap/spark/hbase-site.xml "${SPARK_PREFIX}/conf/"
 
 # Set yarn environment variables.
 ENV HADOOP_YARN_HOME   "${HADOOP_PREFIX}"

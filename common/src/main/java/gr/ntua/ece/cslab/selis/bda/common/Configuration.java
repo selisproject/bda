@@ -96,12 +96,16 @@ public class Configuration {
         private String sparkMasterURL;
         private String sparkDeployMode;
         private String sparkConfJars;
+        private String sparkConfPackages;
+        private String sparkConfRepositories;
         private String sparkConfDriverMemory;
         private String sparkConfExecutorCores;
         private String sparkConfExecutorMemory;
 
         private String recipeStorageLocation;
         private String recipeStorageType;
+
+        private String livyURL;
 
         public ExecutionEngine(){}
 
@@ -113,6 +117,10 @@ public class Configuration {
 
         public String getSparkConfJars() { return sparkConfJars; }
 
+        public String getSparkConfPackages() { return sparkConfPackages; }
+
+        public String getSparkConfRepositories() { return sparkConfRepositories; }
+
         public String getSparkConfDriverMemory() { return sparkConfDriverMemory; }
 
         public String getSparkConfExecutorCores() { return sparkConfExecutorCores; }
@@ -122,6 +130,8 @@ public class Configuration {
         public String getRecipeStorageLocation() { return recipeStorageLocation; }
 
         public String getRecipeStorageType() { return recipeStorageType; }
+
+        public String getLivyURL() { return livyURL; }
     }
     public class PubSubServer {
         private String authHash, certificateLocation;
@@ -260,11 +270,14 @@ public class Configuration {
         conf.execEngine.sparkMasterURL = properties.getProperty("spark.master.url");
         conf.execEngine.sparkDeployMode = properties.getProperty("spark.deploy_mode");
         conf.execEngine.sparkConfJars = properties.getProperty("spark.conf.jars");
+        conf.execEngine.sparkConfPackages = properties.getProperty("spark.conf.packages");
+        conf.execEngine.sparkConfRepositories = properties.getProperty("spark.conf.repositories");
         conf.execEngine.sparkConfDriverMemory = properties.getProperty("spark.conf.driver_memory");
         conf.execEngine.sparkConfExecutorCores = properties.getProperty("spark.conf.executor_cores");
         conf.execEngine.sparkConfExecutorMemory = properties.getProperty("spark.conf.executor_memory");
         conf.execEngine.recipeStorageLocation = properties.getProperty("engines.recipe.storage.prefix");
         conf.execEngine.recipeStorageType = properties.getProperty("engines.recipe.storage.type");
+        conf.execEngine.livyURL = properties.getProperty("spark.livy.url");
 
         configuration = conf;
 

@@ -1,6 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.analyticsml.runners;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 
 public class RunnerFactory {
@@ -15,13 +17,19 @@ public class RunnerFactory {
 	}
 	public Runnable getRunner(Recipe recipe,
 							  ExecutionEngine engine,
-							  String message,
+							  MessageType msgInfo,
+							  String messageId,
+                              JobDescription job,
                               String scnSlug
-	) {
+	) throws Exception {
 
 		if (engine.isLocal_engine())
-			return new LocalRunner(recipe, engine, message, scnSlug);
+			return new LocalRunner(recipe, engine, messageId, scnSlug);
+		else if (engine.getName().matches("spark"))
+			return new SparkRunner(recipe, engine, messageId, scnSlug);
+		else if (engine.getName().matches("livy"))
+			return new LivyRunner(recipe, engine, msgInfo, messageId, job, scnSlug);
 		else
-			return new SparkRunner(recipe, engine, message, scnSlug);
+			throw new Exception("Unknown engine type. Could not relate to existing runners.");
 	}
 }

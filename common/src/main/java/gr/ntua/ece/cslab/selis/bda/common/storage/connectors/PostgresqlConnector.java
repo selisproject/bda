@@ -145,6 +145,26 @@ public class PostgresqlConnector implements Connector {
         return connection;
     }
 
+    /**
+     * Extracts the port from a PostgresSQL Connection URL.
+     */
+    public static String getPostgresConnectionPort(String fs) {
+        String[] tokens = fs.split(":");
+
+        tokens = tokens[tokens.length - 1].split("/");
+
+        return tokens[0];
+    }
+
+    /**
+     * Extracts the host from a PostgreSQL Connection URL.
+     */
+    public static String getPostgresConnectionHost(String fs) {
+        String[] tokens = fs.split("://")[1].split(":");
+
+        return tokens[0];
+    }
+
     public String getUsername() {
         return username;
     }
