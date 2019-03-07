@@ -1,7 +1,7 @@
 FROM selis-hadoop-image:latest
 
 # Specify zookeeper/hbase resources.
-ARG ZOOKEEPER_VERSION=3.4.10
+ARG ZOOKEEPER_VERSION=3.4.13
 ARG HBASE_VERSION=1.2.6
 ARG ZOOKEEPER_PREFIX=/usr/local/zookeeper
 ARG HBASE_PREFIX=/usr/local/hbase
