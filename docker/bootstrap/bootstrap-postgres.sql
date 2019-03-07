@@ -58,7 +58,7 @@ CREATE TABLE connectors (
     port               VARCHAR(5) NOT NULL,
     username           VARCHAR(256),
     encrypted_password VARCHAR(128),
-    metadata           JSONB,
+    metadata           TEXT,
     is_external        BOOLEAN DEFAULT(false)
 );
 
@@ -112,7 +112,7 @@ CREATE TABLE connectors (
     port               VARCHAR(5) NOT NULL,
     username           VARCHAR(256),
     encrypted_password VARCHAR(128),
-    metadata           JSONB,
+    metadata           TEXT,
     is_external        BOOLEAN DEFAULT(false)
 );
 
