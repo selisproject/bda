@@ -29,14 +29,18 @@ public class MessageType implements Serializable {
     private String description;
     private boolean active;
     private String format;
+    private Integer externalConnectorId;
+    private String metadata;
 
     public MessageType() { }
 
-    public MessageType(String name, String description, boolean active, String format) {
+    public MessageType(String name, String description, boolean active, String format, Integer externalConnectorId, String metadata) {
         this.name = name;
         this.description = description;
         this.active = active;
         this.format = format;
+        this.externalConnectorId = externalConnectorId;
+        this.metadata = metadata;
     }
 
     public Integer getId() {
@@ -73,6 +77,14 @@ public class MessageType implements Serializable {
         this.format = format;
     }
 
+    public Integer getExternalConnectorId() { return externalConnectorId; }
+
+    public void setExternalConnectorId(Integer externalConnectorId) { this.externalConnectorId = externalConnectorId; }
+
+    public String getMetadata() { return metadata; }
+
+    public void setMetadata(String metadata) { this.metadata = metadata; }
+
     public List<String> getMessageColumns() {
         List<String> columns = new ArrayList<>();
         columns.addAll(new JsonParser().parse(this.format).getAsJsonObject().keySet());
@@ -86,20 +98,24 @@ public class MessageType implements Serializable {
                 ", description='" + description + '\'' +
                 ", active=" + active +
                 ", format='" + format + '\'' +
+                ", external_connector_id='" + externalConnectorId + '\'' +
+                ", metadata='" + metadata + '\'' +
                 '}';
     }
 
     private final static String CREATE_MESSAGE_TYPES_TABLE_QUERY =
         "CREATE TABLE metadata.message_type ( " +
-        "id          SERIAL PRIMARY KEY, " +
-        "name        VARCHAR(64) NOT NULL UNIQUE, " +
-        "description VARCHAR(256), " +
-        "active      BOOLEAN DEFAULT(true), " +
-        "format      VARCHAR " +
+        "id                    SERIAL PRIMARY KEY, " +
+        "name                  VARCHAR(64) NOT NULL UNIQUE, " +
+        "description           VARCHAR(256), " +
+        "active                BOOLEAN DEFAULT(true), " +
+        "format                VARCHAR, " +
+        "external_connector_id INTEGER, " +
+        "metadata              VARCHAR(256)" +
         ");";
 
     private final static String MESSAGE_TYPES_QUERY =
-        "SELECT id, name, description, active, format " +
+        "SELECT id, name, description, active, format, external_connector_id, metadata " +
         "FROM metadata.message_type;";
 
     private final static String ACTIVE_MESSAGE_NAMES_QUERY =
@@ -108,7 +124,7 @@ public class MessageType implements Serializable {
         "WHERE active = true;";
 
     private final static String GET_MESSAGE_BY_NAME_QUERY =
-        "SELECT id, name, description, active, format " +
+        "SELECT id, name, description, active, format, external_connector_id, metadata " +
         "FROM metadata.message_type " +
         "WHERE name = ?;";
 
@@ -118,8 +134,8 @@ public class MessageType implements Serializable {
         "WHERE id = ?;";
 
     private final static String INSERT_MESSAGE_QUERY =
-        "INSERT INTO metadata.message_type (name,description,active,format) " +
-        "VALUES (?, ?, ?, ?) " +
+        "INSERT INTO metadata.message_type (name,description,active,format,external_connector_id,metadata) " +
+        "VALUES (?, ?, ?, ?, ?, ?) " +
         "RETURNING id;";
 
     public static List<MessageType> getMessageTypes(String slug) throws SQLException, SystemConnectorException {
@@ -139,7 +155,9 @@ public class MessageType implements Serializable {
                     resultSet.getString("name"),
                     resultSet.getString("description"),
                     resultSet.getBoolean("active"),
-                    resultSet.getString("format")
+                    resultSet.getString("format"),
+                    resultSet.getInt("external_connector_id"),
+                    resultSet.getString("metadata")
                 );
 
                 messageType.id = resultSet.getInt("id");
@@ -189,7 +207,9 @@ public class MessageType implements Serializable {
                         resultSet.getString("name"),
                         resultSet.getString("description"),
                         resultSet.getBoolean("active"),
-                        resultSet.getString("format")
+                        resultSet.getString("format"),
+                        resultSet.getInt("external_connector_id"),
+                        resultSet.getString("metadata")
                 );
 
                 msg.id = resultSet.getInt("id");
@@ -218,7 +238,9 @@ public class MessageType implements Serializable {
                         resultSet.getString("name"),
                         resultSet.getString("description"),
                         resultSet.getBoolean("active"),
-                        resultSet.getString("format")
+                        resultSet.getString("format"),
+                        resultSet.getInt("external_connector_id"),
+                        resultSet.getString("metadata")
                 );
 
                 msg.id = resultSet.getInt("id");
@@ -244,6 +266,11 @@ public class MessageType implements Serializable {
         statement.setString(2, this.description);
         statement.setBoolean(3, this.active);
         statement.setString(4, this.format);
+        if (this.externalConnectorId != null)
+            statement.setInt(5, this.externalConnectorId);
+        else
+            statement.setNull(5, Types.INTEGER);
+        statement.setString(6, this.metadata);
 
         try {
             ResultSet resultSet = statement.executeQuery();

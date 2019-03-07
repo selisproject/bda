@@ -1,0 +1,9 @@
+{
+  "name" : "connector name",
+  "address" : "hostname",
+  "port" : 20000,
+  "username" : "",
+  "password" : "",
+  "metadata" : "",
+  "isExternal" : false
+}
