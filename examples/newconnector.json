@@ -4,6 +4,6 @@
   "port" : 20000,
   "username" : "",
   "password" : "",
-  "metadata" : "",
+  "metadata" : "{}",
   "isExternal" : false
 }

@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
-@XmlRootElement(name = "ExecutionEngine")
+@XmlRootElement(name = "Connector")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class Connector implements Serializable {
     private transient int id;
@@ -29,7 +29,7 @@ public class Connector implements Serializable {
 
     private final static String INSERT_CONNECTOR_QUERY =
             "INSERT INTO connectors (name, address, port, username, encrypted_password, metadata, is_external) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?) " +
+            "VALUES (?, ?, ?, ?, ?, ?::json, ?) " +
             "RETURNING id;";
 
     private final static String GET_CONNECTOR_BY_ID_QUERY =
