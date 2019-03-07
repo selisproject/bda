@@ -38,7 +38,7 @@ public class EntrypointTest extends AbstractTestConnector  {
         jobResource = new JobResource();
         datastoreResource = new DatastoreResource();
 
-        scnDbInfo = new ScnDbInfo(SCNslug,"LLtest","","lltestdb", "selis-pubsub",20000);
+        scnDbInfo = new ScnDbInfo(SCNslug,"LLtest","","lltestdb", 1);
         // datastoreResource.createNewScn(null, scnDbInfo);
     }
 

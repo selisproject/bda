@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
 
@@ -87,9 +88,10 @@ public class PubSubConnector {
             if (!subscriberRunners.containsKey(SCNslug)) {
                 try {
                     ScnDbInfo scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
+                    Connector conn = Connector.getConnectorInfoById(scn.getConnectorId());
                     PubSubSubscriber subscriber = new PubSubSubscriber(configuration.pubsub.getAuthHash(),
-                            scn.getPubsubaddress(),
-                            scn.getPubsubport(),
+                            conn.getAddress(),
+                            conn.getPort(),
                             configuration.pubsub.getCertificateLocation(),
                             scn.getSlug());
                     subscriber.reloadSubscriptions(subscriptions);

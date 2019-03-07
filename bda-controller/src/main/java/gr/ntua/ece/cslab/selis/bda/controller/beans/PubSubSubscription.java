@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.beans;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
@@ -54,18 +55,20 @@ public class PubSubSubscription implements Serializable {
 
     public static PubSubSubscription getMessageSubscriptions(String SCNslug) throws SystemConnectorException {
         ScnDbInfo scn;
+        Connector connector;
         PubSubSubscription subscriptions = new PubSubSubscription();
         subscriptions.setScnSlug(SCNslug);
 
         try {
             scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
+            connector = Connector.getConnectorInfoById(scn.getConnectorId());
         } catch (SQLException e){
             return subscriptions;
         } catch (SystemConnectorException e) {
             throw e;
         }
-        String pubsubhost = scn.getPubsubaddress();
-        Integer pubsubport = scn.getPubsubport();
+        String pubsubhost = connector.getAddress();
+        Integer pubsubport = connector.getPort();
 
         List<Tuple> messageTypeNames = new Vector<>();
         for (String messageType: MessageType.getActiveMessageTypeNames(SCNslug)) {
