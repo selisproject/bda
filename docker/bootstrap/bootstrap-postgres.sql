@@ -14,13 +14,12 @@ CREATE DATABASE selis_test_db WITH OWNER selis;
 \connect selis_bda_db
 
 CREATE TABLE scn_db_info (
-    id          SERIAL PRIMARY KEY,
-    slug        VARCHAR(64) NOT NULL UNIQUE,
-    name        VARCHAR(128) NOT NULL,
-    description VARCHAR(256),
-    dbname      VARCHAR(64) NOT NULL UNIQUE,
-    pubsubaddress VARCHAR(256) NOT NULL,
-    pubsubport  VARCHAR(5) NOT NULL
+    id           SERIAL PRIMARY KEY,
+    slug         VARCHAR(64) NOT NULL UNIQUE,
+    name         VARCHAR(128) NOT NULL,
+    description  VARCHAR(256),
+    dbname       VARCHAR(64) NOT NULL UNIQUE,
+    connector_id INTEGER
 );
 
 ALTER TABLE scn_db_info OWNER TO selis;
@@ -51,18 +50,30 @@ ALTER TABLE execution_languages OWNER TO selis;
 INSERT INTO execution_languages (name)
     VALUES
 	('python');
+
+CREATE TABLE connectors (
+    id                 SERIAL PRIMARY KEY,
+    name               VARCHAR(64) NOT NULL UNIQUE,
+    address            VARCHAR(256) NOT NULL,
+    port               VARCHAR(5) NOT NULL,
+    username           VARCHAR(256),
+    encrypted_password VARCHAR(256),
+    metadata           JSONB,
+    is_external        BOOLEAN DEFAULT(false)
+);
+
+ALTER TABLE connectors OWNER TO selis;
 
 
 \connect selis_test_db
 
 CREATE TABLE scn_db_info (
-    id          SERIAL PRIMARY KEY,
-    slug        VARCHAR(64) NOT NULL UNIQUE,
-    name        VARCHAR(128) NOT NULL,
-    description VARCHAR(256),
-    dbname      VARCHAR(64) NOT NULL UNIQUE,
-    pubsubaddress VARCHAR(256) NOT NULL,
-    pubsubport  VARCHAR(5) NOT NULL
+    id           SERIAL PRIMARY KEY,
+    slug         VARCHAR(64) NOT NULL UNIQUE,
+    name         VARCHAR(128) NOT NULL,
+    description  VARCHAR(256),
+    dbname       VARCHAR(64) NOT NULL UNIQUE,
+    connector_id INTEGER
 );
 
 ALTER TABLE scn_db_info OWNER TO selis;
@@ -93,3 +104,16 @@ ALTER TABLE execution_languages OWNER TO selis;
 INSERT INTO execution_languages (name)
     VALUES
 	('python');
+
+CREATE TABLE connectors (
+    id                 SERIAL PRIMARY KEY,
+    name               VARCHAR(64) NOT NULL UNIQUE,
+    address            VARCHAR(256) NOT NULL,
+    port               VARCHAR(5) NOT NULL,
+    username           VARCHAR(256),
+    encrypted_password VARCHAR(256),
+    metadata           JSONB,
+    is_external        BOOLEAN DEFAULT(false)
+);
+
+ALTER TABLE connectors OWNER TO selis;

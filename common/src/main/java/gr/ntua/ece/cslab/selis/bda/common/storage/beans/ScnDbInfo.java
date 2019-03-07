@@ -23,29 +23,28 @@ public class ScnDbInfo implements Serializable {
     private String name;
     private String description;
     private String dbname;
-    private String pubsubaddress;
-    private Integer pubsubport;
+    private Integer connectorId;
     private transient String dtDbname;
     private transient String elDbname;
     private transient String kpiDbname;
 
     private final static String GET_SCN_QUERY =
-            "SELECT id, slug, name, description, dbname, pubsubaddress, pubsubport " +
+            "SELECT id, slug, name, description, dbname, connector_id " +
                     "FROM scn_db_info;";
 
     private final static String GET_SCN_BY_ID_QUERY =
-        "SELECT id, slug, name, description, dbname, pubsubaddress, pubsubport " +
+        "SELECT id, slug, name, description, dbname, connector_id " +
         "FROM scn_db_info " +
         "WHERE id = ?;";
 
     private final static String GET_SCN_BY_SLUG_QUERY =
-        "SELECT id, slug, name, description, dbname, pubsubaddress, pubsubport " +
+        "SELECT id, slug, name, description, dbname, connector_id " +
         "FROM scn_db_info " +
         "WHERE slug = ?;";
 
     private final static String INSERT_SCN_QUERY =
-        "INSERT INTO scn_db_info (slug, name, description, dbname, pubsubaddress, pubsubport) " +
-        "VALUES (?, ?, ?, ?, ?, ?) " +
+        "INSERT INTO scn_db_info (slug, name, description, dbname, connector_id) " +
+        "VALUES (?, ?, ?, ?, ?) " +
         "RETURNING id;";
 
     private final static String DELETE_SCN_QUERY =
@@ -55,13 +54,12 @@ public class ScnDbInfo implements Serializable {
 
     public ScnDbInfo() { }
 
-    public ScnDbInfo(String slug, String name, String description, String dbname, String pubsubaddress, Integer pubsubport) {
+    public ScnDbInfo(String slug, String name, String description, String dbname, Integer connectorId) {
         this.slug = slug;
         this.name = name;
         this.description = description;
         this.dbname = dbname;
-        this.pubsubaddress = pubsubaddress;
-        this.pubsubport = pubsubport;
+        this.connectorId = connectorId;
         this.dtDbname = dbname + "_dt";
         this.elDbname = dbname + "_el";
         this.kpiDbname = dbname + "_kpi";
@@ -87,10 +85,6 @@ public class ScnDbInfo implements Serializable {
         return this.dbname;
     }
 
-    public String getPubsubaddress() { return this.pubsubaddress; }
-
-    public Integer getPubsubport() { return this.pubsubport; }
-
     public void setSlug(String slug) {
         this.slug = slug;
     }
@@ -103,13 +97,13 @@ public class ScnDbInfo implements Serializable {
         this.description = description;
     }
 
+    public Integer getConnectorId() { return connectorId; }
+
+    public void setConnectorId(Integer connectorId) { this.connectorId = connectorId; }
+
     public void setDbname(String dbname) {
         this.dbname = dbname;
     }
-
-    public void setPubsubaddress(String pubsubaddress) { this.pubsubaddress = pubsubaddress; }
-
-    public void setPubsubport(Integer pubsubport) { this.pubsubport = pubsubport; }
 
     public String getDtDbname() { return dtDbname; }
 
@@ -130,8 +124,7 @@ public class ScnDbInfo implements Serializable {
                 "name='" + name + "', " +
                 "description='" + description + "', " +
                 "dbname='" + dbname + "', " +
-                "pubsubaddress='" + pubsubaddress + "', " +
-                "pubsubport='" + pubsubport + "' " +
+                "connectorId='" + connectorId + "' " +
                 "}";
     }
 
@@ -148,8 +141,7 @@ public class ScnDbInfo implements Serializable {
                 statement.setString(2, this.name);
                 statement.setString(3, this.description);
                 statement.setString(4, this.dbname);
-                statement.setString(5, this.pubsubaddress);
-                statement.setInt(6, this.pubsubport);
+                statement.setInt(5, this.connectorId);
 
                 ResultSet resultSet = statement.executeQuery();
 
@@ -208,8 +200,7 @@ public class ScnDbInfo implements Serializable {
                     resultSet.getString("name"),
                     resultSet.getString("description"),
                     resultSet.getString("dbname"),
-                    resultSet.getString("pubsubaddress"),
-                    resultSet.getInt("pubsubport")
+                    resultSet.getInt("connector_id")
                 );
 
                 scn.id = resultSet.getInt("id");
@@ -240,8 +231,7 @@ public class ScnDbInfo implements Serializable {
                     resultSet.getString("name"),
                     resultSet.getString("description"),
                     resultSet.getString("dbname"),
-                    resultSet.getString("pubsubaddress"),
-                    resultSet.getInt("pubsubport")
+                    resultSet.getInt("connector_id")
                 );
 
                 scn.id = resultSet.getInt("id");
@@ -271,8 +261,7 @@ public class ScnDbInfo implements Serializable {
                         resultSet.getString("name"),
                         resultSet.getString("description"),
                         resultSet.getString("dbname"),
-                        resultSet.getString("pubsubaddress"),
-                        resultSet.getInt("pubsubport")
+                        resultSet.getInt("connector_id")
                 );
 
                 scn.id = resultSet.getInt("id");
