@@ -1,5 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
@@ -34,6 +36,11 @@ public class Connector implements Serializable {
 
     private final static String GET_CONNECTOR_BY_ID_QUERY =
             "SELECT id, name, address, port, username, encrypted_password, metadata, is_external " +
+            "FROM connectors " +
+            "WHERE id = ?;";
+
+    private final static String GET_CONNECTOR_METADATA_BY_ID_QUERY =
+            "SELECT metadata " +
             "FROM connectors " +
             "WHERE id = ?;";
 
@@ -230,4 +237,26 @@ public class Connector implements Serializable {
 
         throw new SQLException("Failed to retrieve Connectors info.");
     }
+
+    public static JsonObject getConnectorPublishMetadataById(int id) throws SQLException, SystemConnectorException {
+        PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
+        Connection connection = connector.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_CONNECTOR_METADATA_BY_ID_QUERY);
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                JsonObject metadata = new JsonParser().parse(resultSet.getString("metadata")).getAsJsonObject();
+                return metadata;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new SQLException("Connector object not found.");
+    }
+
 }

@@ -55,7 +55,7 @@ public class PubSubConnector {
             LOGGER.log(Level.INFO, "Initializing internal PubSub subscribers...");
             try {
                 for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
-                    reloadSubscriptions(scn.getSlug());
+                    reloadSubscriptions(scn.getSlug(), false);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -68,10 +68,10 @@ public class PubSubConnector {
         }
     }
 
-    public void reloadSubscriptions(String SCNslug) {
+    public void reloadSubscriptions(String SCNslug, boolean external) {
         PubSubSubscription subscriptions;
         try {
-            subscriptions = PubSubSubscription.getMessageSubscriptions(SCNslug);
+            subscriptions = PubSubSubscription.getMessageSubscriptions(SCNslug, external);
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING, "Failed to get subscriptions.");

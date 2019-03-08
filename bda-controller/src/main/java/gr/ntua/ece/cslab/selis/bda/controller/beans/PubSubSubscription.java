@@ -22,6 +22,7 @@ public class PubSubSubscription implements Serializable {
     private List<Tuple> subscriptions;
     private String pubSubHostname;
     private Integer pubSubPort;
+    private List<Tuple> metadata;
 
     public PubSubSubscription() {
         this.subscriptions = new Vector<>();
@@ -53,15 +54,21 @@ public class PubSubSubscription implements Serializable {
 
     public void setScnSlug(String scnSlug) { this.scnSlug = scnSlug; }
 
-    public static PubSubSubscription getMessageSubscriptions(String SCNslug) throws SystemConnectorException {
+    public List<Tuple> getMetadata() { return metadata; }
+
+    public void setMetadata(List<Tuple> metadata) { this.metadata = metadata; }
+
+    public static PubSubSubscription getMessageSubscriptions(String SCNslug, Boolean external) throws SystemConnectorException {
         ScnDbInfo scn;
         Connector connector;
+        List<MessageType> messageTypes;
         PubSubSubscription subscriptions = new PubSubSubscription();
         subscriptions.setScnSlug(SCNslug);
 
         try {
             scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
             connector = Connector.getConnectorInfoById(scn.getConnectorId());
+            messageTypes = MessageType.getActiveMessageTypes(SCNslug, external);
         } catch (SQLException e){
             return subscriptions;
         } catch (SystemConnectorException e) {
@@ -71,18 +78,29 @@ public class PubSubSubscription implements Serializable {
         Integer pubsubport = connector.getPort();
 
         List<Tuple> messageTypeNames = new Vector<>();
-        for (String messageType: MessageType.getActiveMessageTypeNames(SCNslug)) {
+        List<Tuple> messagesMetadata = new Vector<>();
+        for (MessageType messageType: messageTypes) {
             Tuple subscription = new Tuple();
             List<KeyValue> rules = new Vector<>();
             rules.add(new KeyValue("scn_slug", SCNslug));
-            rules.add(new KeyValue("message_type", messageType));
+            rules.add(new KeyValue("message_type", messageType.getName()));
             subscription.setTuple(rules);
             messageTypeNames.add(subscription);
+
+            if (!messageType.getDatasource().isEmpty()) {
+                Tuple messageMetadata = new Tuple();
+                List<KeyValue> metadata = new Vector<>();
+                metadata.add(new KeyValue("message_type", messageType.getName()));
+                metadata.add(new KeyValue("data_source", messageType.getDatasource()));
+                messageMetadata.setTuple(metadata);
+                messagesMetadata.add(messageMetadata);
+            }
         }
 
         subscriptions.setSubscriptions(messageTypeNames);
         subscriptions.setPubSubHostname(pubsubhost);
         subscriptions.setPubSubPort(pubsubport);
+        subscriptions.setMetadata(messagesMetadata);
         return subscriptions;
     }
 }

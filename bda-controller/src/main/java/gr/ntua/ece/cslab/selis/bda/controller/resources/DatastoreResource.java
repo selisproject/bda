@@ -121,7 +121,8 @@ public class DatastoreResource {
             ).build();
         }
 
-        PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug());
+        PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), false);
+        PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), true);
 
         return Response.ok(
                 new RequestResponse("OK", "")
