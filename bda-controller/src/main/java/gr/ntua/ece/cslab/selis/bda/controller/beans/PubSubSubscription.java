@@ -87,7 +87,7 @@ public class PubSubSubscription implements Serializable {
             subscription.setTuple(rules);
             messageTypeNames.add(subscription);
 
-            if (!messageType.getDatasource().isEmpty()) {
+            if (!(messageType.getExternalConnectorId() == null) && !(messageType.getDatasource() == null)) {
                 Tuple messageMetadata = new Tuple();
                 List<KeyValue> metadata = new Vector<>();
                 metadata.add(new KeyValue("message_type", messageType.getName()));

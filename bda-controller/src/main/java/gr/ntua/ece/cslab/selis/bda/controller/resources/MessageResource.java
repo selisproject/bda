@@ -45,7 +45,7 @@ public class MessageResource {
             ).build();
         }
 
-        boolean external = !m.getExternalConnectorId().equals(null);
+        boolean external = !(m.getExternalConnectorId() == null);
         PubSubConnector.getInstance().reloadSubscriptions(slug, external);
 
         return Response.ok(
