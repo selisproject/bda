@@ -99,9 +99,11 @@ public class DatastoreResource {
     public Response destroyScn(@QueryParam("scnId") Integer scnId) {
 
         ScnDbInfo scn;
+        Boolean externalConnectors;
 
         try {
             scn = ScnDbInfo.getScnDbInfoById(scnId);
+            externalConnectors = MessageType.checkExternalMessageTypesExist(scn.getSlug());
             StorageBackend.destroyScn(scn);
         } catch (Exception e) {
             e.printStackTrace();
@@ -122,7 +124,8 @@ public class DatastoreResource {
         }
 
         PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), false);
-        //PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), true);
+        if (externalConnectors)
+            PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), true);
 
         return Response.ok(
                 new RequestResponse("OK", "")

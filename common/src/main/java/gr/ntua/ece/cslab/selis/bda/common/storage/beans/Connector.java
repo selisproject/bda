@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
@@ -24,18 +25,16 @@ public class Connector implements Serializable {
     private String name;
     private String address;
     private Integer port;
-    private String username;
-    private String password;
-    private String metadata;
+    private ConnectorMetadata metadata;
     private boolean isExternal;
 
     private final static String INSERT_CONNECTOR_QUERY =
-            "INSERT INTO connectors (name, address, port, username, encrypted_password, metadata, is_external) " +
-            "VALUES (?, ?, ?, ?, ?, ?::json, ?) " +
+            "INSERT INTO connectors (name, address, port, metadata, is_external) " +
+            "VALUES (?, ?, ?, ?::json, ?) " +
             "RETURNING id;";
 
     private final static String GET_CONNECTOR_BY_ID_QUERY =
-            "SELECT id, name, address, port, username, encrypted_password, metadata, is_external " +
+            "SELECT id, name, address, port, metadata, is_external " +
             "FROM connectors " +
             "WHERE id = ?;";
 
@@ -45,19 +44,17 @@ public class Connector implements Serializable {
             "WHERE id = ?;";
 
     private final static String GET_CONNECTOR_QUERY =
-            "SELECT id, name, address, port, username, encrypted_password, metadata, is_external " +
+            "SELECT id, name, address, port, metadata, is_external " +
             "FROM connectors;";
 
     private boolean exists = false;
 
     public Connector(){}
 
-    public Connector(String name, String address, Integer port, String username, String password, String metadata, boolean isExternal) {
+    public Connector(String name, String address, Integer port, ConnectorMetadata metadata, boolean isExternal) {
         this.name = name;
         this.address = address;
         this.port = port;
-        this.username = username;
-        this.password = password;
         this.metadata = metadata;
         this.isExternal = isExternal;
     }
@@ -90,27 +87,11 @@ public class Connector implements Serializable {
         this.port = port;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getMetadata() {
+    public ConnectorMetadata getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(String metadata) {
+    public void setMetadata(ConnectorMetadata metadata) {
         this.metadata = metadata;
     }
 
@@ -128,8 +109,6 @@ public class Connector implements Serializable {
                 "name='" + name + '\'' +
                 ", address='" + address + '\'' +
                 ", port=" + port +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", metadata='" + metadata + '\'' +
                 ", isExternal=" + isExternal +
                 '}';
@@ -147,10 +126,8 @@ public class Connector implements Serializable {
                 statement.setString(1, this.name);
                 statement.setString(2, this.address);
                 statement.setInt(3, this.port);
-                statement.setString(4, this.username);
-                statement.setString(5, this.password);
-                statement.setString(6, this.metadata);
-                statement.setBoolean(7, this.isExternal);
+                statement.setString(4, new Gson().toJson(this.metadata));
+                statement.setBoolean(5, this.isExternal);
 
                 ResultSet resultSet = statement.executeQuery();
 
@@ -186,9 +163,7 @@ public class Connector implements Serializable {
                         resultSet.getString("name"),
                         resultSet.getString("address"),
                         resultSet.getInt("port"),
-                        resultSet.getString("username"),
-                        resultSet.getString("encrypted_password"),
-                        resultSet.getString("metadata"),
+                        new Gson().fromJson(new JsonParser().parse(resultSet.getString("metadata")).getAsJsonObject(), ConnectorMetadata.class),
                         resultSet.getBoolean("is_external")
                 );
 
@@ -219,9 +194,7 @@ public class Connector implements Serializable {
                         resultSet.getString("name"),
                         resultSet.getString("address"),
                         resultSet.getInt("port"),
-                        resultSet.getString("username"),
-                        resultSet.getString("encrypted_password"),
-                        resultSet.getString("metadata"),
+                        new Gson().fromJson(new JsonParser().parse(resultSet.getString("metadata")).getAsJsonObject(), ConnectorMetadata.class),
                         resultSet.getBoolean("is_external")
                 );
 
@@ -236,27 +209,6 @@ public class Connector implements Serializable {
         }
 
         throw new SQLException("Failed to retrieve Connectors info.");
-    }
-
-    public static JsonObject getConnectorPublishMetadataById(int id) throws SQLException, SystemConnectorException {
-        PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
-        Connection connection = connector.getConnection();
-
-        try {
-            PreparedStatement statement = connection.prepareStatement(GET_CONNECTOR_METADATA_BY_ID_QUERY);
-            statement.setInt(1, id);
-
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                JsonObject metadata = new JsonParser().parse(resultSet.getString("metadata")).getAsJsonObject();
-                return metadata;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        throw new SQLException("Connector object not found.");
     }
 
 }

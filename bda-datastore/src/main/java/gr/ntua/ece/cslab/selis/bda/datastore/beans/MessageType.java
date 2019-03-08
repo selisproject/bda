@@ -128,6 +128,11 @@ public class MessageType implements Serializable {
          "FROM metadata.message_type " +
          "WHERE active = true and external_connector_id is not null;";
 
+    private final static String EXIST_ACTIVE_EXTERNAL_MESSAGE_TYPES_QUERY =
+         "SELECT count(*) as num " +
+         "FROM metadata.message_type " +
+         "WHERE active = true and external_connector_id is not null;";
+
     private final static String ACTIVE_MESSAGE_NAMES_QUERY =
         "SELECT name " +
         "FROM metadata.message_type " +
@@ -238,6 +243,26 @@ public class MessageType implements Serializable {
         return messageTypeNames;
     }
 
+    public static Boolean checkExternalMessageTypesExist(String slug) throws SQLException, SystemConnectorException {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(EXIST_ACTIVE_EXTERNAL_MESSAGE_TYPES_QUERY);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                Integer count = resultSet.getInt("num");
+                return (count > 0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new SQLException("Malformed query to find messages with external connectors.");
+    }
+
     public static MessageType getMessageByName(String slug, String name) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
@@ -266,7 +291,7 @@ public class MessageType implements Serializable {
             e.printStackTrace();
         }
 
-        throw new SQLException("JobDescription object not found.");
+        throw new SQLException("MessageType object not found.");
     }
 
     public static MessageType getMessageById(String slug, int id) throws SQLException, SystemConnectorException {

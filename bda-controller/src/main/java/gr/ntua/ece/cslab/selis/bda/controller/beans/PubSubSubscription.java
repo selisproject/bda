@@ -79,6 +79,15 @@ public class PubSubSubscription implements Serializable {
 
         List<Tuple> messageTypeNames = new Vector<>();
         List<Tuple> messagesMetadata = new Vector<>();
+        if (external) {
+            Tuple messageMetadata = new Tuple();
+            List<KeyValue> metadata = new Vector<>();
+            metadata.add(new KeyValue("username", connector.getMetadata().getUsername()));
+            metadata.add(new KeyValue("password", connector.getMetadata().getPassword()));
+            messageMetadata.setTuple(metadata);
+            messagesMetadata.add(messageMetadata);
+        }
+
         for (MessageType messageType: messageTypes) {
             Tuple subscription = new Tuple();
             List<KeyValue> rules = new Vector<>();

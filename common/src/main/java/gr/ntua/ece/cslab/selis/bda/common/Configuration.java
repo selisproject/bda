@@ -26,6 +26,7 @@ public class Configuration {
     public final ExecutionEngine execEngine;
     public final PubSubServer pubsub;
     public final PubSubSubscriber subscriber;
+    public final PubSubSubscriber externalSubscriber;
     public final AuthClientBackend authClientBackend;
     public final KPIBackend kpiBackend;
 
@@ -190,6 +191,7 @@ public class Configuration {
         this.storageBackend = new StorageBackend();
         this.pubsub = new PubSubServer();
         this.subscriber = new PubSubSubscriber();
+        this.externalSubscriber = new PubSubSubscriber();
         this.authClientBackend = new AuthClientBackend();
         this.kpiBackend = new KPIBackend();
         this.execEngine = new ExecutionEngine();
@@ -253,6 +255,7 @@ public class Configuration {
 
         // Pub/Sub Subscriber Configuration.
         conf.subscriber.url = properties.getProperty("pubsub.subscriber.url");
+        conf.externalSubscriber.url = properties.getProperty("pubsub.external.subscriber.url");
 
         // Keycloak Auth Configuration.
         conf.authClientBackend.authServerUrl = properties.getProperty("keycloak.bda.url");

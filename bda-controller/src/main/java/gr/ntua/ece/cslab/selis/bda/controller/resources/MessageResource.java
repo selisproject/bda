@@ -45,8 +45,8 @@ public class MessageResource {
             ).build();
         }
 
-        boolean external = !(m.getExternalConnectorId() == null);
-        PubSubConnector.getInstance().reloadSubscriptions(slug, external);
+        boolean externalConnector = !(m.getExternalConnectorId() == null);
+        PubSubConnector.getInstance().reloadSubscriptions(slug, externalConnector);
 
         return Response.ok(
                 new RequestResponse("OK", details)
@@ -109,11 +109,11 @@ public class MessageResource {
     @GET
     @Path("/reload")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<PubSubSubscription> reload(@QueryParam("external") boolean external) {
+    public List<PubSubSubscription> reload(@QueryParam("external") boolean externalConnector) {
         List subscriptions = new Vector();
         try {
             for (ScnDbInfo scn: ScnDbInfo.getScnDbInfo())
-                subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug(), external));
+                subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug(), externalConnector));
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING, "Failed to get SCN info. Aborting reload of all subscriptions.");

@@ -4,6 +4,7 @@ import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
@@ -56,6 +57,8 @@ public class PubSubConnector {
             try {
                 for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
                     reloadSubscriptions(scn.getSlug(), false);
+                    if (MessageType.checkExternalMessageTypesExist(scn.getSlug()))
+                        reloadSubscriptions(scn.getSlug(), true);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -68,10 +71,10 @@ public class PubSubConnector {
         }
     }
 
-    public void reloadSubscriptions(String SCNslug, boolean external) {
+    public void reloadSubscriptions(String SCNslug, boolean externalConnector) {
         PubSubSubscription subscriptions;
         try {
-            subscriptions = PubSubSubscription.getMessageSubscriptions(SCNslug, external);
+            subscriptions = PubSubSubscription.getMessageSubscriptions(SCNslug, externalConnector);
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING, "Failed to get subscriptions.");
@@ -109,7 +112,11 @@ public class PubSubConnector {
         }
         else {
             Client client = ClientBuilder.newClient();
-            WebTarget resource = client.target(configuration.subscriber.getUrl());
+            WebTarget resource;
+            if (externalConnector)
+                resource = client.target(configuration.externalSubscriber.getUrl());
+            else
+                resource = client.target(configuration.subscriber.getUrl());
             Invocation.Builder request = resource.request();
 
             Response response = request.post(Entity.json(subscriptions));

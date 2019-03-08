@@ -2,8 +2,10 @@
   "name" : "connector name",
   "address" : "hostname",
   "port" : 20000,
-  "username" : "",
-  "password" : "",
-  "metadata" : "{}",
+  "metadata" : {
+    "username": "",
+    "password": "",
+    "datasources": []
+  },
   "isExternal" : false
 }
