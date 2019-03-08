@@ -102,8 +102,6 @@ public class DatastoreResource {
 
         try {
             scn = ScnDbInfo.getScnDbInfoById(scnId);
-            PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), false);
-            PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), true);
             StorageBackend.destroyScn(scn);
         } catch (Exception e) {
             e.printStackTrace();
@@ -122,6 +120,9 @@ public class DatastoreResource {
                     new RequestResponse("ERROR", "Could not destroy SCN.")
             ).build();
         }
+
+        PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), false);
+        //PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), true);
 
         return Response.ok(
                 new RequestResponse("OK", "")
