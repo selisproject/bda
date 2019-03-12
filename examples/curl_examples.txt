@@ -19,6 +19,9 @@ curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @recipe
 // 6. Create a new job (message-triggered or cron) (returns job_id)
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @job.json http://localhost:9999/api/job/{scn_slug} && echo
 
+// 7. Associate message with external connector
+curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" "http://localhost:9999/api/message/{scn_slug}/{message_id}/newconnector?connector_id={connector_id}&datasource={datasource_name}"
+
 // Extras
 // Store message in eventlog
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore/{scn_slug}/ && echo
