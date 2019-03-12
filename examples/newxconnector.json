@@ -1,0 +1,11 @@
+{
+  "name" : "connector name",
+  "address" : "hostname",
+  "port" : 20000,
+  "metadata" : {
+    "username": "luis.collar@atos.net",
+    "password": "selis",
+    "datasources": [ "5c52c5471ee8d10018ba1107"]
+  },
+  "external" : true
+}

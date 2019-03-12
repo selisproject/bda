@@ -26,7 +26,7 @@ public class Connector implements Serializable {
     private String address;
     private Integer port;
     private ConnectorMetadata metadata;
-    private boolean isExternal;
+    private boolean external;
 
     private final static String INSERT_CONNECTOR_QUERY =
             "INSERT INTO connectors (name, address, port, metadata, is_external) " +
@@ -49,14 +49,14 @@ public class Connector implements Serializable {
 
     private boolean exists = false;
 
-    public Connector(){}
+    public Connector() { }
 
-    public Connector(String name, String address, Integer port, ConnectorMetadata metadata, boolean isExternal) {
+    public Connector(String name, String address, Integer port, ConnectorMetadata metadata, boolean external) {
         this.name = name;
         this.address = address;
         this.port = port;
         this.metadata = metadata;
-        this.isExternal = isExternal;
+        this.external = external;
     }
 
     public int getId() {
@@ -96,11 +96,11 @@ public class Connector implements Serializable {
     }
 
     public boolean isExternal() {
-        return isExternal;
+        return external;
     }
 
     public void setExternal(boolean external) {
-        isExternal = external;
+        this.external = external;
     }
 
     @Override
@@ -110,7 +110,7 @@ public class Connector implements Serializable {
                 ", address='" + address + '\'' +
                 ", port=" + port +
                 ", metadata='" + metadata + '\'' +
-                ", isExternal=" + isExternal +
+                ", isExternal=" + external +
                 '}';
     }
 
@@ -127,7 +127,7 @@ public class Connector implements Serializable {
                 statement.setString(2, this.address);
                 statement.setInt(3, this.port);
                 statement.setString(4, new Gson().toJson(this.metadata));
-                statement.setBoolean(5, this.isExternal);
+                statement.setBoolean(5, this.external);
 
                 ResultSet resultSet = statement.executeQuery();
 

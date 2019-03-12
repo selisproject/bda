@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import ssl
 import json
@@ -54,6 +55,9 @@ if __name__ == '__main__':
             ]
           }
         }
+    elif len(sys.argv) > 1 and os.path.isfile(sys.argv[1]):
+        with open(sys.argv[1], 'r') as f:
+            message = json.loads(f.read())
     else:
         message = {
             'message_type': 'SonaeOrderForecast',
