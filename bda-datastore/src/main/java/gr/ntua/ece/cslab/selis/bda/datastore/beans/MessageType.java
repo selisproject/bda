@@ -32,6 +32,8 @@ public class MessageType implements Serializable {
     private Integer externalConnectorId;
     private String datasource;
 
+    private boolean exists = false;
+
     public MessageType() { }
 
     public MessageType(String name, String description, boolean active, String format, Integer externalConnectorId, String datasource) {
@@ -153,6 +155,11 @@ public class MessageType implements Serializable {
         "VALUES (?, ?, ?, ?, ?, ?) " +
         "RETURNING id;";
 
+    private final static String UPDATE_MESSAGE_QUERY =
+        "UPDATE metadata.message_type " +
+        "SET name = ?, description = ?, active = ?, format = ?, external_connector_id = ?, datasource = ? " +
+        "WHERE id = ?";
+
     public static List<MessageType> getMessageTypes(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -174,7 +181,7 @@ public class MessageType implements Serializable {
                     resultSet.getInt("external_connector_id"),
                     resultSet.getString("datasource")
                 );
-
+                messageType.exists = true;
                 messageType.id = resultSet.getInt("id");
 
                 messageTypes.addElement(messageType);
@@ -210,7 +217,7 @@ public class MessageType implements Serializable {
                         resultSet.getInt("external_connector_id"),
                         resultSet.getString("datasource")
                 );
-
+                messageType.exists = true;
                 messageType.id = resultSet.getInt("id");
 
                 messageTypes.addElement(messageType);
@@ -282,7 +289,7 @@ public class MessageType implements Serializable {
                         resultSet.getInt("external_connector_id"),
                         resultSet.getString("datasource")
                 );
-
+                msg.exists = true;
                 msg.id = resultSet.getInt("id");
 
                 return msg;
@@ -313,7 +320,7 @@ public class MessageType implements Serializable {
                         resultSet.getInt("external_connector_id"),
                         resultSet.getString("datasource")
                 );
-
+                msg.exists = true;
                 msg.id = resultSet.getInt("id");
 
                 return msg;
@@ -326,34 +333,64 @@ public class MessageType implements Serializable {
     }
 
     public void save(String slug) throws SQLException, SystemConnectorException {
-        PostgresqlConnector connector = (PostgresqlConnector )
-            SystemConnector.getInstance().getDTconnector(slug);
+        if (!this.exists) {
+            PostgresqlConnector connector = (PostgresqlConnector)
+                    SystemConnector.getInstance().getDTconnector(slug);
 
-        Connection connection = connector.getConnection();
+            Connection connection = connector.getConnection();
 
-        PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE_QUERY);
+            PreparedStatement statement = connection.prepareStatement(INSERT_MESSAGE_QUERY);
 
-        statement.setString(1, this.name);
-        statement.setString(2, this.description);
-        statement.setBoolean(3, this.active);
-        statement.setString(4, this.format);
-        if (this.externalConnectorId != null)
-            statement.setInt(5, this.externalConnectorId);
-        else
-            statement.setNull(5, Types.INTEGER);
-        statement.setString(6, this.datasource);
+            statement.setString(1, this.name);
+            statement.setString(2, this.description);
+            statement.setBoolean(3, this.active);
+            statement.setString(4, this.format);
+            if (this.externalConnectorId != null)
+                statement.setInt(5, this.externalConnectorId);
+            else
+                statement.setNull(5, Types.INTEGER);
+            statement.setString(6, this.datasource);
 
-        try {
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                this.id = resultSet.getInt("id");
+            try {
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    this.id = resultSet.getInt("id");
 
+                }
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
             }
+        }
+        else {
+            PostgresqlConnector connector = (PostgresqlConnector)
+                    SystemConnector.getInstance().getDTconnector(slug);
 
-            connection.commit();
-        } catch (SQLException e) {
-            connection.rollback();
-            throw e;
+            Connection connection = connector.getConnection();
+
+            PreparedStatement statement = connection.prepareStatement(UPDATE_MESSAGE_QUERY);
+
+            statement.setString(1, this.name);
+            statement.setString(2, this.description);
+            statement.setBoolean(3, this.active);
+            statement.setString(4, this.format);
+            if (this.externalConnectorId != null)
+                statement.setInt(5, this.externalConnectorId);
+            else
+                statement.setNull(5, Types.INTEGER);
+            statement.setString(6, this.datasource);
+            statement.setInt(7, Integer.valueOf(this.id));
+
+            try {
+                statement.executeUpdate();
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            }
         }
 
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
