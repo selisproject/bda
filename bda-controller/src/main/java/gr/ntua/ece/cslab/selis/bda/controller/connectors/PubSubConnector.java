@@ -1,8 +1,10 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
@@ -50,34 +52,37 @@ public class PubSubConnector {
             !configuration.subscriber.getUrl().isEmpty()
         );
 
-        if (!isExternal) {
-            LOGGER.log(Level.INFO, "Initializing internal PubSub subscribers...");
-            try {
-                for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
-                    reloadSubscriptions(scn.getSlug());
+        try {
+            for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
+                if (!isExternal) {
+                    LOGGER.log(Level.INFO, "Initializing internal PubSub subscriber for "+scn.getSlug());
+                    reloadSubscriptions(scn.getSlug(), false);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.log(Level.WARNING, "Failed to retrieve SCN info to start pub sub subscribers.");
+                if (MessageType.checkExternalMessageTypesExist(scn.getSlug()))
+                    reloadSubscriptions(scn.getSlug(), true);
             }
-
-            //LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
-            //publisher = new PubSubPublisher(configuration.pubsub.getHostname(),
-            //        configuration.pubsub.getPortNumber());
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Failed to retrieve SCN info to start pub sub subscribers.");
         }
+
+        //LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
+        //publisher = new PubSubPublisher(configuration.pubsub.getHostname(),
+        //        configuration.pubsub.getPortNumber());
+
     }
 
-    public void reloadSubscriptions(String SCNslug) {
+    public void reloadSubscriptions(String SCNslug, boolean externalConnector) {
         PubSubSubscription subscriptions;
         try {
-            subscriptions = PubSubSubscription.getMessageSubscriptions(SCNslug);
+            subscriptions = PubSubSubscription.getMessageSubscriptions(SCNslug, externalConnector);
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING, "Failed to get subscriptions.");
             return;
         }
 
-        if (!isExternal) {
+        if (!isExternal && !externalConnector) {
             if (subscriptions.getSubscriptions().isEmpty() & subscriberRunners.containsKey(SCNslug)){
                 subscribers.get(SCNslug).interrupt();
                 subscribers.remove(SCNslug);
@@ -87,9 +92,10 @@ public class PubSubConnector {
             if (!subscriberRunners.containsKey(SCNslug)) {
                 try {
                     ScnDbInfo scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
+                    Connector conn = Connector.getConnectorInfoById(scn.getConnectorId());
                     PubSubSubscriber subscriber = new PubSubSubscriber(configuration.pubsub.getAuthHash(),
-                            scn.getPubsubaddress(),
-                            scn.getPubsubport(),
+                            conn.getAddress(),
+                            conn.getPort(),
                             configuration.pubsub.getCertificateLocation(),
                             scn.getSlug());
                     subscriber.reloadSubscriptions(subscriptions);
@@ -107,7 +113,11 @@ public class PubSubConnector {
         }
         else {
             Client client = ClientBuilder.newClient();
-            WebTarget resource = client.target(configuration.subscriber.getUrl());
+            WebTarget resource;
+            if (externalConnector)
+                resource = client.target(configuration.externalSubscriber.getUrl());
+            else
+                resource = client.target(configuration.subscriber.getUrl());
             Invocation.Builder request = resource.request();
 
             Response response = request.post(Entity.json(subscriptions));

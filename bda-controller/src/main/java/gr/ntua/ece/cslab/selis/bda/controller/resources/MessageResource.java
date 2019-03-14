@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 
 import de.tu_dresden.selis.pubsub.Message;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
@@ -35,6 +36,18 @@ public class MessageResource {
                            MessageType m) {
         String details;
         try {
+            if (m.getExternalConnectorId()!=null){
+                Connector conn = Connector.getConnectorInfoById(m.getExternalConnectorId());
+                if (!conn.isExternal())
+                    return Response.serverError().entity(
+                            new RequestResponse("ERROR", "Could not insert new Message Type. Connector is not external.")
+                    ).build();
+                if (!conn.getMetadata().getDatasources().contains(m.getDatasource())){
+                    return Response.serverError().entity(
+                            new RequestResponse("ERROR", "Could not insert new Message Type. Invalid datasource specified for connector.")
+                    ).build();
+                }
+            }
             m.save(slug);
             details = Integer.toString(m.getId());
         } catch (Exception e) {
@@ -45,7 +58,69 @@ public class MessageResource {
             ).build();
         }
 
-        PubSubConnector.getInstance().reloadSubscriptions(slug);
+        boolean externalConnector = !(m.getExternalConnectorId() == null);
+        PubSubConnector.getInstance().reloadSubscriptions(slug, externalConnector);
+
+        return Response.ok(
+                new RequestResponse("OK", details)
+        ).build();
+    }
+
+    /**
+     * Message service to update external connector and metadata
+     */
+    @PUT
+    @Path("{slug}/{message_id}/newconnector")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response insert(@PathParam("slug") String slug,
+                           @PathParam("message_id") Integer messageId,
+                           @QueryParam("connector_id") Integer connectorId,
+                           @QueryParam("datasource") String datasource) {
+        String details;
+        MessageType m;
+        Connector conn;
+        try {
+            m = MessageType.getMessageById(slug, messageId);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not create new service for Message Type. Invalid message id.")
+            ).build();
+        }
+        try {
+            conn = Connector.getConnectorInfoById(connectorId);
+            if (!conn.isExternal())
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not insert new Message Type. Connector is not external.")
+                ).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not create new service for Message Type. Invalid connector id.")
+            ).build();
+        }
+        try {
+            if (!conn.getMetadata().getDatasources().contains(m.getDatasource())){
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not create new service for Message Type. Invalid datasource specified for connector.")
+                ).build();
+            }
+            m.setExternalConnectorId(connectorId);
+            m.setDatasource(datasource);
+            m.save(slug);
+            details = Integer.toString(m.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not create new service for Message Type.")
+            ).build();
+        }
+
+        boolean externalConnector = !(m.getExternalConnectorId() == null);
+        PubSubConnector.getInstance().reloadSubscriptions(slug, externalConnector);
 
         return Response.ok(
                 new RequestResponse("OK", details)
@@ -108,11 +183,11 @@ public class MessageResource {
     @GET
     @Path("/reload")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<PubSubSubscription> reload() {
+    public List<PubSubSubscription> reload(@QueryParam("external") boolean externalConnector) {
         List subscriptions = new Vector();
         try {
             for (ScnDbInfo scn: ScnDbInfo.getScnDbInfo())
-                subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug()));
+                subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug(), externalConnector));
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING, "Failed to get SCN info. Aborting reload of all subscriptions.");

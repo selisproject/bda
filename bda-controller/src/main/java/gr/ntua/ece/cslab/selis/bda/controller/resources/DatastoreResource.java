@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
@@ -35,7 +36,23 @@ public class DatastoreResource {
         String details = "";
 
         try {
-            scn.save();
+            List<Connector> connectors = Connector.getConnectors();
+
+            boolean correctConnector = false;
+            for (Connector connector : connectors) {
+                if (connector.getId() == scn.getConnectorId()) {
+                    correctConnector = true;
+                }
+            }
+
+            if (correctConnector) {
+                scn.save();
+            } else {
+                LOGGER.log(Level.WARNING, "Bad connector id provided!");
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Connector id does not exist.")
+                ).build();
+            }
 
             details = Integer.toString(scn.getId());
         } catch (Exception e) {
@@ -82,9 +99,11 @@ public class DatastoreResource {
     public Response destroyScn(@QueryParam("scnId") Integer scnId) {
 
         ScnDbInfo scn;
+        Boolean externalConnectors;
 
         try {
             scn = ScnDbInfo.getScnDbInfoById(scnId);
+            externalConnectors = MessageType.checkExternalMessageTypesExist(scn.getSlug());
             StorageBackend.destroyScn(scn);
         } catch (Exception e) {
             e.printStackTrace();
@@ -104,7 +123,9 @@ public class DatastoreResource {
             ).build();
         }
 
-        PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug());
+        PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), false);
+        if (externalConnectors)
+            PubSubConnector.getInstance().reloadSubscriptions(scn.getSlug(), true);
 
         return Response.ok(
                 new RequestResponse("OK", "")

@@ -2,6 +2,7 @@ package gr.ntua.ece.cslab.selis.bda.analyticsml.runners;
 
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionLanguage;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
@@ -155,9 +156,10 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                    .append(msgInfo.getName()).append(",'")
                    .append(columns).append("',result);");
         } else {
+            Connector conn = Connector.getConnectorInfoById(scn.getConnectorId());
             builder.append("RecipeDataLoader.publish_result('")
-                    .append(scn.getPubsubaddress()).append("','")
-                    .append(scn.getPubsubport()).append("','")
+                    .append(conn.getAddress()).append("','")
+                    .append(conn.getPort()).append("','")
                     .append(configuration.pubsub.getCertificateLocation()).append("','")
                     .append(scn.getSlug()).append("','")
                     .append(recipe.getName()).append("_").append(job.getId()).append("',result);");

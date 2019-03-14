@@ -35,6 +35,7 @@ pubsub.port = 20000
 pubsub.authhash = myhash
 pubsub.certificate.location = /resources/root.crt
 #pubsub.subscriber.url = http://selis-subscriber:8090/api/message/reload
+pubsub.external.subscriber.url = http://selis-subscriber:8090/api/message/reload
 
 # keycloak configuration parameters.
 keycloak.bda.realm    = selis-bda-realm
