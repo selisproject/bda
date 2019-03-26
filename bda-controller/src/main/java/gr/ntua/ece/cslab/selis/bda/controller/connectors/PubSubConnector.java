@@ -52,23 +52,24 @@ public class PubSubConnector {
             !configuration.subscriber.getUrl().isEmpty()
         );
 
-        if (!isExternal) {
-            LOGGER.log(Level.INFO, "Initializing internal PubSub subscribers...");
-            try {
-                for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
+        try {
+            for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
+                if (!isExternal) {
+                    LOGGER.log(Level.INFO, "Initializing internal PubSub subscriber for "+scn.getSlug());
                     reloadSubscriptions(scn.getSlug(), false);
-                    if (MessageType.checkExternalMessageTypesExist(scn.getSlug()))
-                        reloadSubscriptions(scn.getSlug(), true);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.log(Level.WARNING, "Failed to retrieve SCN info to start pub sub subscribers.");
+                if (MessageType.checkExternalMessageTypesExist(scn.getSlug()))
+                    reloadSubscriptions(scn.getSlug(), true);
             }
-
-            //LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
-            //publisher = new PubSubPublisher(configuration.pubsub.getHostname(),
-            //        configuration.pubsub.getPortNumber());
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Failed to retrieve SCN info to start pub sub subscribers.");
         }
+
+        //LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
+        //publisher = new PubSubPublisher(configuration.pubsub.getHostname(),
+        //        configuration.pubsub.getPortNumber());
+
     }
 
     public void reloadSubscriptions(String SCNslug, boolean externalConnector) {
@@ -81,7 +82,7 @@ public class PubSubConnector {
             return;
         }
 
-        if (!isExternal) {
+        if (!isExternal && !externalConnector) {
             if (subscriptions.getSubscriptions().isEmpty() & subscriberRunners.containsKey(SCNslug)){
                 subscribers.get(SCNslug).interrupt();
                 subscribers.remove(SCNslug);
