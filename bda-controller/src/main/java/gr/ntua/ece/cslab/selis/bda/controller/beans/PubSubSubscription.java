@@ -67,13 +67,27 @@ public class PubSubSubscription implements Serializable {
 
         try {
             scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
-            connector = Connector.getConnectorInfoById(scn.getConnectorId());
             messageTypes = MessageType.getActiveMessageTypes(SCNslug, external);
+            if(!external){
+                connector = Connector.getConnectorInfoById(scn.getConnectorId());
+            }
+            else{
+                Integer conn = null;
+                for (MessageType messageType: messageTypes) {
+                    if (conn == null) conn = messageType.getExternalConnectorId();
+                    else
+                        if (messageType.getExternalConnectorId().equals(conn))
+                            throw new SystemConnectorException("A single external connector is supported");
+                }
+                connector = Connector.getConnectorInfoById(conn);
+            }
+
         } catch (SQLException e){
             return subscriptions;
         } catch (SystemConnectorException e) {
             throw e;
         }
+
         String pubsubhost = connector.getAddress();
         Integer pubsubport = connector.getPort();
 
