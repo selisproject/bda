@@ -8,15 +8,15 @@ ARG LIVY_URL=https://www-eu.apache.org/dist/incubator/livy/${LIVY_VERSION}/apach
 
 RUN \
     # Install dependencies.
-    apt-get update && apt-get install --yes --no-install-recommends procps curl \
+    #apt-get update && apt-get install --yes --no-install-recommends procps curl \
     #git vim maven r-base python-requests python-requests-kerberos python-flake8 python-flaky python-pytest && \
-    apt-get clean autoclean && \
-    apt-get autoremove --yes; \
+    #apt-get clean autoclean && \
+    #apt-get autoremove --yes; \
     # Download, install livy.
-    curl -L ${LIVY_URL} -o /tmp/livy-${LIVY_VERSION}-bin.zip; \
-    unzip /tmp/livy-${LIVY_VERSION}-bin.zip -d /tmp; \
-    mv /tmp/livy-${LIVY_VERSION}-bin ${LIVY_PREFIX}; \
-    rm /tmp/livy-${LIVY_VERSION}-bin.zip; \
+    curl -L ${LIVY_URL} -o /tmp/apache-livy-${LIVY_VERSION}-bin.zip; \
+    unzip /tmp/apache-livy-${LIVY_VERSION}-bin.zip -d /tmp; \
+    mv /tmp/apache-livy-${LIVY_VERSION}-bin ${LIVY_PREFIX}; \
+    rm /tmp/apache-livy-${LIVY_VERSION}-bin.zip; \
     #git clone ${LIVY_URL}; \
     #cd incubator-livy && mvn package -DskipTests && mv assembly/target/livy-0.6.0-incubating-SNAPSHOT-bin.zip /tmp; \
     #unzip /tmp/livy-0.6.0-incubating-SNAPSHOT-bin.zip -d /tmp; \

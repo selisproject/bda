@@ -32,8 +32,7 @@ public class RunnerInstance {
             // TODO: handle multiple jobs related to a single message
             job = JobDescription.getJobByMessageId(scnSlug, msgInfo.getId());
         } catch (SQLException e) {
-            LOGGER.log(Level.INFO, "No recipe found for message " + messageType + ".");
-            return;
+            throw new Exception("No job found for message " + messageType + ".");
         }
 
         recipe = Recipe.getRecipeById(scnSlug, job.getRecipeId());

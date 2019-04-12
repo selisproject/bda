@@ -24,7 +24,7 @@ public class JobDescription implements Serializable {
     private int messageTypeId;
     private int recipeId;
     private String jobType;
-    private transient int livySessionId;
+    private transient Integer livySessionId;
     private boolean jobResultPersist;
 
     private boolean exists = false;
@@ -257,6 +257,9 @@ public class JobDescription implements Serializable {
 
                 job.id = resultSet.getInt("id");
                 job.livySessionId = resultSet.getInt("livy_session_id");
+                if (resultSet.wasNull()) {
+                    job.livySessionId = null;
+                }
                 job.exists = true;
 
                 return job;
@@ -294,6 +297,9 @@ public class JobDescription implements Serializable {
 
                 job.id = resultSet.getInt("id");
                 job.livySessionId = resultSet.getInt("livy_session_id");
+                if (resultSet.wasNull()) {
+                    job.livySessionId = null;
+                }
                 job.exists = true;
 
                 return job;

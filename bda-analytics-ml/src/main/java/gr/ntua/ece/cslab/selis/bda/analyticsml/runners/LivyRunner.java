@@ -247,19 +247,20 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
 
         // Create session if it is required
-        if (job.getJobType().matches("batch") && sessionId.isEmpty()){
+        System.out.println("SESSION:"+sessionId);
+        if (job.getJobType().matches("batch") && sessionId.matches("null")){
             LOGGER.log(Level.INFO,"Creating session for batch job..");
             sessionId = createSession(language);
         }
-        else if (job.getJobType().matches("batch") && !sessionId.isEmpty()) {
+        else if (job.getJobType().matches("batch") && !sessionId.matches("null")) {
             LOGGER.log(Level.SEVERE,"Found existing session for batch job. This should never happen!");
             return;
         }
-        else if (job.getJobType().matches("streaming") && sessionId.isEmpty()){
+        else if (job.getJobType().matches("streaming") && sessionId.matches("null")){
             LOGGER.log(Level.SEVERE,"Streaming job has no open seesion. This should never happen!");
             return;
         }
-        if (sessionId.isEmpty())
+        if (sessionId.isEmpty() || sessionId.matches("null"))
             return;
 
         // Launch job
