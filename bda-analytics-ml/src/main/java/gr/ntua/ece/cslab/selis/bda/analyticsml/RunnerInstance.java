@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.analyticsml;
 
+import gr.ntua.ece.cslab.selis.bda.analyticsml.runners.LivyRunner;
 import gr.ntua.ece.cslab.selis.bda.analyticsml.runners.RunnerFactory;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
@@ -16,13 +17,10 @@ public class RunnerInstance {
     private MessageType msgInfo;
     private JobDescription job;
     private Recipe recipe;
-    private ExecutionEngine engine;
+    public ExecutionEngine engine;
 
-    public RunnerInstance(String scnSlug) {
+    public RunnerInstance(String scnSlug, String messageType) throws Exception {
         this.scnSlug = scnSlug;
-    }
-
-    public void run(String messageType, String messageId) throws Exception {
 
         try {
             msgInfo = MessageType.getMessageByName(scnSlug, messageType);
@@ -46,6 +44,22 @@ public class RunnerInstance {
             e.printStackTrace();
             throw new Exception("Execution engine not found.");
         }
+    }
+
+    public void loadLivySession(JobDescription job, Recipe recipe, MessageType messageType, String messageId) throws Exception{
+        LOGGER.log(Level.INFO, "Creating session for " + job.getName() + " job.");
+        LivyRunner runner = new LivyRunner(recipe, messageType, messageId, job, scnSlug);
+        String sessionId = runner.createSession(runner.language);
+        JobDescription.storeSession(scnSlug, job.getId(), Integer.valueOf(sessionId));
+    }
+
+    public void deleteLivySession(String sessionId) throws Exception{
+        LivyRunner.deleteSession(sessionId);
+        JobDescription.storeSession(scnSlug, job.getId(), null);
+        LOGGER.log(Level.INFO, "Deleted session with id " + sessionId);
+    }
+
+    public void run(String messageId) throws Exception {
 
         LOGGER.log(Level.INFO, "Launching " + job.getName() + " recipe.");
         Runnable runner = RunnerFactory.getInstance().getRunner(recipe, engine, msgInfo, messageId, job, this.scnSlug);
@@ -56,5 +70,9 @@ public class RunnerInstance {
 
     public void schedule(){
         // TODO: create a new cron job
+    }
+
+    public void unschedule(){
+        // TODO: delete cron job
     }
 }

@@ -24,6 +24,7 @@ public class JobDescription implements Serializable {
     private int messageTypeId;
     private int recipeId;
     private String jobType;
+    private transient int livySessionId;
     private boolean jobResultPersist;
 
     private boolean exists = false;
@@ -36,6 +37,7 @@ public class JobDescription implements Serializable {
         "message_type_id    INTEGER REFERENCES metadata.message_type(id), " +
         "recipe_id          INTEGER REFERENCES metadata.recipes(id), " +
         "job_type           VARCHAR(20), " +
+        "livy_session_id    INTEGER," +
         "job_result_persist BOOLEAN NOT NULL," +
         "active             BOOLEAN DEFAULT(true) " +
         ");";
@@ -50,12 +52,12 @@ public class JobDescription implements Serializable {
         "WHERE active = true;";
 
     private final static String GET_JOB_BY_ID_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, livy_session_id, job_result_persist " +
         "FROM metadata.jobs " +
         "WHERE id = ?;";
 
     private final static String GET_JOB_BY_MESSAGE_ID_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, livy_session_id, job_result_persist " +
         "FROM metadata.jobs " +
         "WHERE message_type_id = ?;";
 
@@ -63,6 +65,9 @@ public class JobDescription implements Serializable {
         "INSERT INTO metadata.jobs (name, description, active, message_type_id, recipe_id, job_type, job_result_persist) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?) " +
         "RETURNING id;";
+
+    private final static String SET_LIVY_SESSION_FOR_JOB_ID_QUERY =
+        "UPDATE metadata.jobs SET livy_session_id=? where id=?;";
 
     public JobDescription() { }
 
@@ -81,6 +86,7 @@ public class JobDescription implements Serializable {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -129,6 +135,10 @@ public class JobDescription implements Serializable {
         this.jobType = jobType;
     }
 
+    public Integer getLivySessionId() { return livySessionId; }
+
+    public void setLivySessionId(Integer livySessionId) { this.livySessionId = livySessionId; }
+
     public boolean isJobResultPersist() { return jobResultPersist; }
 
     public void setJobResultPersist(boolean jobResultPersist) { this.jobResultPersist = jobResultPersist; }
@@ -142,6 +152,7 @@ public class JobDescription implements Serializable {
                 ", messageTypeId=" + this.messageTypeId +
                 ", recipeId=" + this.recipeId +
                 ", jobType=" + this.jobType +
+                ", livySessionId=" + this.livySessionId +
                 ", jobResultPersist=" + this.jobResultPersist +
                 '}';
     }
@@ -245,6 +256,7 @@ public class JobDescription implements Serializable {
                 );
 
                 job.id = resultSet.getInt("id");
+                job.livySessionId = resultSet.getInt("livy_session_id");
                 job.exists = true;
 
                 return job;
@@ -281,6 +293,7 @@ public class JobDescription implements Serializable {
                 );
 
                 job.id = resultSet.getInt("id");
+                job.livySessionId = resultSet.getInt("livy_session_id");
                 job.exists = true;
 
                 return job;
@@ -326,7 +339,27 @@ public class JobDescription implements Serializable {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");
         }
-     }
+    }
+
+    public static void storeSession(String slug, Integer jobId, Integer livySessionId) throws SQLException, SystemConnectorException{
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(SET_LIVY_SESSION_FOR_JOB_ID_QUERY);
+
+        statement.setInt(1, livySessionId);
+        statement.setInt(2, jobId);
+
+        try {
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        }
+    }
 
     public static void createTable(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector )
