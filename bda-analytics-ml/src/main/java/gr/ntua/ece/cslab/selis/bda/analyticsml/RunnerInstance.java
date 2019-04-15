@@ -45,17 +45,32 @@ public class RunnerInstance {
         }
     }
 
-    public void loadLivySession(JobDescription job, Recipe recipe, MessageType messageType, String messageId) throws Exception{
-        LOGGER.log(Level.INFO, "Creating session for " + job.getName() + " job.");
-        LivyRunner runner = new LivyRunner(recipe, messageType, messageId, job, scnSlug);
-        String sessionId = runner.createSession(runner.language);
-        JobDescription.storeSession(scnSlug, job.getId(), Integer.valueOf(sessionId));
+    public void loadLivySession(JobDescription j, Recipe r, MessageType m, String messageId){
+        LOGGER.log(Level.INFO, "Creating session for " + j.getName() + " job.");
+        new Thread(() -> {
+            try {
+                LivyRunner runner = new LivyRunner(r, m, messageId, j, scnSlug);
+                String sessionId = runner.createSession();
+                // TODO: Load dataframes in session
+                JobDescription.storeSession(scnSlug, j.getId(), Integer.valueOf(sessionId));
+                LOGGER.log(Level.INFO, "Session created.");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
-    public void deleteLivySession(String sessionId) throws Exception{
-        LivyRunner.deleteSession(sessionId);
-        JobDescription.storeSession(scnSlug, job.getId(), null);
-        LOGGER.log(Level.INFO, "Deleted session with id " + sessionId);
+    public void deleteLivySession(JobDescription j, String sessionId){
+        LOGGER.log(Level.INFO, "Destroying session with id " + sessionId);
+        new Thread(() -> {
+            try {
+                LivyRunner.deleteSession(sessionId);
+                JobDescription.storeSession(scnSlug, j.getId(), null);
+                LOGGER.log(Level.INFO, "Deleted session.");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public void run(String messageId) throws Exception {
@@ -69,9 +84,15 @@ public class RunnerInstance {
 
     public void schedule(){
         // TODO: create a new cron job
+        new Thread(() -> {
+
+        }).start();
     }
 
     public void unschedule(){
         // TODO: delete cron job
+        new Thread(() -> {
+
+        }).start();
     }
 }

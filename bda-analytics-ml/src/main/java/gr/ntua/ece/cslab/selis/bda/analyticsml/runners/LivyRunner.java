@@ -59,7 +59,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         this.sessionId = String.valueOf(job.getLivySessionId());
     }
 
-    public String createSession(String language){
+    public String createSession(){
         String kind = null, dataLoaderLibrary = null, sessionId;
         if (language.matches("python")){
             kind = "pyspark";
@@ -247,20 +247,19 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
 
         // Create session if it is required
-        System.out.println("SESSION:"+sessionId);
         if (job.getJobType().matches("batch") && sessionId.matches("null")){
             LOGGER.log(Level.INFO,"Creating session for batch job..");
-            sessionId = createSession(language);
+            sessionId = createSession();
         }
         else if (job.getJobType().matches("batch") && !sessionId.matches("null")) {
             LOGGER.log(Level.SEVERE,"Found existing session for batch job. This should never happen!");
             return;
         }
         else if (job.getJobType().matches("streaming") && sessionId.matches("null")){
-            LOGGER.log(Level.SEVERE,"Streaming job has no open seesion. This should never happen!");
+            LOGGER.log(Level.SEVERE,"Streaming job has no open session. This should never happen!");
             return;
         }
-        if (sessionId.isEmpty() || sessionId.matches("null"))
+        if (sessionId==null || sessionId.matches("null"))
             return;
 
         // Launch job
