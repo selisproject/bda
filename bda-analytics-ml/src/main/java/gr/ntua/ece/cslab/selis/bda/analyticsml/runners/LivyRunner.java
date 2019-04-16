@@ -69,12 +69,16 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         Invocation.Builder request = resource.path("/sessions").request();
         JSONObject data = new JSONObject();
         data.put("kind",kind);
+
+        Map<String, String> classpath = new HashMap<>();
         List<String> files = new ArrayList<>();
         files.add(recipe.getExecutablePath());
         files.add(dataLoaderLibrary);
-        data.put("files", files);
+        //client mode
+        //data.put("files", files);
+        //cluster mode
+        classpath.put("spark.yarn.dist.pyFiles", String.join(",",files));
 
-        Map<String, String> classpath = new HashMap<>();
         if (configuration.execEngine.getSparkConfJars() != null) {
             List<String> jars = new ArrayList<>();
             jars.add("file://" + configuration.execEngine.getSparkConfJars());
