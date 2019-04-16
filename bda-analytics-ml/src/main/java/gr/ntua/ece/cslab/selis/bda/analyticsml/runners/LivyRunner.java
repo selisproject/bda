@@ -63,7 +63,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         String kind = null, dataLoaderLibrary = null, sessionId;
         if (language.matches("python")){
             kind = "pyspark";
-            dataLoaderLibrary = "/RecipeDataLoader.py";
+            dataLoaderLibrary = "hdfs:///RecipeDataLoader.py";
         }
 
         Invocation.Builder request = resource.path("/sessions").request();
