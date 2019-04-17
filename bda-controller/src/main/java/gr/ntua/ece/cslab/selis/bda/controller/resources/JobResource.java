@@ -88,4 +88,31 @@ public class JobResource {
 
         return jobs;
     }
+
+    @DELETE
+    @Path("{slug}/{id}")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response delete(@PathParam("slug") String slug,
+                           @PathParam("id") int jobId) {
+
+        try {
+            JobDescription job = JobDescription.getJobById(slug, jobId);
+            if (job.getJobType().matches("streaming") && job.getLivySessionId()!=null){
+                RunnerInstance.deleteLivySession(slug, job);
+            }
+            //TODO: delete kpi table, unschedule cron
+            //(new KPIBackend(slug)).delete(new KPITable(r.getName()));
+            // RunnerInstance.unschedule();
+            JobDescription.delete(slug, jobId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not delete Job.")
+            ).build();
+        }
+
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
+    }
 }

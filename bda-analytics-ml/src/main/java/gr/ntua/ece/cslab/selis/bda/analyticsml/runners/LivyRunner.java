@@ -60,10 +60,11 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     }
 
     public String createSession(){
-        String kind = null, dataLoaderLibrary = null, sessionId;
+        String kind = null, dataLoaderLibrary = null, sparkFiles = null, sessionId;
         if (language.matches("python")){
             kind = "pyspark";
             dataLoaderLibrary = "hdfs:///RecipeDataLoader.py";
+            sparkFiles = "spark.yarn.dist.pyFiles";
         }
 
         Invocation.Builder request = resource.path("/sessions").request();
@@ -74,17 +75,19 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         List<String> files = new ArrayList<>();
         files.add(recipe.getExecutablePath());
         files.add(dataLoaderLibrary);
-        //client mode
+        // For client mode with old configuration
         //data.put("files", files);
-        //cluster mode
-        classpath.put("spark.yarn.dist.pyFiles", String.join(",",files));
+        //if (configuration.execEngine.getSparkConfJars() != null) {
+        //    List<String> jars = new ArrayList<>();
+        //    jars.add("file://" + configuration.execEngine.getSparkConfJars());
+        //    data.put("jars", jars);
+        //    classpath.put("spark.driver.extraClassPath", "file://" + configuration.execEngine.getSparkConfJars());
+        //}
+        // For cluster mode
+        classpath.put(sparkFiles, String.join(",",files));
+        String[] jar_name = configuration.execEngine.getSparkConfJars().split("/");
+        classpath.put("spark.jars", "hdfs:///"+jar_name[jar_name.length-1]);
 
-        if (configuration.execEngine.getSparkConfJars() != null) {
-            List<String> jars = new ArrayList<>();
-            jars.add("file://" + configuration.execEngine.getSparkConfJars());
-            data.put("jars", jars);
-            classpath.put("spark.driver.extraClassPath","file://" + configuration.execEngine.getSparkConfJars());
-        }
         if (configuration.execEngine.getSparkConfPackages() != null) {
             classpath.put("spark.jars.packages",configuration.execEngine.getSparkConfPackages());
         }
@@ -139,6 +142,9 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     }
 
     public static void deleteSession(String sessionId){
+        configuration = Configuration.getInstance();
+        Client client = ClientBuilder.newClient();
+        resource = client.target(configuration.execEngine.getLivyURL());
         Invocation.Builder request = resource.path("/sessions/"+sessionId).request();
         Response response = request.delete();
         if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {

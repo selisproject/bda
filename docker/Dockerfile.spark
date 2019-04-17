@@ -33,7 +33,7 @@ ENV SPARK_HOME "${SPARK_PREFIX}"
 ENV PYSPARK_PYTHON "/usr/bin/python3"
 
 # Download postgresql jar.
-RUN curl https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --output /resources/postgresql-42.2.1.jar
+#RUN curl https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --output /resources/postgresql-42.2.1.jar
 
 # Add the certificate, used to connect to pubsub.
 ADD ./bootstrap/root.crt /resources/

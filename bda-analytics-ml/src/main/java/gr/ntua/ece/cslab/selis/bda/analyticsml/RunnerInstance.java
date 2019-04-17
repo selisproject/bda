@@ -51,6 +51,8 @@ public class RunnerInstance {
             try {
                 LivyRunner runner = new LivyRunner(r, m, messageId, j, scnSlug);
                 String sessionId = runner.createSession();
+                if (sessionId==null)
+                    return;
                 // TODO: Load dataframes in session
                 JobDescription.storeSession(scnSlug, j.getId(), Integer.valueOf(sessionId));
                 LOGGER.log(Level.INFO, "Session created.");
@@ -60,15 +62,17 @@ public class RunnerInstance {
         }).start();
     }
 
-    public void deleteLivySession(JobDescription j, String sessionId){
-        LOGGER.log(Level.INFO, "Destroying session with id " + sessionId);
+    public static void deleteLivySession(String slug, JobDescription j){
+        LOGGER.log(Level.INFO, "Destroying session with id " + j.getLivySessionId());
         new Thread(() -> {
             try {
-                LivyRunner.deleteSession(sessionId);
-                JobDescription.storeSession(scnSlug, j.getId(), null);
-                LOGGER.log(Level.INFO, "Deleted session.");
+                LivyRunner.deleteSession(String.valueOf(j.getLivySessionId()));
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+            try {
+                JobDescription.storeSession(slug, j.getId(), null);
+            } catch (Exception e) {
             }
         }).start();
     }
@@ -89,7 +93,7 @@ public class RunnerInstance {
         }).start();
     }
 
-    public void unschedule(){
+    public static void unschedule(){
         // TODO: delete cron job
         new Thread(() -> {
 

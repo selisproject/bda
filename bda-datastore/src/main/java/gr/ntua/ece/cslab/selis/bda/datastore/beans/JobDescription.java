@@ -66,6 +66,9 @@ public class JobDescription implements Serializable {
         "VALUES (?, ?, ?, ?, ?, ?, ?) " +
         "RETURNING id;";
 
+    private final static String DELETE_JOB_BY_ID_QUERY =
+        "DELETE FROM metadata.jobs where id = ?;";
+
     private final static String SET_LIVY_SESSION_FOR_JOB_ID_QUERY =
         "UPDATE metadata.jobs SET livy_session_id=? where id=?;";
 
@@ -344,6 +347,25 @@ public class JobDescription implements Serializable {
         } else {
             // The object exists, it should be updated.
             throw new UnsupportedOperationException("Operation not implemented.");
+        }
+    }
+
+    public static void delete(String slug, Integer jobId) throws SystemConnectorException, SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(DELETE_JOB_BY_ID_QUERY);
+
+        statement.setInt(1, jobId);
+
+        try {
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
         }
     }
 

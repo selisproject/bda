@@ -18,10 +18,10 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,19 +57,20 @@ public class Entrypoint {
             theDir.mkdir();
         }
 
-        ClassLoader classLoader = RunnerInstance.class.getClassLoader();
-        InputStream fileInStream = classLoader.getResourceAsStream("RecipeDataLoader.py");
-
-        byte[] recipeBytes = new byte[0];
-        try {
-            recipeBytes = IOUtils.toByteArray(fileInStream);
-
-            fileInStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
-            // Use HDFS storage for recipes.
+            // Use HDFS storage for recipes and libraries.
+
+            ClassLoader classLoader = RunnerInstance.class.getClassLoader();
+            InputStream fileInStream = classLoader.getResourceAsStream("RecipeDataLoader.py");
+
+            byte[] recipeBytes = new byte[0];
+            try {
+                recipeBytes = IOUtils.toByteArray(fileInStream);
+
+                fileInStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             HDFSConnector connector = null;
             try {
@@ -107,8 +108,44 @@ public class Entrypoint {
                 }
             }
 
+            try {
+                fileInStream = new URL(configuration.execEngine.getSparkConfJars()).openStream();
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "Spark jar clients download failed!! Please check the URLs");
+            }
+
+            byte[] postgresBytes = new byte[0];
+            try {
+                postgresBytes = IOUtils.toByteArray(fileInStream);
+
+                fileInStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String[] jar_name = configuration.execEngine.getSparkConfJars().split("/");
+            outputFilePath =
+                    new org.apache.hadoop.fs.Path(jar_name[jar_name.length-1]);
+            try {
+                outputStream = fs.create(
+                        outputFilePath
+                );
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                outputStream.write(postgresBytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         } else {
-            // Use local storage
+            // TODO: Use local storage?
         }
 
     }
