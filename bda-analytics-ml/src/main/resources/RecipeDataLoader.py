@@ -84,7 +84,7 @@ def fetch_from_master_data(spark, dimension_tables_url, username, password, tabl
 
     return spark.read.jdbc(
         url=dimension_tables_url,
-        properties={'user':username,'password':password},
+        properties={'user':username,'password':password,'driver': 'org.postgresql.Driver'},
         table=query)
 
 def save_result_to_kpidb(kpidb_host, kpidb_port, kpidb_name, username, password, kpi_table, message, message_columns, result):

@@ -98,10 +98,9 @@ public class PubSubMessageHandler {
         messageId = new StorageBackend(scnSlug).insert(bdamessage);
 
         try {
-            (new RunnerInstance(scnSlug)).run(messageType, messageId);
+            (new RunnerInstance(scnSlug, messageType)).run(messageId);
         } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.log(Level.WARNING,"Could not send request to start message related jobs.");
+            LOGGER.log(Level.INFO, "Did not launch job. "+e.getMessage());
         }
     }
 }
