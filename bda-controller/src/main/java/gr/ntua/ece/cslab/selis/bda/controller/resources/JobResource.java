@@ -1,5 +1,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+import gr.ntua.ece.cslab.selis.bda.controller.cron.CronJobScheduler;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
@@ -53,7 +54,12 @@ public class JobResource {
             LOGGER.log(Level.INFO, "Create kpidb table..");
             (new KPIBackend(slug)).create(new KPITable(r.getName(),
                     new KPISchema(msgFormat)));
+
             // TODO: check if job is periodical and schedule the cron job
+
+            if (m.getScheduleTime() > 0)
+                CronJobScheduler.schedule_job(slug, m);
+
 
         } catch (Exception e) {
             e.printStackTrace();

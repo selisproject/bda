@@ -66,6 +66,7 @@ public class PubSubSubscriber implements Runnable {
                                 try {
                                     PubSubMessageHandler.handleMessage(message, SCNslug);
                                     LOGGER.log(Level.INFO,"PubSub message successfully inserted in the BDA.");
+
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     LOGGER.log(Level.SEVERE,"Could not insert new PubSub message.");

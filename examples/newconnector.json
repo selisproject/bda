@@ -1,6 +1,6 @@
 {
   "name" : "connector name",
-  "address" : "hostname",
+  "address" : "selis-pubsub",
   "port" : 20000,
   "metadata" : {
     "username": "",
