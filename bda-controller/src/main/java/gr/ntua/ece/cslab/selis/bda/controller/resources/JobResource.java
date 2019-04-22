@@ -1,6 +1,5 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
-
 import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
 import gr.ntua.ece.cslab.selis.bda.controller.cron.CronJobScheduler;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
