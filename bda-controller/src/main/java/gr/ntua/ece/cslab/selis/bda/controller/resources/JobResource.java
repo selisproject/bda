@@ -1,6 +1,8 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+
 import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
+import gr.ntua.ece.cslab.selis.bda.controller.cron.CronJobScheduler;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
@@ -55,9 +57,10 @@ public class JobResource {
                 if (runner.engine.getName().matches("livy"))
                     runner.loadLivySession(m, r, msg, String.valueOf(m.getMessageTypeId()));
             }
-            // TODO: check if job is periodical and schedule the cron job
-            // RunnerInstance runner = new RunnerInstance(slug, msg.getName());
-            // runner.schedule();
+
+            if (m.getScheduleTime() > 0)
+                CronJobScheduler.schedule_job(slug, m);
+
         } catch (Exception e) {
             e.printStackTrace();
 

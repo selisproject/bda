@@ -227,10 +227,10 @@ if [ "$SELIS_LIVY_IMAGE_ID" == "" ]
 then
     echo "Building livy image..."
 
-    docker build \
-        --file "$SELIS_LIVY_DOCKERFILE" \
-        --tag "$SELIS_LIVY_IMAGE" \
-        .
+#    docker build \
+#        --file "$SELIS_LIVY_DOCKERFILE" \
+#        --tag "$SELIS_LIVY_IMAGE" \
+#        .
 fi
 
 SELIS_BDA_IMAGE_ID="$(docker images --quiet "$SELIS_BDA_IMAGE")"
