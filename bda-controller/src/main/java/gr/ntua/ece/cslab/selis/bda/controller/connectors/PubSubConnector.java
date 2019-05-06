@@ -90,15 +90,14 @@ public class PubSubConnector {
             }
             if (!subscriberRunners.containsKey(SCNslug)) {
                 try {
-                    ScnDbInfo scn = ScnDbInfo.getScnDbInfoBySlug(SCNslug);
                     PubSubSubscriber subscriber = new PubSubSubscriber(
                             configuration.pubsub.getAuthHash(),
                             configuration.pubsub.getCertificateLocation(),
-                            scn.getSlug());
+                            SCNslug);
                     subscriber.reloadSubscriptions(subscriptions);
-                    subscriberRunners.put(scn.getSlug(), subscriber);
-                    Thread s = new Thread(subscriber, "Subscriber_" + scn.getSlug());
-                    subscribers.put(scn.getSlug(), s);
+                    subscriberRunners.put(SCNslug, subscriber);
+                    Thread s = new Thread(subscriber, "Subscriber_" + SCNslug);
+                    subscribers.put(SCNslug, s);
                     s.start();
                 } catch (Exception e) {
                     e.printStackTrace();
