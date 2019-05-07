@@ -21,7 +21,7 @@ public class JobDescription implements Serializable {
     private String name;
     private String description;
     private boolean active;
-    private int messageTypeId;
+    private Integer messageTypeId;
     private int recipeId;
     private String jobType;
     private transient Integer livySessionId;
@@ -117,11 +117,11 @@ public class JobDescription implements Serializable {
         return id;
     }
 
-    public int getMessageTypeId() {
+    public Integer getMessageTypeId() {
         return messageTypeId;
     }
 
-    public void setMessageTypeId(int messageTypeId) {
+    public void setMessageTypeId(Integer messageTypeId) {
         this.messageTypeId = messageTypeId;
     }
 

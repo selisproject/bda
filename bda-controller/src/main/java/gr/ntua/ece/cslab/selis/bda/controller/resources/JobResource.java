@@ -40,6 +40,13 @@ public class JobResource {
                 return Response.serverError().entity(
                         new RequestResponse("ERROR", "Could not insert new Job. Invalid job type.")
                 ).build();
+
+            if (!((m.getMessageTypeId() == null) ^ (m.getScheduleTime() == 0))) {
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not insert new Job. Job is either cron or connected to a message type")
+                ).build();
+            }
+
             m.save(slug);
             details = Integer.toString(m.getId());
             LOGGER.log(Level.INFO, "Inserted job.");
