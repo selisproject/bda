@@ -45,6 +45,21 @@ public class RunnerInstance {
         }
     }
 
+    public RunnerInstance(String scnSlug, int jobId) throws Exception {
+        this.scnSlug = scnSlug;
+        this.msgInfo = null;
+
+        job = JobDescription.getJobByMessageId(scnSlug, msgInfo.getId());
+        recipe = Recipe.getRecipeById(scnSlug, job.getRecipeId());
+
+        try {
+            engine = ExecutionEngine.getEngineById(recipe.getEngineId());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new Exception("Execution engine not found.");
+        }
+    }
+
     public void loadLivySession(JobDescription j, Recipe r, MessageType m, String messageId){
         LOGGER.log(Level.INFO, "Creating session for " + j.getName() + " job.");
         new Thread(() -> {
