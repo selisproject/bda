@@ -5,6 +5,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
@@ -62,7 +63,7 @@ public class PubSubConnector {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.log(Level.WARNING, "Failed to retrieve SCN info to start pub sub subscribers.");
+            LOGGER.log(Level.SEVERE, "Failed to retrieve SCN info to start pub sub subscribers. Aborting.");
         }
 
         //LOGGER.log(Level.INFO, "Initializing PubSub publisher...");
@@ -77,7 +78,7 @@ public class PubSubConnector {
             subscriptions = PubSubSubscription.getMessageSubscriptions(SCNslug, externalConnector);
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.log(Level.WARNING, "Failed to get subscriptions.");
+            LOGGER.log(Level.WARNING, "Failed to get subscriptions. Aborting reload of subscriber for "+SCNslug);
             return;
         }
 
@@ -101,7 +102,7 @@ public class PubSubConnector {
                     s.start();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.log(Level.WARNING, "Could not create internal subscriber.");
+                    LOGGER.log(Level.SEVERE, "Could not create internal subscriber for "+SCNslug);
                 }
             }
             else
@@ -116,15 +117,20 @@ public class PubSubConnector {
                 resource = client.target(configuration.subscriber.getUrl());
             Invocation.Builder request = resource.request();
 
-            Response response = request.post(Entity.json(subscriptions));
-            if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-                LOGGER.log(Level.INFO,
-                        "SUCCESS: Request to reload subscriptions of SCN {0} has been sent.",
-                        subscriptions.getScnSlug());
-            } else {
-                LOGGER.log(Level.SEVERE,
-                        "Request to reload subscriptions has failed, got error: {0}",
-                        response.getStatusInfo().getReasonPhrase());
+            try {
+                Response response = request.post(Entity.json(subscriptions));
+                if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
+                    LOGGER.log(Level.INFO,
+                            "SUCCESS: Request to reload external subscriptions of SCN {0} has been sent.",
+                            subscriptions.getScnSlug());
+                } else {
+                    LOGGER.log(Level.WARNING,
+                            "Request to reload external subscriptions has failed, got error: {0}",
+                            response.getStatusInfo().getReasonPhrase());
+                }
+            } catch (ProcessingException e){
+                LOGGER.log(Level.WARNING,"Request to reload subscriptions has failed as external subscriber seems down. Error details: ");
+                e.printStackTrace();
             }
         }
     }
