@@ -54,10 +54,8 @@ public class PubSubConnector {
 
         try {
             for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
-                if (!isExternal) {
-                    LOGGER.log(Level.INFO, "Initializing internal PubSub subscriber for "+scn.getSlug());
-                    reloadSubscriptions(scn.getSlug(), false);
-                }
+                reloadSubscriptions(scn.getSlug(), false);
+
                 if (MessageType.checkExternalMessageTypesExist(scn.getSlug()))
                     reloadSubscriptions(scn.getSlug(), true);
             }
@@ -90,6 +88,7 @@ public class PubSubConnector {
                 return;
             }
             if (!subscriberRunners.containsKey(SCNslug)) {
+                LOGGER.log(Level.INFO, "Initializing internal PubSub subscriber for "+SCNslug);
                 try {
                     PubSubSubscriber subscriber = new PubSubSubscriber(
                             configuration.pubsub.getAuthHash(),
@@ -111,25 +110,30 @@ public class PubSubConnector {
         else {
             Client client = ClientBuilder.newClient();
             WebTarget resource;
-            if (externalConnector)
+            if (externalConnector){
+                if (configuration.externalSubscriber.getUrl() == null){
+                    LOGGER.log(Level.WARNING, "External connector subscriber url is not defined! Aborting reload of subscriptions for "+SCNslug);
+                    return;
+                }
                 resource = client.target(configuration.externalSubscriber.getUrl());
-            else
+            } else {
                 resource = client.target(configuration.subscriber.getUrl());
+            }
             Invocation.Builder request = resource.request();
 
             try {
                 Response response = request.post(Entity.json(subscriptions));
                 if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
                     LOGGER.log(Level.INFO,
-                            "SUCCESS: Request to reload external subscriptions of SCN {0} has been sent.",
+                            "SUCCESS: Request to reload subscriptions of SCN {0} has been sent.",
                             subscriptions.getScnSlug());
                 } else {
                     LOGGER.log(Level.WARNING,
-                            "Request to reload external subscriptions has failed, got error: {0}",
+                            "Request to reload subscriptions has failed, got error: {0}",
                             response.getStatusInfo().getReasonPhrase());
                 }
             } catch (ProcessingException e){
-                LOGGER.log(Level.WARNING,"Request to reload subscriptions has failed as external subscriber seems down. Error details: ");
+                LOGGER.log(Level.WARNING,"Request to reload subscriptions has failed as subscriber seems down. Error details: ");
                 e.printStackTrace();
             }
         }
