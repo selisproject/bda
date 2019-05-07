@@ -49,7 +49,7 @@ public class RunnerInstance {
         this.scnSlug = scnSlug;
         this.msgInfo = null;
 
-        job = JobDescription.getJobByMessageId(scnSlug, msgInfo.getId());
+        job = JobDescription.getJobById(scnSlug, jobId);
         recipe = Recipe.getRecipeById(scnSlug, job.getRecipeId());
 
         try {

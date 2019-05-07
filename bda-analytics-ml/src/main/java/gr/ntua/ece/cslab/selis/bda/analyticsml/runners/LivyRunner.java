@@ -163,7 +163,10 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         builder.append("import RecipeDataLoader; import ").append(recipeClass).append("; ");
 
         StringBuilder arguments = new StringBuilder();
-        arguments.append(msgInfo.getName());
+
+        if (msgInfo != null) {
+            arguments.append(msgInfo.getName());
+        }
 
         List<String> dimension_tables = recipe.getArgs().getDimension_tables();
         for (String dimension_table: dimension_tables) {
@@ -186,11 +189,13 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             arguments.append(",").append(eventlog_message);
         }
 
-        List<String> columns = msgInfo.getMessageColumns();
-        builder.append(msgInfo.getName()).append(" = RecipeDataLoader.fetch_from_eventlog_one(spark, '")
-                .append(scn.getElDbname()).append("','")
-                .append(messageId).append("','")
-                .append(columns).append("'); ");
+        if (msgInfo != null) {
+            List<String> columns = msgInfo.getMessageColumns();
+            builder.append(msgInfo.getName()).append(" = RecipeDataLoader.fetch_from_eventlog_one(spark, '")
+                    .append(scn.getElDbname()).append("','")
+                    .append(messageId).append("','")
+                    .append(columns).append("'); ");
+        }
 
         return Arrays.asList(builder.toString(),arguments.toString());
     }
@@ -207,16 +212,22 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         builder.append("result = ").append(recipeClass).append(".run(spark, ").append(arguments).append("); ");
         if (this.job.isJobResultPersist()){
-            List<String> columns = msgInfo.getMessageColumns();
+
             builder.append("RecipeDataLoader.save_result_to_kpidb('")
                     .append(PostgresqlConnector.getPostgresConnectionHost(configuration.kpiBackend.getDbUrl())).append("','")
                     .append(PostgresqlConnector.getPostgresConnectionPort(configuration.kpiBackend.getDbUrl())).append("','")
                     .append(scn.getKpiDbname()).append("','")
                     .append(configuration.kpiBackend.getDbUsername()).append("','")
                     .append(configuration.kpiBackend.getDbPassword()).append("','")
-                    .append(recipe.getName()).append("',")
-                    .append(msgInfo.getName()).append(",'")
-                    .append(columns).append("',result);");
+                    .append(recipe.getName()).append("',");
+
+            if (msgInfo != null) {
+                List<String> columns = msgInfo.getMessageColumns();
+                builder.append(msgInfo.getName()).append(",'")
+                        .append(columns).append("',");
+            }
+
+            builder.append("result);");
         } else {
             Connector conn = Connector.getConnectorInfoById(scn.getConnectorId());
             builder.append("RecipeDataLoader.publish_result('")

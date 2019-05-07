@@ -51,17 +51,24 @@ public class JobResource {
             details = Integer.toString(m.getId());
             LOGGER.log(Level.INFO, "Inserted job.");
 
-            MessageType msg = MessageType.getMessageById(slug,m.getMessageTypeId());
             Recipe r = Recipe.getRecipeById(slug, m.getRecipeId());
-            JSONObject msgFormat = new JSONObject(msg.getFormat());
-            LOGGER.log(Level.INFO, "Create kpidb table..");
-            (new KPIBackend(slug)).create(new KPITable(r.getName(),
-                    new KPISchema(msgFormat)));
+            MessageType msg = null;
+            String messageId = "";
+
+            if (m.getMessageTypeId() != null) {
+                msg = MessageType.getMessageById(slug, m.getMessageTypeId());
+                messageId = String.valueOf(m.getMessageTypeId());
+                JSONObject msgFormat = new JSONObject(msg.getFormat());
+                LOGGER.log(Level.INFO, "Create kpidb table..");
+
+                (new KPIBackend(slug)).create(new KPITable(r.getName(),
+                        new KPISchema(msgFormat)));
+            }
 
             if (m.getJobType().matches("streaming")){
                 RunnerInstance runner = new RunnerInstance(slug, msg.getName());
                 if (runner.engine.getName().matches("livy"))
-                    runner.loadLivySession(m, r, msg, String.valueOf(m.getMessageTypeId()));
+                    runner.loadLivySession(m, r, msg, messageId);
             }
 
             if (m.getScheduleTime() > 0)

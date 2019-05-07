@@ -1,7 +1,7 @@
 {
     "name":"sales_forecast_cron_job",
     "description":"sales_forecast_cron_job",
-    "messageTypeId": 1,
+    "messageTypeId": null,
     "recipeId": 1,
     "jobType": "batch",
     "jobResultPersist": false,

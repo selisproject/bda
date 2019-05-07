@@ -339,7 +339,13 @@ public class JobDescription implements Serializable {
             statement.setString(1, this.name);
             statement.setString(2, this.description);
             statement.setBoolean(3, this.active);
-            statement.setInt(4, this.messageTypeId);
+
+            if (this.messageTypeId == null) {
+                statement.setNull(4, Types.INTEGER);
+            }
+            else {
+                statement.setInt(4, this.messageTypeId);
+            }
             statement.setInt(5, this.recipeId);
             statement.setString(6, this.jobType);
             statement.setBoolean(7, this.jobResultPersist);
