@@ -7,6 +7,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HDFSConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
+import gr.ntua.ece.cslab.selis.bda.controller.cron.CronJobScheduler;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -124,7 +125,8 @@ public class Entrypoint {
             }
             String[] jar_name = configuration.execEngine.getSparkConfJars().split("/");
             outputFilePath =
-                    new org.apache.hadoop.fs.Path(jar_name[jar_name.length-1]);
+                    new org.apache.hadoop.fs.Path("/"+jar_name[jar_name.length-1]);
+
             try {
                 outputStream = fs.create(
                         outputFilePath
@@ -238,6 +240,7 @@ public class Entrypoint {
             LOGGER.log(Level.INFO, "Starting server");
             server.start();
             PubSubConnector.init();
+            CronJobScheduler.init_scheduler();
             server.join();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, e.getMessage());

@@ -1,6 +1,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
+import gr.ntua.ece.cslab.selis.bda.controller.cron.CronJobScheduler;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
@@ -39,25 +40,40 @@ public class JobResource {
                 return Response.serverError().entity(
                         new RequestResponse("ERROR", "Could not insert new Job. Invalid job type.")
                 ).build();
+
+            if (!((m.getMessageTypeId() == null) ^ (m.getScheduleTime() == 0))) {
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not insert new Job. Job is either cron or connected to a message type")
+                ).build();
+            }
+
             m.save(slug);
             details = Integer.toString(m.getId());
             LOGGER.log(Level.INFO, "Inserted job.");
 
-            MessageType msg = MessageType.getMessageById(slug,m.getMessageTypeId());
             Recipe r = Recipe.getRecipeById(slug, m.getRecipeId());
-            JSONObject msgFormat = new JSONObject(msg.getFormat());
-            LOGGER.log(Level.INFO, "Create kpidb table..");
-            (new KPIBackend(slug)).create(new KPITable(r.getName(),
-                    new KPISchema(msgFormat)));
+            MessageType msg = null;
+            String messageId = "";
+
+            if (m.getMessageTypeId() != null) {
+                msg = MessageType.getMessageById(slug, m.getMessageTypeId());
+                messageId = String.valueOf(m.getMessageTypeId());
+                JSONObject msgFormat = new JSONObject(msg.getFormat());
+                LOGGER.log(Level.INFO, "Create kpidb table..");
+
+                (new KPIBackend(slug)).create(new KPITable(r.getName(),
+                        new KPISchema(msgFormat)));
+            }
 
             if (m.getJobType().matches("streaming")){
                 RunnerInstance runner = new RunnerInstance(slug, msg.getName());
                 if (runner.engine.getName().matches("livy"))
-                    runner.loadLivySession(m, r, msg, String.valueOf(m.getMessageTypeId()));
+                    runner.loadLivySession(m, r, msg, messageId);
             }
-            // TODO: check if job is periodical and schedule the cron job
-            // RunnerInstance runner = new RunnerInstance(slug, msg.getName());
-            // runner.schedule();
+
+            if (m.getScheduleTime() > 0)
+                CronJobScheduler.schedule_job(slug, m);
+
         } catch (Exception e) {
             e.printStackTrace();
 
