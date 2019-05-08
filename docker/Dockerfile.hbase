@@ -7,10 +7,8 @@ ARG ZOOKEEPER_PREFIX=/usr/local/zookeeper
 ARG HBASE_PREFIX=/usr/local/hbase
 ARG HBASE_DATADIR=/data/hbase
 ARG ZOOKEEPER_DATADIR=/data/zookeeper
-#ARG ZOOKEEPER_URL=http://supergsego.com/apache/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/zookeeper-$ZOOKEEPER_VERSION.tar.gz
-
-ARG ZOOKEEPER_URL=http://archive.apache.org/dist/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
 ARG HBASE_URL=https://archive.apache.org/dist/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
+ARG ZOOKEEPER_URL=http://archive.apache.org/dist/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
 
 # Create zookeeper, hbase, directories.
 RUN mkdir -p \

@@ -187,7 +187,8 @@ public class MessageResource {
         List subscriptions = new Vector();
         try {
             for (ScnDbInfo scn: ScnDbInfo.getScnDbInfo())
-                subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug(), externalConnector));
+                if (externalConnector && MessageType.checkExternalMessageTypesExist(scn.getSlug()))
+                    subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug(), externalConnector));
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.WARNING, "Failed to get SCN info. Aborting reload of all subscriptions.");

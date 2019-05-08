@@ -12,19 +12,14 @@ import java.util.logging.Logger;
 public class PubSubSubscriber implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(PubSubSubscriber.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
 
-    private static String authHash;
-    private static String hostname;
-    private static int portNumber;
-    private static String certificateLocation;
-    private static String SCNslug;
+    private String authHash;
+    private String certificateLocation;
+    private String SCNslug;
+    private volatile PubSubSubscription subscriptions = new PubSubSubscription();
+    private volatile boolean reloadSubscriptionsFlag = true;
 
-    private static volatile PubSubSubscription subscriptions = new PubSubSubscription();
-    private static volatile boolean reloadSubscriptionsFlag = true;
-
-    public PubSubSubscriber(String authHash, String hostname, int portNumber, String cert, String scn) {
+    public PubSubSubscriber(String authHash, String cert, String scn) {
         this.authHash = authHash;
-        this.hostname = hostname;
-        this.portNumber = portNumber;
         this.certificateLocation = cert;
         this.SCNslug = scn;
     }
@@ -46,11 +41,9 @@ public class PubSubSubscriber implements Runnable {
             reloadSubscriptionsFlag = false;
 
             try {
-                if (subscriptions.getPubSubHostname() != null)
-                    this.hostname = subscriptions.getPubSubHostname();
-                if (subscriptions.getPubSubPort() != null)
-                    this.portNumber = subscriptions.getPubSubPort();
-                pubsub = new PubSub(this.certificateLocation, this.hostname, this.portNumber);
+                String hostname = subscriptions.getPubSubHostname();
+                Integer portNumber = subscriptions.getPubSubPort();
+                pubsub = new PubSub(this.certificateLocation, hostname, portNumber);
 
                 if (!(subscriptions.getSubscriptions().isEmpty())) {
 
