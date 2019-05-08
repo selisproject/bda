@@ -125,7 +125,8 @@ public class Entrypoint {
             }
             String[] jar_name = configuration.execEngine.getSparkConfJars().split("/");
             outputFilePath =
-                    new org.apache.hadoop.fs.Path(jar_name[jar_name.length-1]);
+                    new org.apache.hadoop.fs.Path("/"+jar_name[jar_name.length-1]);
+
             try {
                 outputStream = fs.create(
                         outputFilePath

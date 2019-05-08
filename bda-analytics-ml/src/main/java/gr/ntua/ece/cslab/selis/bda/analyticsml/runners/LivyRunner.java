@@ -88,12 +88,15 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         String[] jar_name = configuration.execEngine.getSparkConfJars().split("/");
         classpath.put("spark.jars", "hdfs:///"+jar_name[jar_name.length-1]);
 
+
         if (configuration.execEngine.getSparkConfPackages() != null) {
             classpath.put("spark.jars.packages",configuration.execEngine.getSparkConfPackages());
         }
         if (configuration.execEngine.getSparkConfRepositories() != null) {
             classpath.put("spark.jars.repositories", configuration.execEngine.getSparkConfRepositories());
         }
+
+
         if (!classpath.isEmpty())
             data.put("conf", classpath);
         data.put("driverMemory", configuration.execEngine.getSparkConfDriverMemory());
@@ -165,7 +168,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         StringBuilder arguments = new StringBuilder();
 
         if (msgInfo != null) {
-            arguments.append(msgInfo.getName());
+            arguments.append(msgInfo.getName()).append(",");
         }
 
         List<String> dimension_tables = recipe.getArgs().getDimension_tables();
@@ -175,7 +178,8 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                     .append(configuration.storageBackend.getDbUsername()).append("','")
                     .append(configuration.storageBackend.getDbPassword()).append("','")
                     .append(dimension_table).append("'); ");
-            arguments.append(",").append(dimension_table);
+
+            arguments.append(dimension_table);
         }
 
         List<String> eventlog_messages = recipe.getArgs().getMessage_types();
