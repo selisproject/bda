@@ -9,20 +9,24 @@ import java.util.concurrent.TimeUnit;
 /**
  *
  */
-public class ScheduledTaskRunnable implements Runnable {
+public class ScheduledTaskThread extends Thread {
 
     private ScheduledTask scheduledTask;
     private int scheduledTime;
+    private Timer timer;
 
-    public ScheduledTaskRunnable(String scn_slug, JobDescription jobDescription) {
+    public ScheduledTaskThread(String scn_slug, JobDescription jobDescription) {
         this.scheduledTask = new ScheduledTask(scn_slug, jobDescription);
         this.scheduledTime = jobDescription.getScheduleTime();
+        this.timer = new Timer();
     }
 
+    public void cancelTimer() {
+        this.timer.cancel();
+    }
 
     @Override
     public void run() {
-        Timer timer = new Timer();
         timer.schedule(this.scheduledTask, Calendar.getInstance().getTime(), TimeUnit.SECONDS.toMillis(scheduledTime));
     }
 }

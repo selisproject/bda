@@ -116,9 +116,15 @@ public class JobResource {
             if (job.getJobType().matches("streaming") && job.getLivySessionId()!=null){
                 RunnerInstance.deleteLivySession(slug, job);
             }
-            //TODO: delete kpi table, unschedule cron
+            //TODO: delete kpi table
             //(new KPIBackend(slug)).delete(new KPITable(r.getName()));
             // RunnerInstance.unschedule();
+
+            // if job is cron, de-schedule it
+            if (job.getScheduleTime() > 0) {
+                CronJobScheduler.cancel_job(slug, job);
+            }
+
             JobDescription.delete(slug, jobId);
         } catch (Exception e) {
             e.printStackTrace();
