@@ -22,7 +22,7 @@ backend.db.event.master.host = selis-hbase-master
 backend.db.event.quorum      = selis-zookeeper-master
 
 # HDFS configuration.
-backend.hdfs.master.url = hdfs://selis-hadoop-master:8020
+backend.hdfs.master.url = hdfs://selis-hadoop-namenode:8020
 
 # Storage backend: KPI db.
 kpi.db.username = selis
@@ -46,7 +46,7 @@ keycloak.bda.url      = http://selis-keycloak:8080/auth
 # Spark configuration
 spark.livy.url             = http://selis-livy:8998
 spark.master               = yarn
-spark.master.url           = spark://selis-hadoop-master:7077
+spark.master.url           = spark://selis-hadoop-yarn-resourcemanager:7077
 spark.deploy_mode          = cluster
 spark.conf.driver_memory   = 512m
 spark.conf.executor_cores  = 1
