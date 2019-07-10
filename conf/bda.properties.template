@@ -19,7 +19,7 @@ backend.db.event.username = selis
 backend.db.event.password = 123456
 backend.db.event.url      = hbase://selis-hbase-master:2181/
 backend.db.event.master.host = selis-hbase-master
-backend.db.event.quorum      = selis-hbase-master.selis-network,selis-hbase-worker.selis-network
+backend.db.event.quorum      = selis-zookeeper-master
 
 # HDFS configuration.
 backend.hdfs.master.url = hdfs://selis-hadoop-master:8020
