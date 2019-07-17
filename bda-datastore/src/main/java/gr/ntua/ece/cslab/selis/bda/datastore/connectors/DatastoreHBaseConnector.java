@@ -8,7 +8,10 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -51,7 +54,27 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
             Put p = new Put(Bytes.toBytes(rowkey));
             for (KeyValue fields: row.getEntries())
                 p.addColumn(Bytes.toBytes("messages"), Bytes.toBytes(fields.getKey()), Bytes.toBytes(fields.getValue()));
+            //create file to record timestamps
+            File f = new File("/timestamps_ingestion.csv");
+            if(!f.exists()){
+                f.createNewFile();
+            } else{
+                String textToAppend = ","+ Long.toString((new Date()).getTime());
+                FileWriter fileWriter = new FileWriter(f, true);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.print(textToAppend);  //New line
+                printWriter.close();
+            }
             table.put(p);
+            if(!f.exists()){
+                f.createNewFile();
+            } else{
+                String textToAppend = ","+ Long.toString((new Date()).getTime());
+                FileWriter fileWriter = new FileWriter(f, true);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.print(textToAppend);  //New line
+                printWriter.close();
+            }
         }
         admin.close();
         return rowkey;

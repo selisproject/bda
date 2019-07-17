@@ -12,13 +12,18 @@ import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubMessageHandler;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
+import org.json.JSONObject;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Date;
 
 @Path("message")
 public class MessageResource {
@@ -156,14 +161,41 @@ public class MessageResource {
     public static Response handleMessage(@PathParam("slug") String scnSlug,
                                          String message) {
         try {
+            //create file to record timestamps
+            File f = new File("/timestamps_ingestion.csv");
+            if(!f.exists()){
+                f.createNewFile();
+            }else{
+                String textToAppend = Long.toString((new Date()).getTime());
+                FileWriter fileWriter = new FileWriter(f, true);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.print(textToAppend);  //New line
+                printWriter.close();
+            }
             Message msg = new Message();
-            Map<String, Object> retMap = new Gson().fromJson(
+            /*Map<String, Object> retMap = new Gson().fromJson(
                     message, new TypeToken<HashMap<String, Object>>() {}.getType()
-            );
-            for (Map.Entry<String, Object> entry: retMap.entrySet())
-                msg.put(entry.getKey(),entry.getValue());
+            );*/
+
+            JSONObject obj = new JSONObject(message);
+            //for (Map.Entry<String, Object> entry: retMap.entrySet())
+            Iterator<String> keys = obj.keys();
+            while(keys.hasNext()) {
+                String key = keys.next();
+                msg.put(key, obj.get(key));
+            }
             PubSubMessageHandler.handleMessage(msg, scnSlug);
             LOGGER.log(Level.INFO,"PubSub message successfully inserted in the BDA.");
+            //create file to record timestamps
+            if(!f.exists()){
+                f.createNewFile();
+            }else{
+                String textToAppend = ","+ Long.toString((new Date()).getTime());
+                FileWriter fileWriter = new FileWriter(f, true);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.println(textToAppend);  //New line
+                printWriter.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
 
