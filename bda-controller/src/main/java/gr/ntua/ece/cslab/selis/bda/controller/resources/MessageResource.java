@@ -162,11 +162,11 @@ public class MessageResource {
                                          String message) {
         try {
             //create file to record timestamps
-            File f = new File("/timestamps_ingestion.csv");
+            File f = new File("/code/timestamps.csv");
             if(!f.exists()){
                 f.createNewFile();
             }else{
-                String textToAppend = Long.toString((new Date()).getTime());
+                String textToAppend = Long.toString((new Date()).getTime())+":ingestion";
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
                 printWriter.print(textToAppend);  //New line
@@ -190,10 +190,10 @@ public class MessageResource {
             if(!f.exists()){
                 f.createNewFile();
             }else{
-                String textToAppend = ","+ Long.toString((new Date()).getTime());
+                String textToAppend = ","+ Long.toString((new Date()).getTime())+":res_done";
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
-                printWriter.println(textToAppend);  //New line
+                printWriter.print(textToAppend);  //New line
                 printWriter.close();
             }
         } catch (Exception e) {

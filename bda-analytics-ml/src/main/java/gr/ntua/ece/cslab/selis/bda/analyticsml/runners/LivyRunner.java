@@ -13,6 +13,9 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import org.json.JSONObject;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
@@ -212,7 +215,10 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         List<String> other_args = recipe.getArgs().getOther_args();
         for (String arg: other_args)
-            arguments.append(",").append(arg);
+            if (!arg.matches("")) {
+                arguments.append(",").append(arg);
+            }
+
 
         builder.append("result = ").append(recipeClass).append(".run(spark, ").append(arguments).append("); ");
         if (this.job.isJobResultPersist()){
@@ -286,66 +292,97 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
         if (sessionId==null || sessionId.matches("null"))
             return;
-
-        // Launch job
-        Invocation.Builder request = resource.path("/sessions/"+sessionId+"/statements").request();
-        JSONObject data = new JSONObject();
-        data.put("code",code);
-        Response response = request.post(Entity.json(data.toString()));
-        if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-            LOGGER.log(Level.INFO,
-                    "SUCCESS: Job has been submitted.");
-            statementId = new JSONObject(response.readEntity(String.class)).get("id").toString();
-        } else {
-            LOGGER.log(Level.SEVERE,
-                    "Request to launch job has failed, got error: {0}",
-                    response.getStatusInfo().getReasonPhrase());
-            if (job.getJobType().matches("batch"))
-                deleteSession(sessionId);
-            return;
-        }
-
-        // Get job status
-        request = resource.path("/sessions/"+sessionId+"/statements/"+statementId).request();
-        response = request.get();
-        String state = "waiting";
-        JSONObject result = null;
-        while (!state.matches("available")) {
+        try {
+            // Launch job
+            Invocation.Builder request = resource.path("/sessions/"+sessionId+"/statements").request();
+            JSONObject data = new JSONObject();
+            data.put("code",code);
+            Response response = request.post(Entity.json(data.toString()));
+            File f = new File("/code/timestamps.csv");
+            if(!f.exists()){
+                f.createNewFile();
+            } else{
+                String textToAppend = ","+ Long.toString((new Date()).getTime())+":ex_submit";
+                FileWriter fileWriter = new FileWriter(f, true);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.print(textToAppend);  //New line
+                printWriter.close();
+            }
             if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-                response = request.get();
-                result = new JSONObject(response.readEntity(String.class));
-                state = result.get("state").toString();
-                if (state.matches("error") || state.contains("cancel")){
-                    LOGGER.log(Level.SEVERE, "Job failed, status: {0}", result.get("output"));
-                    if (job.getJobType().matches("batch"))
-                        deleteSession(sessionId);
-                    return;
-                }
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                LOGGER.log(Level.INFO,
+                        "SUCCESS: Job has been submitted.");
+                statementId = new JSONObject(response.readEntity(String.class)).get("id").toString();
             } else {
                 LOGGER.log(Level.SEVERE,
-                        "Request to get job status has failed, got error: {0}",
+                        "Request to launch job has failed, got error: {0}",
                         response.getStatusInfo().getReasonPhrase());
                 if (job.getJobType().matches("batch"))
                     deleteSession(sessionId);
                 return;
             }
-        }
-        if (new JSONObject(result.get("output").toString()).get("status").toString().equals("error")) {
-            LOGGER.log(Level.SEVERE,
-                    "Job error: {0}",
-                    new JSONObject(result.get("output").toString()).get("traceback").toString());
-        } else {
-            String output = new JSONObject(result.get("output").toString()).get("data").toString();
-            LOGGER.log(Level.INFO, "Job result: " + output);
-        }
 
-        // Delete session
-        if (job.getJobType().matches("batch"))
-            deleteSession(sessionId);
+            // Get job status
+            request = resource.path("/sessions/" + sessionId + "/statements/" + statementId).request();
+            response = request.get();
+            String state = "waiting";
+            JSONObject result = null;
+            while (!state.matches("available")) {
+                if (response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
+                    response = request.get();
+                    result = new JSONObject(response.readEntity(String.class));
+                    state = result.get("state").toString();
+                    if (state.matches("error") || state.contains("cancel")) {
+                        LOGGER.log(Level.SEVERE, "Job failed, status: {0}", result.get("output"));
+                        if (job.getJobType().matches("batch"))
+                            deleteSession(sessionId);
+                        return;
+                    }
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    LOGGER.log(Level.SEVERE,
+                            "Request to get job status has failed, got error: {0}",
+                            response.getStatusInfo().getReasonPhrase());
+                    if (job.getJobType().matches("batch"))
+                        deleteSession(sessionId);
+                    return;
+                }
+            }
+            if (!f.exists()) {
+                f.createNewFile();
+            } else {
+                String textToAppend = "," + Long.toString((new Date()).getTime()) + ":ex_finish";
+                FileWriter fileWriter = new FileWriter(f, true);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.print(textToAppend);  //New line
+                printWriter.close();
+            }
+            if (new JSONObject(result.get("output").toString()).get("status").toString().equals("error")) {
+                LOGGER.log(Level.SEVERE,
+                        "Job error: {0}",
+                        new JSONObject(result.get("output").toString()).get("traceback").toString());
+            } else {
+                String output = new JSONObject(result.get("output").toString()).get("data").toString();
+                LOGGER.log(Level.INFO, "Job result: " + output);
+            }
+            if (!f.exists()) {
+                f.createNewFile();
+            } else {
+                String textToAppend = "," + Long.toString((new Date()).getTime()) + ":ex_done";
+                FileWriter fileWriter = new FileWriter(f, true);
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+                printWriter.println(textToAppend);  //New line
+                printWriter.close();
+            }
+            // Delete session
+            if (job.getJobType().matches("batch"))
+                deleteSession(sessionId);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

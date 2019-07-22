@@ -1,10 +1,10 @@
 {
-    "name":"sales_forecast_job",
-    "description":"sales_forecast_job",
+    "name":"test_job",
+    "description":"test_job",
     "messageTypeId": 1,
     "recipeId": 1,
-    "jobType": "batch",
-    "jobResultPersist": true,
+    "jobType": "streaming",
+    "jobResultPersist": false,
     "schedule_time":0,
     "active": true
 }

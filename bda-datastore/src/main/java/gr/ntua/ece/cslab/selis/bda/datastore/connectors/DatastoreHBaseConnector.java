@@ -55,11 +55,11 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
             for (KeyValue fields: row.getEntries())
                 p.addColumn(Bytes.toBytes("messages"), Bytes.toBytes(fields.getKey()), Bytes.toBytes(fields.getValue()));
             //create file to record timestamps
-            File f = new File("/timestamps_ingestion.csv");
+            File f = new File("/code/timestamps.csv");
             if(!f.exists()){
                 f.createNewFile();
             } else{
-                String textToAppend = ","+ Long.toString((new Date()).getTime());
+                String textToAppend = ","+ Long.toString((new Date()).getTime())+":put";
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
                 printWriter.print(textToAppend);  //New line
@@ -69,7 +69,7 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
             if(!f.exists()){
                 f.createNewFile();
             } else{
-                String textToAppend = ","+ Long.toString((new Date()).getTime());
+                String textToAppend = ","+ Long.toString((new Date()).getTime())+":put_done";
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
                 printWriter.print(textToAppend);  //New line

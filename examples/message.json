@@ -1,9 +1,7 @@
 {
-    "message_type": "SonaeSalesForecast",
-    "scn_slug": "scn_slug",
+    "message_type": "test",
+    "scn_slug": "sslug",
     "payload": {
-        "supplier_id": 7,
-        "warehouse_id": 666,
-        "sales_forecast": {}
+        "id": 0,
     }
 }

@@ -5,8 +5,8 @@
   "executablePath" : "",
   "engineId" : 3,
   "args" : {
-    "dimension_tables": ["inventoryitems", "items", "minimumquantities", "agreements", "transportuncaps"],
-    "message_types": ["SonaeSalesForecast"],
+    "dimension_tables": [],
+    "message_types": [],
     "other_args": ""
   }
 }

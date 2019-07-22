@@ -1,7 +1,7 @@
 {
-  "slug" : "scn_slug",
-  "name" : "scn_name",
-  "description" : "scn_desc",
-  "dbname" : "scn_db",
-  "connectorId" : 1
+  "slug" : "sslug",
+  "name" : "sname",
+  "description" : "sdesc",
+  "dbname" : "sdb",
+  "connectorId" :1 
 }
