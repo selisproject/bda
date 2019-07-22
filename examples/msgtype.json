@@ -1,8 +1,8 @@
 {
-	"name":"SonaeSalesForecast",
-	"description":"Sales forecasts for the products of a specific supplier in a specific warehouse",
+	"name":"test",
+	"description":"test",
 	"active": true,
-	"format":"{'message_type': 'SonaeSalesForecast', 'scn_slug': 'sonae_slug', 'payload': {'supplier_id': 'integer','sales_forecast': 'jsonb','warehouse_id': 'integer'}}",
+	"format":"{'message_type': 'test', 'scn_slug': 'sslug', 'payload': {'id': 'integer'}}",
 	"externalConnectorId": null,
 	"datasource": ""
 }
