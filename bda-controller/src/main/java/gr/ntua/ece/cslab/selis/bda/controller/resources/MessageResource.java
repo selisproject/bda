@@ -166,7 +166,7 @@ public class MessageResource {
             if(!f.exists()){
                 f.createNewFile();
             }else{
-                String textToAppend = Long.toString((new Date()).getTime())+":ingestion";
+                String textToAppend = Long.toString((new Date()).getTime());
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
                 printWriter.print(textToAppend);  //New line
@@ -190,7 +190,7 @@ public class MessageResource {
             if(!f.exists()){
                 f.createNewFile();
             }else{
-                String textToAppend = ","+ Long.toString((new Date()).getTime())+":res_done";
+                String textToAppend = ","+ Long.toString((new Date()).getTime());
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
                 printWriter.print(textToAppend);  //New line

@@ -59,7 +59,7 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
             if(!f.exists()){
                 f.createNewFile();
             } else{
-                String textToAppend = ","+ Long.toString((new Date()).getTime())+":put";
+                String textToAppend = ","+ Long.toString((new Date()).getTime());
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
                 printWriter.print(textToAppend);  //New line
@@ -69,7 +69,7 @@ public class DatastoreHBaseConnector implements DatastoreConnector {
             if(!f.exists()){
                 f.createNewFile();
             } else{
-                String textToAppend = ","+ Long.toString((new Date()).getTime())+":put_done";
+                String textToAppend = ","+ Long.toString((new Date()).getTime());
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
                 printWriter.print(textToAppend);  //New line

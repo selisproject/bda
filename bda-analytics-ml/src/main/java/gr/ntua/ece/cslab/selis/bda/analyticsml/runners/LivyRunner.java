@@ -302,7 +302,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             if(!f.exists()){
                 f.createNewFile();
             } else{
-                String textToAppend = ","+ Long.toString((new Date()).getTime())+":ex_submit";
+                String textToAppend = ","+ Long.toString((new Date()).getTime());
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
                 printWriter.print(textToAppend);  //New line
@@ -354,7 +354,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             if (!f.exists()) {
                 f.createNewFile();
             } else {
-                String textToAppend = "," + Long.toString((new Date()).getTime()) + ":ex_finish";
+                String textToAppend = "," + Long.toString((new Date()).getTime());
                 FileWriter fileWriter = new FileWriter(f, true);
                 PrintWriter printWriter = new PrintWriter(fileWriter);
                 printWriter.print(textToAppend);  //New line
@@ -367,15 +367,6 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             } else {
                 String output = new JSONObject(result.get("output").toString()).get("data").toString();
                 LOGGER.log(Level.INFO, "Job result: " + output);
-            }
-            if (!f.exists()) {
-                f.createNewFile();
-            } else {
-                String textToAppend = "," + Long.toString((new Date()).getTime()) + ":ex_done";
-                FileWriter fileWriter = new FileWriter(f, true);
-                PrintWriter printWriter = new PrintWriter(fileWriter);
-                printWriter.println(textToAppend);  //New line
-                printWriter.close();
             }
             // Delete session
             if (job.getJobType().matches("batch"))
