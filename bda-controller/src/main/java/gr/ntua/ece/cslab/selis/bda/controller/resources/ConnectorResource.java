@@ -66,7 +66,7 @@ public class ConnectorResource {
     @GET
     @Path("{connectorId}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Connector getConnectorInfo(@PathParam("connectorId") int id) {
+    public Connector getConnectorInfo(@PathParam("connectorId") Integer id) {
         Connector connector = null;
 
         try {
@@ -84,7 +84,7 @@ public class ConnectorResource {
      */
     @DELETE
     @Path("{connectorId}")
-    public Response deleteConnector(@PathParam("connectorId") int id) {
+    public Response deleteConnector(@PathParam("connectorId") Integer id) {
 
         try {
             Connector.destroy(id);

@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Path("message")
+@Path("messages")
 public class MessageResource {
     private final static Logger LOGGER = Logger.getLogger(MessageResource.class.getCanonicalName());
 
@@ -28,7 +28,7 @@ public class MessageResource {
      * Message description insert method
      * @param m the message description to insert
      */
-    @PUT
+    @POST
     @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
@@ -70,10 +70,9 @@ public class MessageResource {
      * Message service to update external connector and metadata
      */
     @PUT
-    @Path("{slug}/{message_id}/newconnector")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Path("{slug}/{messageTypeId}")
     public Response insert(@PathParam("slug") String slug,
-                           @PathParam("message_id") Integer messageId,
+                           @PathParam("messageTypeId") Integer messageId,
                            @QueryParam("connector_id") Integer connectorId,
                            @QueryParam("datasource") String datasource) {
         String details;
@@ -146,6 +145,48 @@ public class MessageResource {
     }
 
     /**
+     * Returns information about a specific message type.
+     */
+    @GET
+    @Path("{slug}/{messageTypeId}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public MessageType getMessageTypeInfo(@PathParam("slug") String slug,
+                                          @PathParam("messageTypeId") Integer id) {
+        MessageType messageType = null;
+
+        try {
+            messageType = MessageType.getMessageById(slug, id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return messageType;
+    }
+
+    /**
+     * Delete a specific message type.
+     */
+    @DELETE
+    @Path("{slug}/{messageTypeId}")
+    public Response deleteMessageType(@PathParam("slug") String slug,
+                                      @PathParam("messageTypeId") Integer id) {
+
+        try {
+            MessageType.destroy(slug, id);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not destroy Message Type.")
+            ).build();
+        }
+
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
+    }
+
+    /**
      * Handle incoming PubSub message method
      * @param message the PubSub message
      */
@@ -181,17 +222,18 @@ public class MessageResource {
      * Message subscriptions reload method
      */
     @GET
-    @Path("/reload")
+    @Path("/subscribe/{connectorId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<PubSubSubscription> reload(@QueryParam("external") boolean externalConnector) {
+    public List<PubSubSubscription> getSubscriptions(@PathParam("connectorId") Integer id) {
         List subscriptions = new Vector();
         try {
+            Connector connector = Connector.getConnectorInfoById(id);
             for (ScnDbInfo scn: ScnDbInfo.getScnDbInfo())
-                if (externalConnector && MessageType.checkExternalMessageTypesExist(scn.getSlug()))
-                    subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug(), externalConnector));
+                if (connector.isExternal() && MessageType.checkExternalMessageTypesExist(scn.getSlug()))
+                    subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug(), true));
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.log(Level.WARNING, "Failed to get SCN info. Aborting reload of all subscriptions.");
+            LOGGER.log(Level.WARNING, "Failed to get subscriptions.");
         }
 
         return subscriptions;
