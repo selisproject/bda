@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Path("connector")
+@Path("connectors")
 public class ConnectorResource {
     private final static Logger LOGGER = Logger.getLogger(ConnectorResource.class.getCanonicalName());
 
@@ -20,7 +20,6 @@ public class ConnectorResource {
      * @param connector a Connector description.
      */
     @POST
-    @Path("create")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response createNewConnector(Connector connector) {
@@ -47,7 +46,6 @@ public class ConnectorResource {
      * Returns all the registered Connectors.
      */
     @GET
-    @Path("connectors")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public List<Connector> getConnectorsView() {
         List<Connector> connectors = new LinkedList<Connector>();
@@ -59,5 +57,47 @@ public class ConnectorResource {
         }
 
         return connectors;
+    }
+
+    /**
+     * Returns information about a specific Connector.
+     * @param id a Connector id.
+     */
+    @GET
+    @Path("{connectorId}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Connector getConnectorInfo(@PathParam("connectorId") int id) {
+        Connector connector = null;
+
+        try {
+            connector = Connector.getConnectorInfoById(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return connector;
+    }
+
+    /**
+     * Delete a Connector.
+     * @param id a Connector id.
+     */
+    @DELETE
+    @Path("{connectorId}")
+    public Response deleteConnector(@PathParam("connectorId") int id) {
+
+        try {
+            Connector.destroy(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not delete Connector instance.")
+            ).build();
+        }
+
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
     }
 }
