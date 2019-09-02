@@ -47,6 +47,9 @@ public class Connector implements Serializable {
             "SELECT id, name, address, port, metadata, is_external " +
             "FROM connectors;";
 
+    private final static String DELETE_CONNECTOR_QUERY =
+            "DELETE FROM connectors WHERE id = ?;";
+
     private boolean exists = false;
 
     public Connector() { }
@@ -209,6 +212,25 @@ public class Connector implements Serializable {
         }
 
         throw new SQLException("Failed to retrieve Connectors info.");
+    }
+
+    public static void destroy(int id) throws SQLException, UnsupportedOperationException, SystemConnectorException {
+        PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
+        Connection connection = connector.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(DELETE_CONNECTOR_QUERY);
+            statement.setInt(1, id);
+
+            statement.executeUpdate();
+            connection.commit();
+            return;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            connection.rollback();
+        }
+
+        throw new SQLException("Connector object not found.");
     }
 
 }

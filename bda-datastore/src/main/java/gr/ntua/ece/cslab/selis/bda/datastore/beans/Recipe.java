@@ -62,6 +62,9 @@ public class Recipe implements Serializable {
         "SET name = ?, description = ?, language_id = ?, executable_path = ?, engine_id = ?, args = ?::json " +
         "WHERE id = ?";
 
+    private final static String DELETE_RECIPE_QUERY =
+        "DELETE FROM metadata.recipes WHERE id = ?;";
+
     private final static String GET_RECIPE_BY_ID =
          "SELECT * FROM metadata.recipes WHERE id = ?;";
 
@@ -320,7 +323,26 @@ public class Recipe implements Serializable {
             }
         }
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into recipes. ID: "+this.id);
-     }
+    }
+
+    public static void destroy(String slug, Integer recipeId) throws SystemConnectorException, SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(DELETE_RECIPE_QUERY);
+
+        statement.setInt(1, recipeId);
+
+        try {
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        }
+    }
 
     public static void createTable(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector )

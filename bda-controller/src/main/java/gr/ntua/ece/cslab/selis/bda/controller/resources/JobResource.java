@@ -19,20 +19,19 @@ import java.util.logging.Logger;
 import java.util.List;
 import java.util.LinkedList;
 
-@Path("job")
+@Path("jobs")
 public class JobResource {
     private final static Logger LOGGER = Logger.getLogger(JobResource.class.getCanonicalName());
 
     /**
      * Job description insert method
      */
-    @PUT
+    @POST
     @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-
     public Response insert(@PathParam("slug") String slug,
-                                  JobDescription m) {
+                           JobDescription m) {
         String details = "";
 
         try {
@@ -105,11 +104,30 @@ public class JobResource {
         return jobs;
     }
 
+    /**
+     * Returns information about a specific job.
+     */
+    @GET
+    @Path("{slug}/{jobId}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public JobDescription getJobInfo(@PathParam("slug") String slug,
+                                     @PathParam("jobId") Integer id) {
+        JobDescription job = null;
+
+        try {
+            job = JobDescription.getJobById(slug, id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return job;
+    }
+
     @DELETE
-    @Path("{slug}/{id}")
+    @Path("{slug}/{jobId}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response delete(@PathParam("slug") String slug,
-                           @PathParam("id") int jobId) {
+                           @PathParam("jobId") int jobId) {
 
         try {
             JobDescription job = JobDescription.getJobById(slug, jobId);
@@ -119,7 +137,7 @@ public class JobResource {
             //TODO: delete kpi table, unschedule cron
             //(new KPIBackend(slug)).delete(new KPITable(r.getName()));
             // RunnerInstance.unschedule();
-            JobDescription.delete(slug, jobId);
+            JobDescription.destroy(slug, jobId);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().entity(

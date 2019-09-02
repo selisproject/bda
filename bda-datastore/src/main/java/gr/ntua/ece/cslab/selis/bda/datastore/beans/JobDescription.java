@@ -370,7 +370,7 @@ public class JobDescription implements Serializable {
         }
     }
 
-    public static void delete(String slug, Integer jobId) throws SystemConnectorException, SQLException {
+    public static void destroy(String slug, Integer jobId) throws SystemConnectorException, SQLException {
         PostgresqlConnector connector = (PostgresqlConnector )
                 SystemConnector.getInstance().getDTconnector(slug);
 

@@ -160,6 +160,9 @@ public class MessageType implements Serializable {
         "SET name = ?, description = ?, active = ?, format = ?, external_connector_id = ?, datasource = ? " +
         "WHERE id = ?";
 
+    private final static String DELETE_MESSAGE_QUERY =
+        "DELETE FROM metadata.message_type WHERE id = ?;";
+
     public static List<MessageType> getMessageTypes(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -394,6 +397,26 @@ public class MessageType implements Serializable {
         }
 
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into message_type. ID: "+this.id);
+    }
+
+    public static void destroy(String slug, int id) throws SQLException, UnsupportedOperationException, SystemConnectorException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getDTconnector(slug);
+        Connection connection = connector.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(DELETE_MESSAGE_QUERY);
+            statement.setInt(1, id);
+
+            statement.executeUpdate();
+            connection.commit();
+            return;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            connection.rollback();
+        }
+
+        throw new SQLException("MessageType object not found.");
     }
 
     public static void createTable(String slug) throws SQLException, SystemConnectorException {

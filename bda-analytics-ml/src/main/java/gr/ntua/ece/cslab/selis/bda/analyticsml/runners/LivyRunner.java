@@ -168,7 +168,12 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         StringBuilder arguments = new StringBuilder();
 
         if (msgInfo != null) {
-            arguments.append(msgInfo.getName()).append(",");
+            List<String> columns = msgInfo.getMessageColumns();
+            builder.append(msgInfo.getName()).append(" = RecipeDataLoader.fetch_from_eventlog_one(spark, '")
+                    .append(scn.getElDbname()).append("','")
+                    .append(messageId).append("','")
+                    .append(columns).append("'); ");
+            arguments.append(msgInfo.getName());
         }
 
         List<String> dimension_tables = recipe.getArgs().getDimension_tables();
@@ -178,8 +183,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                     .append(configuration.storageBackend.getDbUsername()).append("','")
                     .append(configuration.storageBackend.getDbPassword()).append("','")
                     .append(dimension_table).append("'); ");
-
-            arguments.append(dimension_table);
+            arguments.append(",").append(dimension_table);
         }
 
         List<String> eventlog_messages = recipe.getArgs().getMessage_types();
@@ -193,15 +197,12 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             arguments.append(",").append(eventlog_message);
         }
 
-        if (msgInfo != null) {
-            List<String> columns = msgInfo.getMessageColumns();
-            builder.append(msgInfo.getName()).append(" = RecipeDataLoader.fetch_from_eventlog_one(spark, '")
-                    .append(scn.getElDbname()).append("','")
-                    .append(messageId).append("','")
-                    .append(columns).append("'); ");
+        String args = arguments.toString();
+        if (msgInfo == null) {
+            args = arguments.toString().substring(1);
         }
 
-        return Arrays.asList(builder.toString(),arguments.toString());
+        return Arrays.asList(builder.toString(), args);
     }
 
     private String buildRecipePythonCode(ScnDbInfo scn, String args) throws SQLException, SystemConnectorException {

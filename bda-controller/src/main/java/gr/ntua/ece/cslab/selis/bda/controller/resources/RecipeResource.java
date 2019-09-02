@@ -8,7 +8,6 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.*;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.LinkedList;
 
 
-@Path("recipe")
+@Path("recipes")
 public class RecipeResource {
     private final static Logger LOGGER = Logger.getLogger(RecipeResource.class.getCanonicalName());
 
@@ -27,15 +26,12 @@ public class RecipeResource {
      * Recipe insert method
      * @param r the recipe to insert
      */
-    @PUT
+    @POST
     @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public RequestResponse insert(@Context HttpServletResponse response,
-                                  @PathParam("slug") String slug,
+    public Response insert(@PathParam("slug") String slug,
                                   Recipe r) {
-
-        String status = "OK";
         String details = "";
 
         try {
@@ -63,35 +59,25 @@ public class RecipeResource {
 
                 details = Integer.toString(r.getId());
 
-                if (response != null) {
-                    response.setStatus(HttpServletResponse.SC_CREATED);
-                }
             }
             else {
                 LOGGER.log(Level.WARNING, "Bad engine id or language id provided!");
-                if (response != null) {
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                }
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not create Job. Invalid json.")
+                ).build();
             }
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.log(Level.SEVERE, e.toString());
 
-            status = "ERROR";
-            if (response != null) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not create Job.")
+            ).build();
         }
 
-        try {
-            if (response != null) {
-                response.flushBuffer();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return new RequestResponse(status, details);
+        return Response.ok(
+                new RequestResponse("OK", details)
+        ).build();
     }
 
     /**
@@ -111,11 +97,11 @@ public class RecipeResource {
      * @return              An javax `Response` object.
      */
     @PUT
-    @Path("{slug}/upload/{id}/{filename}")
+    @Path("{slug}/{recipeId}/{filename}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response upload(@PathParam("slug") String slug,
-                           @PathParam("id") int recipeId,
+                           @PathParam("recipeId") int recipeId,
                            @PathParam("filename") String recipeName,
                            InputStream recipeBinary)  {
         // Ensure a `Recipe` object with the given `id` exists for the specified SCN.
@@ -189,5 +175,47 @@ public class RecipeResource {
         }
 
         return recipes;
+    }
+
+    /**
+     * Returns information about a specific recipe.
+     */
+    @GET
+    @Path("{slug}/{recipeId}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Recipe getRecipeInfo(@PathParam("slug") String slug,
+                                @PathParam("recipeId") Integer id) {
+        Recipe recipe = null;
+
+        try {
+            recipe = Recipe.getRecipeById(slug, id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return recipe;
+    }
+
+    /**
+     * Delete a specific recipe.
+     */
+    @DELETE
+    @Path("{slug}/{recipeId}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response deleteRecipe(@PathParam("slug") String slug,
+                                 @PathParam("recipeId") Integer id) {
+        try {
+            Recipe.destroy(slug, id);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not delete Recipe.")
+            ).build();
+        }
+
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
     }
 }

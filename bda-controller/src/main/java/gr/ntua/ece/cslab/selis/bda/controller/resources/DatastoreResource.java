@@ -27,7 +27,6 @@ public class DatastoreResource {
      * @param scn an SCN description.
      */
     @POST
-    @Path("create")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response createNewScn(ScnDbInfo scn) {
@@ -89,14 +88,48 @@ public class DatastoreResource {
     }
 
     /**
+     * Returns all the registered SCNs.
+     */
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public List<ScnDbInfo> getScnDbInfoView() {
+        List<ScnDbInfo> scns = new LinkedList<ScnDbInfo>();
+
+        try {
+            scns = ScnDbInfo.getScnDbInfo();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return scns;
+    }
+
+    /**
+     * Returns information about a specific SCN.
+     * @param id the SCN registry id.
+     */
+    @GET
+    @Path("{scnId}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public ScnDbInfo getScnInfo(@PathParam("scnId") Integer id) {
+        ScnDbInfo scn = null;
+
+        try {
+            scn = ScnDbInfo.getScnDbInfoById(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return scn;
+    }
+
+    /**
      * Destroy an SCN's databases/schemas/tables.
      * @param scnId an SCN id.
      */
-    @POST
-    @Path("destroy")
-    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response destroyScn(@QueryParam("scnId") Integer scnId) {
+    @DELETE
+    @Path("{scnId}")
+    public Response destroyScn(@PathParam("scnId") Integer scnId) {
 
         ScnDbInfo scn;
         Boolean externalConnectors;
@@ -136,12 +169,12 @@ public class DatastoreResource {
      * Message insertion method
      * @param m the message to insert
      */
-    @PUT
+    @POST
     @Path("{slug}")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response insert(@PathParam("slug") String slug,
-                                  Message m) {
+                           Message m) {
         LOGGER.log(Level.INFO, m.toString());
         try {
             new StorageBackend(slug).insert(m);
@@ -211,23 +244,6 @@ public class DatastoreResource {
         return new LinkedList<>();
     }
 
-    /**
-     * Returns all the registered SCNs.
-     */
-    @GET
-    @Path("scns")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<ScnDbInfo> getScnDbInfoView() {
-        List<ScnDbInfo> scns = new LinkedList<ScnDbInfo>();
-
-        try {
-            scns = ScnDbInfo.getScnDbInfo();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return scns;
-    }
 
     /**
      * Returns the schema of all dimension tables
