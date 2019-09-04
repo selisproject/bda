@@ -78,10 +78,10 @@ public class RunnerInstance {
     }
 
     public static void deleteLivySession(String slug, JobDescription j){
-        LOGGER.log(Level.INFO, "Destroying session with id " + j.getLivySessionId());
+        LOGGER.log(Level.INFO, "Destroying session with id " + j.getSessionId());
         new Thread(() -> {
             try {
-                LivyRunner.deleteSession(String.valueOf(j.getLivySessionId()));
+                LivyRunner.deleteSession(String.valueOf(j.getSessionId()));
             } catch (Exception e) {
                 e.printStackTrace();
             }

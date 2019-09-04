@@ -23,10 +23,11 @@ public class JobDescription implements Serializable {
     private boolean active;
     private Integer messageTypeId;
     private int recipeId;
-    private String jobType;
-    private transient Integer livySessionId;
-    private boolean jobResultPersist;
-    private int scheduleTime;
+    private transient String jobType;
+    private String resultStorage;
+    private String scheduleInfo;
+    private transient Integer sessionId;
+    private Integer dependJobId;
 
     private boolean exists = false;
 
@@ -37,34 +38,35 @@ public class JobDescription implements Serializable {
         "description        VARCHAR(256), " +
         "message_type_id    INTEGER REFERENCES metadata.message_type(id), " +
         "recipe_id          INTEGER REFERENCES metadata.recipes(id), " +
-        "job_type           VARCHAR(20), " +
-        "livy_session_id    INTEGER," +
-        "schedule_time      INTEGER, "+
-        "job_result_persist BOOLEAN NOT NULL," +
+        "session_id         INTEGER," +
+        "schedule_info      VARCHAR(256), "+
+        "result_storage     VARCHAR(256)," +
+        "depend_job_id      INTEGER," +
         "active             BOOLEAN DEFAULT(true) " +
         ");";
 
     private final static String JOBS_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist, schedule_time " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, session_id, schedule_info, result_storage, depend_job_id" +
         "FROM metadata.jobs";
 
+
     private final static String ACTIVE_JOBS_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist, schedule_time " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, session_id, schedule_info, result_storage, depend_job_id " +
         "FROM metadata.jobs " +
         "WHERE active = true;";
 
     private final static String GET_JOB_BY_ID_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, livy_session_id, job_result_persist, schedule_time " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, session_id, schedule_info, result_storage, depend_job_id " +
         "FROM metadata.jobs " +
         "WHERE id = ?;";
 
     private final static String GET_JOB_BY_MESSAGE_ID_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, livy_session_id, job_result_persist, schedule_time " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, session_id, schedule_info, result_storage, depend_job_id " +
         "FROM metadata.jobs " +
         "WHERE message_type_id = ?;";
 
     private final static String INSERT_JOB_QUERY =
-        "INSERT INTO metadata.jobs (name, description, active, message_type_id, recipe_id, job_type, job_result_persist, schedule_time) " +
+        "INSERT INTO metadata.jobs (name, description, active, message_type_id, recipe_id, schedule_info, result_storage, depend_job_id) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
         "RETURNING id;";
 
@@ -72,21 +74,23 @@ public class JobDescription implements Serializable {
         "DELETE FROM metadata.jobs where id = ?;";
 
     private final static String SET_LIVY_SESSION_FOR_JOB_ID_QUERY =
-        "UPDATE metadata.jobs SET livy_session_id=? where id=?;";
+        "UPDATE metadata.jobs SET session_id=? where id=?;";
 
     public JobDescription() { }
 
-    public JobDescription(String name, String description, boolean active,
-                          int messageTypeId, int recipeId, String jobType,
-                          boolean jobResultPersist, int scheduleTime) {
+    public JobDescription(String name, String description, boolean active, Integer messageTypeId,
+                          int recipeId, String resultStorage, String scheduleInfo,
+                          int dependJobId) {
         this.name = name;
         this.description = description;
         this.active = active;
         this.messageTypeId = messageTypeId;
         this.recipeId = recipeId;
-        this.jobType = jobType;
-        this.jobResultPersist = jobResultPersist;
-        this.scheduleTime = scheduleTime;
+        this.resultStorage = resultStorage;
+        this.scheduleInfo = scheduleInfo;
+        this.dependJobId = dependJobId;
+        this.jobType = (this.messageTypeId == null) ? "batch" : "streaming";
+
     }
 
     public String getName() {
@@ -141,30 +145,37 @@ public class JobDescription implements Serializable {
         this.jobType = jobType;
     }
 
-    public Integer getLivySessionId() { return livySessionId; }
+    public String getResultStorage() { return resultStorage; }
 
-    public void setLivySessionId(Integer livySessionId) { this.livySessionId = livySessionId; }
+    public void setResultStorage(String resultStorage) { this.resultStorage = resultStorage; }
 
-    public boolean isJobResultPersist() { return jobResultPersist; }
+    public String getScheduleInfo() { return scheduleInfo; }
 
-    public void setJobResultPersist(boolean jobResultPersist) { this.jobResultPersist = jobResultPersist; }
+    public void setScheduleInfo(String scheduleInfo) { this.scheduleInfo = scheduleInfo; }
 
-    public int getScheduleTime() { return scheduleTime; }
+    public Integer getSessionId() { return sessionId; }
 
-    public void setScheduleTime(int scheduleTime) { this.scheduleTime = scheduleTime; }
+    public void setSessionId(Integer sessionId) { this.sessionId = sessionId; }
+
+    public int getDependJobId() { return dependJobId; }
+
+    public void setDependJobId(int dependJobId) { this.dependJobId = dependJobId; }
 
     @Override
     public String toString() {
         return "JobDescription{" +
-                "name='" + this.name + '\'' +
-                ", description='" + this.description + '\'' +
-                ", active=" + this.active +
-                ", messageTypeId=" + this.messageTypeId +
-                ", recipeId=" + this.recipeId +
-                ", jobType=" + this.jobType +
-                ", livySessionId=" + this.livySessionId +
-                ", jobResultPersist=" + this.jobResultPersist +
-                ", scheduleTime=" + this.scheduleTime +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", active=" + active +
+                ", messageTypeId=" + messageTypeId +
+                ", recipeId=" + recipeId +
+                ", jobType='" + jobType + '\'' +
+                ", resultStorage='" + resultStorage + '\'' +
+                ", scheduleInfo='" + scheduleInfo + '\'' +
+                ", sessionId=" + sessionId +
+                ", dependJobId=" + dependJobId +
+                ", exists=" + exists +
                 '}';
     }
 
@@ -181,6 +192,7 @@ public class JobDescription implements Serializable {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(JOBS_QUERY);
 
+
             while (resultSet.next()) {
                 JobDescription job = new JobDescription(
                     resultSet.getString("name"),
@@ -188,9 +200,9 @@ public class JobDescription implements Serializable {
                     resultSet.getBoolean("active"),
                     resultSet.getInt("message_type_id"),
                     resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type"),
-                    resultSet.getBoolean("job_result_persist"),
-                    resultSet.getInt("schedule_time")
+                    resultSet.getString("result_storage"),
+                    resultSet.getString("schedule_info"),
+                    resultSet.getInt("depend_job_id")
                 );
 
                 job.id = resultSet.getInt("id");
@@ -221,14 +233,14 @@ public class JobDescription implements Serializable {
 
             while (resultSet.next()) {
                 JobDescription job = new JobDescription(
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("active"),
-                    resultSet.getInt("message_type_id"),
-                    resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type"),
-                    resultSet.getBoolean("job_result_persist"),
-                    resultSet.getInt("schedule_time")
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("active"),
+                        resultSet.getInt("message_type_id"),
+                        resultSet.getInt("recipe_id"),
+                        resultSet.getString("result_storage"),
+                        resultSet.getString("schedule_info"),
+                        resultSet.getInt("depend_job_id")
                 );
 
                 job.id = resultSet.getInt("id");
@@ -259,20 +271,20 @@ public class JobDescription implements Serializable {
 
             if (resultSet.next()) {
                 JobDescription job = new JobDescription(
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("active"),
-                    resultSet.getInt("message_type_id"),
-                    resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type"),
-                    resultSet.getBoolean("job_result_persist"),
-                    resultSet.getInt("schedule_time")
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("active"),
+                        resultSet.getInt("message_type_id"),
+                        resultSet.getInt("recipe_id"),
+                        resultSet.getString("result_storage"),
+                        resultSet.getString("schedule_info"),
+                        resultSet.getInt("depend_job_id")
                 );
 
                 job.id = resultSet.getInt("id");
-                job.livySessionId = resultSet.getInt("livy_session_id");
+                job.sessionId = resultSet.getInt("session_id");
                 if (resultSet.wasNull()) {
-                    job.livySessionId = null;
+                    job.sessionId = null;
                 }
                 job.exists = true;
 
@@ -305,15 +317,15 @@ public class JobDescription implements Serializable {
                         resultSet.getBoolean("active"),
                         resultSet.getInt("message_type_id"),
                         resultSet.getInt("recipe_id"),
-                        resultSet.getString("job_type"),
-                        resultSet.getBoolean("job_result_persist"),
-                        resultSet.getInt("schedule_time")
+                        resultSet.getString("result_storage"),
+                        resultSet.getString("schedule_info"),
+                        resultSet.getInt("depend_job_id")
                 );
 
                 job.id = resultSet.getInt("id");
-                job.livySessionId = resultSet.getInt("livy_session_id");
+                job.sessionId = resultSet.getInt("session_id");
                 if (resultSet.wasNull()) {
-                    job.livySessionId = null;
+                    job.sessionId = null;
                 }
                 job.exists = true;
 
@@ -347,9 +359,9 @@ public class JobDescription implements Serializable {
                 statement.setInt(4, this.messageTypeId);
             }
             statement.setInt(5, this.recipeId);
-            statement.setString(6, this.jobType);
-            statement.setBoolean(7, this.jobResultPersist);
-            statement.setInt(8, this.scheduleTime);
+            statement.setString(6, this.scheduleInfo);
+            statement.setString(7, this.resultStorage);
+            statement.setInt(8, this.dependJobId);
 
 
             try {

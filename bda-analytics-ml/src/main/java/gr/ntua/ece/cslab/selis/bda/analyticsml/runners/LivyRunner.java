@@ -56,7 +56,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             throw e;
         }
 
-        this.sessionId = String.valueOf(job.getLivySessionId());
+        this.sessionId = String.valueOf(job.getSessionId());
     }
 
     public String createSession(){
@@ -216,7 +216,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             arguments.append(",").append(arg);
 
         builder.append("result = ").append(recipeClass).append(".run(spark, ").append(arguments).append("); ");
-        if (this.job.isJobResultPersist()){
+        if (this.job.getResultStorage().equals("kpidb")){
 
             builder.append("RecipeDataLoader.save_result_to_kpidb('")
                     .append(PostgresqlConnector.getPostgresConnectionHost(configuration.kpiBackend.getDbUrl())).append("','")
