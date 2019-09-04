@@ -32,7 +32,7 @@ public class ScheduledTaskRunnable implements Runnable {
 
     public ScheduledTaskRunnable(String scn_slug, JobDescription jobDescription) {
         this.scheduledTask = new ScheduledTask(scn_slug, jobDescription);
-        this.scheduledTime = jobDescription.getScheduleTime();
+        this.scheduledTime = Integer.parseInt(jobDescription.getScheduleInfo());
     }
 
 
