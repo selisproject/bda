@@ -56,7 +56,7 @@ public class JobResource {
                         new RequestResponse("ERROR", "Could not insert new Job. Invalid job type.")
                 ).build();
 
-            if (!((m.getMessageTypeId() == null) ^ (m.getScheduleTime() == 0))) {
+            if (!((m.getMessageTypeId() == null) ^ (m.getScheduleInfo().equals("")))) {
                 return Response.serverError().entity(
                         new RequestResponse("ERROR", "Could not insert new Job. Job is either cron or connected to a message type")
                 ).build();
@@ -86,7 +86,7 @@ public class JobResource {
                     runner.loadLivySession(m, r, msg, messageId);
             }
 
-            if (m.getScheduleTime() > 0)
+            if (!(m.getScheduleInfo().equals("")))
                 CronJobScheduler.schedule_job(slug, m);
 
         } catch (Exception e) {
@@ -147,7 +147,7 @@ public class JobResource {
 
         try {
             JobDescription job = JobDescription.getJobById(slug, jobId);
-            if (job.getJobType().matches("streaming") && job.getLivySessionId()!=null){
+            if (job.getJobType().matches("streaming") && job.getSessionId()!=null){
                 RunnerInstance.deleteLivySession(slug, job);
             }
             //TODO: delete kpi table, unschedule cron

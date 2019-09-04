@@ -21,6 +21,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 
+import javax.jnlp.IntegrationService;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.logging.Level;
@@ -35,7 +36,8 @@ public class CronJobScheduler {
         try {
             for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
                 for (JobDescription job : JobDescription.getActiveJobs(scn.getSlug())) {
-                    if (job.getScheduleTime() > 0) {
+                    int scheduleTime = Integer.parseInt(job.getScheduleInfo());
+                    if (scheduleTime > 0) {
                         schedule_job(scn.getSlug(), job);
                     }
                 }
