@@ -36,9 +36,15 @@ public class PostgresqlConnector implements Connector {
 
     private final static String DROP_OPEN_CONNECTIONS_QUERY = "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM "+
             "pg_stat_activity WHERE pg_stat_activity.datname = '%s' AND pid <> pg_backend_pid();";
- 
-    // The method creates a connection to the database provided in the 'jdbcURL' parameter.
-    // The database should be up and running.
+
+    /**
+     * Creates a new `PostgresqlConnector` instance, checks PostgreSQL availability and initializes a connection.
+     * @param JdbcURL       The URL of the BDA db and the SCN's Dimension table database.
+     * @param Username      The username to connect to the database.
+     * @param Password      The password to connect to the database.
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
     public PostgresqlConnector(String JdbcURL, String Username, String Password) throws SQLException, ClassNotFoundException {
         this.jdbcURL = JdbcURL;
         this.username = Username;
@@ -70,6 +76,16 @@ public class PostgresqlConnector implements Connector {
         }
     }
 
+    /**
+     * Creates a new database for the given SCN at the Dimension tables database.
+     * @param jdbcUrl       The URL of the BDA db and the SCN's Dimension table database.
+     * @param username      The username to connect to the database.
+     * @param password      The password to connect to the database
+     * @param owner         The username of the database owner.
+     * @param dbname        The name of the new database to create.
+     * @return the JDBC URL for the new database
+     * @throws SQLException
+     */
     public static String createDatabase(String jdbcUrl, String username, String password, 
                                         String owner, String dbname) throws SQLException {
         Connection localConnection = null;
@@ -98,6 +114,16 @@ public class PostgresqlConnector implements Connector {
         return jdbcUrl + dbname;
     }
 
+    /**
+     * Create a new schema in the given SCN database. This is used to store the
+     * SCN metadata in a separate schema.
+     * @param jdbcUrl       The full URL to the SCN's Dimension table database.
+     * @param username      The username to connect to the database.
+     * @param password      The password to connect to the database
+     * @param owner         The username of the database owner.
+     * @param schema        The name of the schema to create.
+     * @throws SQLException
+     */
     public static void createSchema(String jdbcUrl, String username, String password, 
                                     String owner, String schema) throws SQLException {
         Connection localConnection = null;
@@ -123,6 +149,15 @@ public class PostgresqlConnector implements Connector {
 
     }
 
+    /**
+     * Deletes the Dimension tables database of a given SCN.
+     * @param jdbcUrl       The URL of the SCN's Dimension table database.
+     * @param username      The username to connect to the database.
+     * @param password      The password to connect to the database
+     * @param owner         The username of the database owner.
+     * @param dbname        The name of the new database to create.
+     * @throws SQLException
+     */
     public static void dropDatabase(String jdbcUrl, String username, String password,
                         String owner, String dbname) throws SQLException {
         Connection localConnection = null;
@@ -185,6 +220,9 @@ public class PostgresqlConnector implements Connector {
         return username;
     }
 
+    /**
+     * Close the connection to the PostgreSQL database.
+     */
     public void close(){
         try {
             connection.close();
