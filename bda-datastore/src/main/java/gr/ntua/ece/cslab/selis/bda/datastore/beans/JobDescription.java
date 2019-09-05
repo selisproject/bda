@@ -12,6 +12,12 @@ import java.lang.UnsupportedOperationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * This class represents a Job description. Jobs are instanciated 'recipes' which are connected to a specific trigger
+ * (either an incoming message or a periodic recurring trigger). This class contains all meta-data a job requires to be
+ * executed.
+ *
+ */
 public class JobDescription implements Serializable {
     private final static Logger LOGGER = Logger.getLogger(JobDescription.class.getCanonicalName());
     private final static int DEFAULT_VECTOR_SIZE = 10;
@@ -76,6 +82,18 @@ public class JobDescription implements Serializable {
 
     public JobDescription() { }
 
+    /**
+     * Default constructor
+     *
+     * @param name job name
+     * @param description a textual description of the job
+     * @param active a boolean active/inactive switch
+     * @param messageTypeId the messageType ID as defined during the configuration process
+     * @param recipeId the recipe ID as defined during the configuration process
+     * @param jobType the type of job (cron, triggered by messages)
+     * @param jobResultPersist
+     * @param scheduleTime
+     */
     public JobDescription(String name, String description, boolean active,
                           int messageTypeId, int recipeId, String jobType,
                           boolean jobResultPersist, int scheduleTime) {
@@ -153,6 +171,9 @@ public class JobDescription implements Serializable {
 
     public void setScheduleTime(int scheduleTime) { this.scheduleTime = scheduleTime; }
 
+    /**
+     * @return the contents of a JobDescrioption object as a string
+     */
     @Override
     public String toString() {
         return "JobDescription{" +
@@ -168,6 +189,12 @@ public class JobDescription implements Serializable {
                 '}';
     }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @return a list containing JobDescription objects corresponding to existing jobs
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static List<JobDescription> getJobs(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
@@ -206,6 +233,12 @@ public class JobDescription implements Serializable {
         return jobs;
      }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @return a list containing JobDescription objects corresponding to existing active jobs
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static List<JobDescription> getActiveJobs(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
@@ -244,6 +277,13 @@ public class JobDescription implements Serializable {
         return jobs;
      }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @param id an existing job ID
+     * @return a JobDescription object corresponding to the job with the given ID
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static JobDescription getJobById(String slug, int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
@@ -285,6 +325,13 @@ public class JobDescription implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @param id the message ID as defined in the configuration process
+     * @return a JobDescription object corresponding to a job triggered by the message type with the given ID
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static JobDescription getJobByMessageId(String slug, int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 

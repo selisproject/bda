@@ -32,7 +32,7 @@ public class KeyValue implements Serializable{
 
     /**
      * Getter for the key
-     * @return
+     * @return key
      */
     public String getKey() {
         return key;
@@ -48,7 +48,7 @@ public class KeyValue implements Serializable{
 
     /**
      * Getter for the value
-     * @return
+     * @return value
      */
     public String getValue() {
         return value;

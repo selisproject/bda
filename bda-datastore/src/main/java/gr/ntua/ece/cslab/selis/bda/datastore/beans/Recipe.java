@@ -23,6 +23,10 @@ import java.lang.UnsupportedOperationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * This class represents a recipe. Recipes are resources in the form of executable scripts or binaries which can be applied
+ * on data as operators. This class encapsulates all required recipe meta-data for this abstraction to be functional.
+ */
 public class Recipe implements Serializable {
     private final static Logger LOGGER = Logger.getLogger(Recipe.class.getCanonicalName());
     private final static int DEFAULT_VECTOR_SIZE = 10;
@@ -76,6 +80,15 @@ public class Recipe implements Serializable {
 
     public Recipe() {}
 
+    /**
+     * Default constructor
+     * @param name recipe name
+     * @param description recipe description
+     * @param languageId the supported language ID (eg. java, python) as defined in the configuration process
+     * @param executablePath the path to the executable (in the HDFS by default)
+     * @param engineId the execution engine ID as defined in the configuration process (spark by default)
+     * @param args necessary arguments for script execution
+     */
     public Recipe(String name, String description, int languageId, String executablePath, int engineId, RecipeArguments args) {
         this.name = name;
         this.description = description;
@@ -145,6 +158,9 @@ public class Recipe implements Serializable {
         this.exists = exists;
     }
 
+    /**
+     * @return a string representation of objects of this class
+     */
     @Override
     public String toString() {
         return "Recipe{" +
@@ -159,6 +175,12 @@ public class Recipe implements Serializable {
                 '}';
     }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @return a list of all defined recipes
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static List<Recipe> getRecipes(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
@@ -197,6 +219,13 @@ public class Recipe implements Serializable {
         return recipes;
      }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @param id the desired recipe ID
+     * @return the recipe which corresponds to the given ID
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static Recipe getRecipeById(String slug, int id) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -232,6 +261,12 @@ public class Recipe implements Serializable {
     }
 
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @param name the desired recipe name
+     * @return the recipe which corresponds to the given name
+     * @throws SystemConnectorException
+     */
     public static Recipe getRecipeByName(String slug, String name) throws SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
