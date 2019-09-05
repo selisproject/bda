@@ -28,8 +28,15 @@ import java.lang.UnsupportedOperationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * This class represents a Job. Jobs are instanciated 'recipes' which are connected to a specific trigger
+ * (either an incoming message or a periodic recurring trigger). This class contains all meta-data a job requires to be
+ * executed.
+ *
+ */
 public class Job implements Serializable {
     private final static Logger LOGGER = Logger.getLogger(Job.class.getCanonicalName());
+
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private transient int id;
@@ -100,9 +107,22 @@ public class Job implements Serializable {
 
     public Job() { }
 
+    /**
+     * Default constructor
+     *
+     * @param name job name
+     * @param description a textual description of the job
+     * @param active a boolean active/inactive switch
+     * @param messageTypeId the messageType ID as defined during the configuration process
+     * @param recipeId the recipe ID as defined during the configuration process
+     * @param scheduleInfo the time pattern to schedule the job if it is cron-based
+     * @param resultStorage a string to identify where the result of the job will be saved (kpidb/pubsub/hdfs)
+     * @param dependJobId the id of the parent job if its result must be used as an input
+     */
     public Job(String name, String description, boolean active, Integer messageTypeId,
                int recipeId, String resultStorage, String scheduleInfo,
                Integer dependJobId) {
+
         this.name = name;
         this.description = description;
         this.active = active;
@@ -184,6 +204,9 @@ public class Job implements Serializable {
 
     public void setDependJobId(Integer dependJobId) { this.dependJobId = dependJobId; }
 
+    /**
+     * @return the contents of a Job object as a string
+     */
     @Override
     public String toString() {
         return "Job{" +
@@ -202,9 +225,14 @@ public class Job implements Serializable {
                 '}';
     }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @return a list containing Job objects corresponding to existing jobs
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static List<Job> getJobs(String slug) throws SQLException, SystemConnectorException {
-
-        PostgresqlConnector connector = (PostgresqlConnector ) 
+        PostgresqlConnector connector = (PostgresqlConnector )
             SystemConnector.getInstance().getDTconnector(slug);
 
         Connection connection = connector.getConnection();
@@ -241,8 +269,13 @@ public class Job implements Serializable {
         return jobs;
      }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @return a list containing Job objects corresponding to existing active jobs
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static List<Job> getActiveJobs(String slug) throws SQLException, SystemConnectorException {
-
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
@@ -279,8 +312,14 @@ public class Job implements Serializable {
         return jobs;
      }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @param id an existing job ID
+     * @return a Job object corresponding to the job with the given ID
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static Job getJobById(String slug, int id) throws SQLException, SystemConnectorException {
-
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
@@ -320,9 +359,15 @@ public class Job implements Serializable {
         throw new SQLException("Job object not found.");
     }
 
+    /**
+     * @param slug the SCN slug as defined in the configuration process
+     * @param id the message ID as defined in the configuration process
+     * @return a Job object corresponding to a job triggered by the message type with the given ID
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static Job getJobByMessageId(String slug, int id) throws SQLException, SystemConnectorException {
-
-        PostgresqlConnector connector = (PostgresqlConnector ) 
+        PostgresqlConnector connector = (PostgresqlConnector )
             SystemConnector.getInstance().getDTconnector(slug);
 
         Connection connection = connector.getConnection();
