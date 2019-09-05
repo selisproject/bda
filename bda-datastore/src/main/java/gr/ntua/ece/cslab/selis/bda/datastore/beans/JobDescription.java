@@ -172,7 +172,7 @@ public class JobDescription implements Serializable {
     public void setScheduleTime(int scheduleTime) { this.scheduleTime = scheduleTime; }
 
     /**
-     * @return the contents of a JobDescrioption object as a string
+     * @return the contents of a JobDescription object as a string
      */
     @Override
     public String toString() {
