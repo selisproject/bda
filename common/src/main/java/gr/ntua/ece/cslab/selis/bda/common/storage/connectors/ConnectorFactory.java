@@ -7,6 +7,9 @@ import java.lang.UnsupportedOperationException;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
+/**
+ * Class that creates a connection to a storage engine.
+ */
 public class ConnectorFactory {
     private static ConnectorFactory connFactory;
 
@@ -24,7 +27,14 @@ public class ConnectorFactory {
     }
 
     /** Depending on the FS string format initialize a connector from a different class.
-     *  Connectors are implemented for four different filesystems: local, HBase, HDFS, PostgreSQL. **/
+     *  Connectors are implemented for four different filesystems: local, HBase, HDFS, PostgreSQL.
+     * @param fs the storage engine connection url
+     * @param username the username used to connect
+     * @param password the password used to connect
+     * @param configuration the BDA configuration object
+     * @return the Connector object created
+     * @throws SystemConnectorException
+     */
     public Connector generateConnector(String fs, String username, String password, Configuration configuration)
         throws SystemConnectorException {
 
@@ -51,7 +61,17 @@ public class ConnectorFactory {
     }
 
     /** Creates a new database and specified schemas.
-     *  Returns the jdbcUrl of the new database. **/
+     * @param fs the storage engine connection url
+     * @param username the username used to connect
+     * @param password the username used to connect
+     * @param configuration the BDA configuration object
+     * @param owner the username of the database owner
+     * @param dbname the database name
+     * @param schemas the database schemas
+     * @return the Url of the new database.
+     * @throws SystemConnectorException
+     * @throws UnsupportedOperationException
+     **/
     public static String createNewDatabaseWithSchemas(String fs, String username, String password,
                                                       Configuration configuration, String owner, String dbname,
                                                       Vector<String> schemas) throws SystemConnectorException, UnsupportedOperationException {
@@ -94,7 +114,16 @@ public class ConnectorFactory {
         return databaseUrl;
     }
 
-    /** Destroys a database. **/
+    /** Destroys a database.
+     * @param fs the storage engine connection url
+     * @param username the username used to connect
+     * @param password the username used to connect
+     * @param configuration the BDA configuration object
+     * @param owner the username of the database owner
+     * @param dbname the database name
+     * @throws UnsupportedOperationException
+     * @throws SystemConnectorException
+     */
     public static void dropDatabase(String fs, String username, String password, Configuration configuration,
                                     String owner, String dbname) throws UnsupportedOperationException, SystemConnectorException {
 
@@ -123,6 +152,11 @@ public class ConnectorFactory {
         return;
     }
 
+    /**
+     * Method to identify the filesystem type (local, HBase, HDFS, PostgreSQL) from the provided engine url.
+     * @param fs the storage engine connection url
+     * @return an identifier for the filesystem
+     */
     public static int getConnectorType(String fs) {
         if (fs.contains("hdfs")) {
             return ConnectorFactory.CONNECTOR_HDFS_TYPE;

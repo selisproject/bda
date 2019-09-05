@@ -145,6 +145,16 @@ public class HBaseConnector implements Connector {
         return fs + dbname;
     }
 
+    /**
+     * Deletes the namespace for a specific SCN at the Event Log database.
+     * @param fs            The URL of the SCN's EventLog database.
+     * @param username      The username to connect to the EventLog database.
+     * @param password      The password to connect to the EventLog database.
+     * @param configuration The Global BDA configuration.
+     * @param dbname        The name of the new Namespace to delete.
+     * @throws IOException
+     * @throws ServiceException
+     */
     public static void dropNamespace(String fs, String username, String password, Configuration configuration,
                                      String dbname) throws IOException, ServiceException {
         // Initialize HBase Configuration.
@@ -185,6 +195,9 @@ public class HBaseConnector implements Connector {
         LOGGER.log(Level.INFO, "HBase namespace deleted.");
     }
 
+    /**
+     * Close the connection to HBase.
+     */
     public void close(){
         try {
             connection.close();
@@ -193,6 +206,10 @@ public class HBaseConnector implements Connector {
         }
     }
 
+    /**
+     * Get the actual connection from the Connector object.
+     * @return the Connection object
+     */
     public Connection getConnection() {
         return connection;
     }
