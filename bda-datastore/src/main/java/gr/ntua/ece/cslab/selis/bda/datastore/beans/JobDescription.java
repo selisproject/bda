@@ -439,4 +439,23 @@ public class JobDescription implements Serializable {
 
         LOGGER.log(Level.INFO, "SUCCESS: Create jobs table in metadata schema.");
     }
+
+    public static boolean hasChildren(String slug, int jobId) throws SQLException, SystemConnectorException {
+        List<JobDescription> jobs = getJobs(slug);
+        boolean hasChildren = false;
+        for (JobDescription job : jobs)
+            if (job.getDependJobId() == jobId) {
+                hasChildren = true;
+                break;
+            }
+        return hasChildren;
+    }
+
+    public static void setChildrenSessionId(String slug, int jobId,
+                                               int sessionId) throws SQLException, SystemConnectorException {
+        List<JobDescription> jobs = getJobs(slug);
+        for (JobDescription job : jobs)
+            if (job.getDependJobId() == jobId)
+                storeSession(slug, job.getId(), sessionId);
+    }
 }
