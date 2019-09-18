@@ -18,7 +18,7 @@ package gr.ntua.ece.cslab.selis.bda.controller.cron;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Job;
 
 import java.util.Calendar;
 import java.util.logging.Level;
@@ -32,7 +32,7 @@ public class CronJobScheduler {
 
         try {
             for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
-                for (JobDescription job : JobDescription.getActiveJobs(scn.getSlug())) {
+                for (Job job : Job.getActiveJobs(scn.getSlug())) {
                     int scheduleTime = Integer.parseInt(job.getScheduleInfo());
                     if (scheduleTime > 0) {
                         schedule_job(scn.getSlug(), job);
@@ -45,9 +45,9 @@ public class CronJobScheduler {
         }
     }
 
-    public static void schedule_job(String scn_slug, JobDescription jobDescription) {
-        LOGGER.log(Level.INFO, "About to schedule cron job with id " + jobDescription.getId());
-        Thread thread = new Thread(new ScheduledTaskRunnable(scn_slug, jobDescription));
+    public static void schedule_job(String scn_slug, Job job) {
+        LOGGER.log(Level.INFO, "About to schedule cron job with id " + job.getId());
+        Thread thread = new Thread(new ScheduledTaskRunnable(scn_slug, job));
         thread.start();
     }
 }

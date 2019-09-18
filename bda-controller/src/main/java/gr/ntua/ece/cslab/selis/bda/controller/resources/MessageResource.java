@@ -58,7 +58,7 @@ public class MessageResource {
                     return Response.serverError().entity(
                             new RequestResponse("ERROR", "Could not insert new Message Type. Connector is not external.")
                     ).build();
-                if (!conn.getMetadata().getDatasources().contains(m.getExternal_datasource())){
+                if (!conn.getMetadata().getDatasources().contains(m.getExternalDatasource())){
                     return Response.serverError().entity(
                             new RequestResponse("ERROR", "Could not insert new Message Type. Invalid datasource specified for connector.")
                     ).build();
@@ -117,13 +117,13 @@ public class MessageResource {
             ).build();
         }
         try {
-            if (!conn.getMetadata().getDatasources().contains(m.getExternal_datasource())){
+            if (!conn.getMetadata().getDatasources().contains(m.getExternalDatasource())){
                 return Response.serverError().entity(
                         new RequestResponse("ERROR", "Could not create new service for Message Type. Invalid datasource specified for connector.")
                 ).build();
             }
             m.setExternalConnectorId(connectorId);
-            m.setExternal_datasource(datasource);
+            m.setExternalDatasource(datasource);
             m.save(slug);
             details = Integer.toString(m.getId());
         } catch (Exception e) {

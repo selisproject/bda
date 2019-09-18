@@ -48,7 +48,7 @@ public class StorageBackend {
         // 2. Create metadata tables for new SCN.
         MessageType.createTable(scn.getSlug());
         Recipe.createTable(scn.getSlug());
-        JobDescription.createTable(scn.getSlug());
+        Job.createTable(scn.getSlug());
     }
 
     public static void destroyScn(ScnDbInfo scn)

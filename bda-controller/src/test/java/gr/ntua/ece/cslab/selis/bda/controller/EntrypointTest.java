@@ -26,9 +26,6 @@ import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.MessageResource;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.RecipeResource;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import java.io.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class EntrypointTest extends AbstractTestConnector  {
@@ -42,7 +39,7 @@ public class EntrypointTest extends AbstractTestConnector  {
     ScnDbInfo scnDbInfo;
     MessageType msgType;
     Recipe recipe;
-    JobDescription jobDescription;
+    Job job;
 
     String SCNslug = "testll";
 

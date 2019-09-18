@@ -28,8 +28,8 @@ import java.lang.UnsupportedOperationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class JobDescription implements Serializable {
-    private final static Logger LOGGER = Logger.getLogger(JobDescription.class.getCanonicalName());
+public class Job implements Serializable {
+    private final static Logger LOGGER = Logger.getLogger(Job.class.getCanonicalName());
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private transient int id;
@@ -92,11 +92,11 @@ public class JobDescription implements Serializable {
     private final static String SET_LIVY_SESSION_FOR_JOB_ID_QUERY =
         "UPDATE metadata.jobs SET session_id=? where id=?;";
 
-    public JobDescription() { }
+    public Job() { }
 
-    public JobDescription(String name, String description, boolean active, Integer messageTypeId,
-                          int recipeId, String resultStorage, String scheduleInfo,
-                          int dependJobId) {
+    public Job(String name, String description, boolean active, Integer messageTypeId,
+               int recipeId, String resultStorage, String scheduleInfo,
+               int dependJobId) {
         this.name = name;
         this.description = description;
         this.active = active;
@@ -196,14 +196,14 @@ public class JobDescription implements Serializable {
                 '}';
     }
 
-    public static List<JobDescription> getJobs(String slug) throws SQLException, SystemConnectorException {
+    public static List<Job> getJobs(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
         Connection connection = connector.getConnection();
 
-        Vector<JobDescription> jobs = new Vector<JobDescription>(DEFAULT_VECTOR_SIZE);
+        Vector<Job> jobs = new Vector<Job>(DEFAULT_VECTOR_SIZE);
 
         try {
             Statement statement = connection.createStatement();
@@ -211,7 +211,7 @@ public class JobDescription implements Serializable {
 
 
             while (resultSet.next()) {
-                JobDescription job = new JobDescription(
+                Job job = new Job(
                     resultSet.getString("name"),
                     resultSet.getString("description"),
                     resultSet.getBoolean("active"),
@@ -235,21 +235,21 @@ public class JobDescription implements Serializable {
         return jobs;
      }
 
-    public static List<JobDescription> getActiveJobs(String slug) throws SQLException, SystemConnectorException {
+    public static List<Job> getActiveJobs(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
         Connection connection = connector.getConnection();
 
-        Vector<JobDescription> jobs = new Vector<JobDescription>(DEFAULT_VECTOR_SIZE);
+        Vector<Job> jobs = new Vector<Job>(DEFAULT_VECTOR_SIZE);
 
         try {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(ACTIVE_JOBS_QUERY);
 
             while (resultSet.next()) {
-                JobDescription job = new JobDescription(
+                Job job = new Job(
                         resultSet.getString("name"),
                         resultSet.getString("description"),
                         resultSet.getBoolean("active"),
@@ -273,7 +273,7 @@ public class JobDescription implements Serializable {
         return jobs;
      }
 
-    public static JobDescription getJobById(String slug, int id) throws SQLException, SystemConnectorException {
+    public static Job getJobById(String slug, int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -287,7 +287,7 @@ public class JobDescription implements Serializable {
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-                JobDescription job = new JobDescription(
+                Job job = new Job(
                         resultSet.getString("name"),
                         resultSet.getString("description"),
                         resultSet.getBoolean("active"),
@@ -314,7 +314,7 @@ public class JobDescription implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
-    public static JobDescription getJobByMessageId(String slug, int id) throws SQLException, SystemConnectorException {
+    public static Job getJobByMessageId(String slug, int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -328,7 +328,7 @@ public class JobDescription implements Serializable {
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-                JobDescription job = new JobDescription(
+                Job job = new Job(
                         resultSet.getString("name"),
                         resultSet.getString("description"),
                         resultSet.getBoolean("active"),
@@ -458,9 +458,9 @@ public class JobDescription implements Serializable {
     }
 
     public static boolean hasChildren(String slug, int jobId) throws SQLException, SystemConnectorException {
-        List<JobDescription> jobs = getJobs(slug);
+        List<Job> jobs = getJobs(slug);
         boolean hasChildren = false;
-        for (JobDescription job : jobs)
+        for (Job job : jobs)
             if (job.getDependJobId() == jobId) {
                 hasChildren = true;
                 break;
@@ -470,8 +470,8 @@ public class JobDescription implements Serializable {
 
     public static void setChildrenSessionId(String slug, int jobId,
                                                int sessionId) throws SQLException, SystemConnectorException {
-        List<JobDescription> jobs = getJobs(slug);
-        for (JobDescription job : jobs)
+        List<Job> jobs = getJobs(slug);
+        for (Job job : jobs)
             if (job.getDependJobId() == jobId)
                 storeSession(slug, job.getId(), sessionId);
     }

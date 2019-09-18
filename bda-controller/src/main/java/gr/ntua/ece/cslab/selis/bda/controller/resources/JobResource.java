@@ -18,7 +18,7 @@ package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
 import gr.ntua.ece.cslab.selis.bda.controller.cron.CronJobScheduler;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Job;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
@@ -47,7 +47,7 @@ public class JobResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response insert(@PathParam("slug") String slug,
-                           JobDescription m) {
+                           Job m) {
         String details = "";
 
         try {
@@ -108,11 +108,11 @@ public class JobResource {
     @GET
     @Path("{slug}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public List<JobDescription> getJobsView(@PathParam("slug") String slug) {
-        List<JobDescription> jobs = new LinkedList<JobDescription>();
+    public List<Job> getJobsView(@PathParam("slug") String slug) {
+        List<Job> jobs = new LinkedList<Job>();
 
         try {
-            jobs = JobDescription.getJobs(slug);
+            jobs = Job.getJobs(slug);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,12 +126,12 @@ public class JobResource {
     @GET
     @Path("{slug}/{jobId}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public JobDescription getJobInfo(@PathParam("slug") String slug,
-                                     @PathParam("jobId") Integer id) {
-        JobDescription job = null;
+    public Job getJobInfo(@PathParam("slug") String slug,
+                          @PathParam("jobId") Integer id) {
+        Job job = null;
 
         try {
-            job = JobDescription.getJobById(slug, id);
+            job = Job.getJobById(slug, id);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -146,14 +146,14 @@ public class JobResource {
                            @PathParam("jobId") int jobId) {
 
         try {
-            JobDescription job = JobDescription.getJobById(slug, jobId);
+            Job job = Job.getJobById(slug, jobId);
             if (job.getJobType().matches("streaming") && job.getSessionId()!=null){
                 RunnerInstance.deleteLivySession(slug, job);
             }
             //TODO: delete kpi table, unschedule cron
             //(new KPIBackend(slug)).delete(new KPITable(r.getName()));
             // RunnerInstance.unschedule();
-            JobDescription.destroy(slug, jobId);
+            Job.destroy(slug, jobId);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().entity(
