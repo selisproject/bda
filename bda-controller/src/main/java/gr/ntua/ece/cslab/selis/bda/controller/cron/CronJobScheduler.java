@@ -16,13 +16,10 @@
 
 package gr.ntua.ece.cslab.selis.bda.controller.cron;
 
-import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.resources.JobResource;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
 
-import javax.jnlp.IntegrationService;
-import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;

@@ -163,6 +163,7 @@ public class JobDescription implements Serializable {
 
     public String getResultStorage() { return resultStorage; }
 
+
     public void setResultStorage(String resultStorage) { this.resultStorage = resultStorage; }
 
     public String getScheduleInfo() { return scheduleInfo; }
