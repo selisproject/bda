@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * This class represents an Execution Engine that the BDA can use to execute Recipes.
+ */
 @XmlRootElement(name = "ExecutionEngine")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class ExecutionEngine implements Serializable {
@@ -59,6 +62,13 @@ public class ExecutionEngine implements Serializable {
     // Empty constructor
     public ExecutionEngine() {}
 
+    /**
+     * Default constructor.
+     * @param name a name for the execution engine
+     * @param engine_path the engine url used to submit jobs
+     * @param local_engine if the execution is local or distributed
+     * @param args arguments for configuring the execution engine
+     */
     public ExecutionEngine(String name, String engine_path, boolean local_engine, String args) {
         this.name = name;
         this.engine_path = engine_path;

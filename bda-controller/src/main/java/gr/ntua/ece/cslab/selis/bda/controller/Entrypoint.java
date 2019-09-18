@@ -38,12 +38,20 @@ import static org.junit.Assert.*;
 
 /**
  * Created by Giannis Giannakopoulos on 8/31/17.
+ * This class represents the actual BDA server and contains all the functional components
+ * that need to be instantiated when the server is launched.
  */
 public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
 
-
+    /**
+     * This is the main method of the BDA server which is used when starting and stopping it to
+     * initialize or shutdown connections with the IAM server, the BDA database and the Pub/Sub
+     * server and also to start/stop the CronJob scheduler.
+     * @param args the BDA configuration file
+     * @throws SystemConnectorException
+     */
     public static void main(String[] args) throws SystemConnectorException {
         if (args.length < 1) {
             LOGGER.log(Level.WARNING, "Please provide a configuration file as a first argument");

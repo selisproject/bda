@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * This class represents an Execution Language that a BDA Recipe can be written in.
+ */
 @XmlRootElement(name = "ExecutionLanguage")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class ExecutionLanguage implements Serializable {
@@ -55,6 +58,10 @@ public class ExecutionLanguage implements Serializable {
     // Empty constructor
     public ExecutionLanguage() {}
 
+    /**
+     * Default constructor
+     * @param name the language name
+     */
     public ExecutionLanguage(String name) {
         this.name = name;
     }
@@ -110,6 +117,13 @@ public class ExecutionLanguage implements Serializable {
         LOGGER.log(Level.INFO, "SUCCESS: Insert Into execution languages. ID: "+this.id);
     }
 
+
+    /**
+     * This method is used to get the supported execution languages.
+     * @return a list of the existing Execution Language objects
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static List<ExecutionLanguage> getLanguages() throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
         Connection connection = connector.getConnection();
@@ -136,6 +150,13 @@ public class ExecutionLanguage implements Serializable {
         throw new SQLException("Failed to retrieve ExecutionLanguage info.");
     }
 
+    /**
+     * This method is used to get the actual language name by its registered id.
+     * @param id the language id in the BDA database
+     * @return the execution language object
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static ExecutionLanguage getLanguageById(int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();

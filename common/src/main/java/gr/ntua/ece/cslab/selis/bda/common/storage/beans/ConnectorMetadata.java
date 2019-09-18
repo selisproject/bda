@@ -22,6 +22,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * This class represents a ConnectorMetadata which contains information
+ * required for connecting with the Pub/Sub server like the username, password and
+ * the available message topics i.e. datasources to listen to.
+ */
 @XmlRootElement(name = "ConnectorMetadata")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class ConnectorMetadata implements Serializable {
@@ -31,6 +36,12 @@ public class ConnectorMetadata implements Serializable {
 
     public ConnectorMetadata() {}
 
+    /**
+     * Default constructor.
+     * @param username
+     * @param password
+     * @param datasources
+     */
     public ConnectorMetadata(String username, String password, List<String> datasources) {
         this.username = username;
         this.password = password;
