@@ -16,7 +16,7 @@
 
 package gr.ntua.ece.cslab.selis.bda.controller.cron;
 
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Job;
 
 import java.util.Calendar;
 import java.util.Timer;
@@ -30,9 +30,9 @@ public class ScheduledTaskRunnable implements Runnable {
     private ScheduledTask scheduledTask;
     private int scheduledTime;
 
-    public ScheduledTaskRunnable(String scn_slug, JobDescription jobDescription) {
-        this.scheduledTask = new ScheduledTask(scn_slug, jobDescription);
-        this.scheduledTime = Integer.parseInt(jobDescription.getScheduleInfo());
+    public ScheduledTaskRunnable(String scn_slug, Job job) {
+        this.scheduledTask = new ScheduledTask(scn_slug, job);
+        this.scheduledTime = Integer.parseInt(job.getScheduleInfo());
     }
 
 

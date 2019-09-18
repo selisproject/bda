@@ -17,7 +17,7 @@
 package gr.ntua.ece.cslab.selis.bda.analyticsml.runners;
 
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Job;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 
@@ -35,7 +35,7 @@ public class RunnerFactory {
 							  ExecutionEngine engine,
 							  MessageType msgInfo,
 							  String messageId,
-                              JobDescription job,
+                              Job job,
                               String scnSlug
 	) throws Exception {
 

@@ -126,11 +126,11 @@ public class PubSubSubscription implements Serializable {
             subscription.setTuple(rules);
             messageTypeNames.add(subscription);
 
-            if (!(messageType.getExternalConnectorId() == null) && !(messageType.getExternal_datasource() == null)) {
+            if (!(messageType.getExternalConnectorId() == null) && !(messageType.getExternalDatasource() == null)) {
                 Tuple messageMetadata = new Tuple();
                 List<KeyValue> metadata = new Vector<>();
                 metadata.add(new KeyValue("message_type", messageType.getName()));
-                metadata.add(new KeyValue("data_source", messageType.getExternal_datasource()));
+                metadata.add(new KeyValue("data_source", messageType.getExternalDatasource()));
                 messageMetadata.setTuple(metadata);
                 messagesMetadata.add(messageMetadata);
             }

@@ -46,19 +46,19 @@ public class MessageType implements Serializable {
     private boolean active;
     private String format;
     private Integer externalConnectorId;
-    private String external_datasource;
+    private String externalDatasource;
 
     private boolean exists = false;
 
     public MessageType() { }
 
-    public MessageType(String name, String description, boolean active, String format, Integer externalConnectorId, String external_datasource) {
+    public MessageType(String name, String description, boolean active, String format, Integer externalConnectorId, String externalDatasource) {
         this.name = name;
         this.description = description;
         this.active = active;
         this.format = format;
         this.externalConnectorId = externalConnectorId;
-        this.external_datasource = external_datasource;
+        this.externalDatasource = externalDatasource;
     }
 
     public Integer getId() {
@@ -99,9 +99,9 @@ public class MessageType implements Serializable {
 
     public void setExternalConnectorId(Integer externalConnectorId) { this.externalConnectorId = externalConnectorId; }
 
-    public String getExternal_datasource() { return external_datasource; }
+    public String getExternalDatasource() { return externalDatasource; }
 
-    public void setExternal_datasource(String external_datasource) { this.external_datasource = external_datasource; }
+    public void setExternalDatasource(String external_datasource) { this.externalDatasource = external_datasource; }
 
     public List<String> getMessageColumns() {
         List<String> columns = new ArrayList<>();
@@ -117,7 +117,7 @@ public class MessageType implements Serializable {
                 ", active=" + active +
                 ", format='" + format + '\'' +
                 ", external_connector_id='" + externalConnectorId + '\'' +
-                ", external_datasource='" + external_datasource + '\'' +
+                ", external_datasource='" + externalDatasource + '\'' +
                 '}';
     }
 
@@ -368,7 +368,7 @@ public class MessageType implements Serializable {
                 statement.setInt(5, this.externalConnectorId);
             else
                 statement.setNull(5, Types.INTEGER);
-            statement.setString(6, this.external_datasource);
+            statement.setString(6, this.externalDatasource);
 
             try {
                 ResultSet resultSet = statement.executeQuery();
@@ -399,7 +399,7 @@ public class MessageType implements Serializable {
                 statement.setInt(5, this.externalConnectorId);
             else
                 statement.setNull(5, Types.INTEGER);
-            statement.setString(6, this.external_datasource);
+            statement.setString(6, this.externalDatasource);
             statement.setInt(7, Integer.valueOf(this.id));
 
             try {

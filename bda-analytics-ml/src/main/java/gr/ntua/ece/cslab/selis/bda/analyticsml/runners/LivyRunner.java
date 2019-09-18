@@ -22,7 +22,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionLanguage;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Job;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 
@@ -41,7 +41,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private String scnSlug;
     private MessageType msgInfo;
     private Recipe recipe;
-    private JobDescription job;
+    private Job job;
     private static WebTarget resource;
     private static Configuration configuration;
     private String recipeClass;
@@ -49,7 +49,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private String sessionId;
 
     public LivyRunner(Recipe recipe, MessageType msgInfo,
-                      String messageId, JobDescription job, String scnSlug) throws Exception{
+                      String messageId, Job job, String scnSlug) throws Exception{
 
         this.messageId = messageId;
         this.msgInfo = msgInfo;
