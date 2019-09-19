@@ -249,7 +249,8 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             }
 
             builder.append("result);");
-        } else {
+        }
+        else if (this.job.getResultStorage().equals("pubsub")) {
             Connector conn = Connector.getConnectorInfoById(scn.getConnectorId());
             builder.append("RecipeDataLoader.publish_result('")
                     .append(conn.getAddress()).append("','")
@@ -294,8 +295,10 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             sessionId = createSession();
         }
         else if (job.getJobType().matches("batch") && !sessionId.matches("null")) {
-            LOGGER.log(Level.SEVERE,"Found existing session for batch job. This should never happen!");
-            return;
+            if (job.getDependJobId() == null) {
+                LOGGER.log(Level.SEVERE, "Found existing session for batch job with no parent job. This should never happen!");
+                return;
+            }
         }
         else if (job.getJobType().matches("streaming") && sessionId.matches("null")){
             LOGGER.log(Level.SEVERE,"Streaming job has no open session. This should never happen!");
@@ -362,7 +365,18 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
 
         // Delete session
-        if (job.getJobType().matches("batch"))
-            deleteSession(sessionId);
+        try {
+            if (!(job.hasChildren(scnSlug))) {
+                if (job.getJobType().matches("batch"))
+                    deleteSession(sessionId);
+            }
+            else {
+                job.setChildrenSessionId(scnSlug);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (SystemConnectorException e) {
+            e.printStackTrace();
+        }
     }
 }
