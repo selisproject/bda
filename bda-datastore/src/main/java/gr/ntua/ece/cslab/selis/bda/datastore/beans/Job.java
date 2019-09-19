@@ -157,8 +157,8 @@ public class Job implements Serializable {
         return jobType;
     }
 
-    public void setJobType(String jobType) {
-        this.jobType = jobType;
+    public void setJobType() {
+        this.jobType = (this.messageTypeId == null) ? "batch" : "streaming";
     }
 
     public String getResultStorage() { return resultStorage; }

@@ -49,7 +49,7 @@ public class JobResource {
     public Response insert(@PathParam("slug") String slug,
                            Job m) {
         String details = "";
-
+        m.setJobType();
         try {
             if (!(m.getJobType().matches("batch") || m.getJobType().matches("streaming")))
                 return Response.serverError().entity(
@@ -70,14 +70,16 @@ public class JobResource {
             MessageType msg = null;
             String messageId = "";
 
-            if ((m.getMessageTypeId() != null) && (m.getResultStorage().equals("kpidb"))) {
+            if (m.getMessageTypeId() != null)  {
                 msg = MessageType.getMessageById(slug, m.getMessageTypeId());
-                messageId = String.valueOf(m.getMessageTypeId());
-                JSONObject msgFormat = new JSONObject(msg.getFormat());
-                LOGGER.log(Level.INFO, "Create kpidb table..");
+                if (m.getResultStorage().equals("kpidb")) {
+                    messageId = String.valueOf(m.getMessageTypeId());
+                    JSONObject msgFormat = new JSONObject(msg.getFormat());
+                    LOGGER.log(Level.INFO, "Create kpidb table..");
 
-                (new KPIBackend(slug)).create(new KPITable(r.getName(),
-                        new KPISchema(msgFormat)));
+                    (new KPIBackend(slug)).create(new KPITable(r.getName(),
+                            new KPISchema(msgFormat)));
+                }
             }
 
             if (m.getJobType().matches("streaming") && (m.getDependJobId() == null)){
