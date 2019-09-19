@@ -25,16 +25,46 @@ import java.util.List;
 @XmlRootElement(name = "ConnectorMetadata")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class ConnectorMetadata implements Serializable {
+    private String pubSubServerAddress;
+    private Integer pubSubServerPort;
+    private String pubSubServerCertificate;
     private String username;
     private String password;
     private List<String> datasources;
 
     public ConnectorMetadata() {}
 
-    public ConnectorMetadata(String username, String password, List<String> datasources) {
+    public ConnectorMetadata(String serverAddress, Integer serverPort, String serverCertificate , String username, String password, List<String> datasources) {
+        this.pubSubServerAddress = serverAddress;
+        this.pubSubServerPort = serverPort;
+        this.pubSubServerCertificate = serverCertificate;
         this.username = username;
         this.password = password;
         this.datasources = datasources;
+    }
+
+    public String getPubSubServerAddress() {
+        return pubSubServerAddress;
+    }
+
+    public void setPubSubServerAddress(String pubSubServerAddress) {
+        this.pubSubServerAddress = pubSubServerAddress;
+    }
+
+    public Integer getPubSubServerPort() {
+        return pubSubServerPort;
+    }
+
+    public void setPubSubServerPort(Integer pubSubServerPort) {
+        this.pubSubServerPort = pubSubServerPort;
+    }
+
+    public String getPubSubServerCertificate() {
+        return pubSubServerCertificate;
+    }
+
+    public void setPubSubServerCertificate(String pubSubServerCertificate) {
+        this.pubSubServerCertificate = pubSubServerCertificate;
     }
 
     public String getUsername() {
@@ -64,7 +94,10 @@ public class ConnectorMetadata implements Serializable {
     @Override
     public String toString() {
         return "ConnectorMetadata{" +
-                "username='" + username + '\'' +
+                "server_address='" + pubSubServerAddress + '\'' +
+                ", server_port='" + pubSubServerPort + '\'' +
+                ", server_certificate='" + pubSubServerCertificate + '\'' +
+                ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", datasources=" + datasources +
                 '}';

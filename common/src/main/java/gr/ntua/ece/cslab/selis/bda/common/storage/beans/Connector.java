@@ -17,7 +17,6 @@
 package gr.ntua.ece.cslab.selis.bda.common.storage.beans;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
@@ -42,15 +41,15 @@ public class Connector implements Serializable {
     private String address;
     private Integer port;
     private ConnectorMetadata metadata;
-    private boolean external;
+    private String type;
 
     private final static String INSERT_CONNECTOR_QUERY =
-            "INSERT INTO connectors (name, address, port, metadata, is_external) " +
+            "INSERT INTO connectors (name, address, port, metadata, type) " +
             "VALUES (?, ?, ?, ?::json, ?) " +
             "RETURNING id;";
 
     private final static String GET_CONNECTOR_BY_ID_QUERY =
-            "SELECT id, name, address, port, metadata, is_external " +
+            "SELECT id, name, address, port, metadata, type " +
             "FROM connectors " +
             "WHERE id = ?;";
 
@@ -60,7 +59,7 @@ public class Connector implements Serializable {
             "WHERE id = ?;";
 
     private final static String GET_CONNECTOR_QUERY =
-            "SELECT id, name, address, port, metadata, is_external " +
+            "SELECT id, name, address, port, metadata, type " +
             "FROM connectors;";
 
     private final static String DELETE_CONNECTOR_QUERY =
@@ -70,12 +69,12 @@ public class Connector implements Serializable {
 
     public Connector() { }
 
-    public Connector(String name, String address, Integer port, ConnectorMetadata metadata, boolean external) {
+    public Connector(String name, String address, Integer port, ConnectorMetadata metadata, String type) {
         this.name = name;
         this.address = address;
         this.port = port;
         this.metadata = metadata;
-        this.external = external;
+        this.type = type;
     }
 
     public int getId() {
@@ -114,12 +113,12 @@ public class Connector implements Serializable {
         this.metadata = metadata;
     }
 
-    public boolean isExternal() {
-        return external;
+    public String getType() {
+        return type;
     }
 
-    public void setExternal(boolean external) {
-        this.external = external;
+    public void setType(String type) {
+        this.type = type;
     }
 
     @Override
@@ -129,7 +128,7 @@ public class Connector implements Serializable {
                 ", address='" + address + '\'' +
                 ", port=" + port +
                 ", metadata='" + metadata + '\'' +
-                ", isExternal=" + external +
+                ", isType=" + type +
                 '}';
     }
 
@@ -146,7 +145,7 @@ public class Connector implements Serializable {
                 statement.setString(2, this.address);
                 statement.setInt(3, this.port);
                 statement.setString(4, new Gson().toJson(this.metadata));
-                statement.setBoolean(5, this.external);
+                statement.setString(5, this.type);
 
                 ResultSet resultSet = statement.executeQuery();
 
@@ -183,7 +182,7 @@ public class Connector implements Serializable {
                         resultSet.getString("address"),
                         resultSet.getInt("port"),
                         new Gson().fromJson(new JsonParser().parse(resultSet.getString("metadata")).getAsJsonObject(), ConnectorMetadata.class),
-                        resultSet.getBoolean("is_external")
+                        resultSet.getString("type")
                 );
 
                 conn.id = resultSet.getInt("id");
@@ -214,7 +213,7 @@ public class Connector implements Serializable {
                         resultSet.getString("address"),
                         resultSet.getInt("port"),
                         new Gson().fromJson(new JsonParser().parse(resultSet.getString("metadata")).getAsJsonObject(), ConnectorMetadata.class),
-                        resultSet.getBoolean("is_external")
+                        resultSet.getString("type")
                 );
 
                 conn.id = resultSet.getInt("id");
