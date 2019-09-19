@@ -70,7 +70,7 @@ public class JobResource {
             MessageType msg = null;
             String messageId = "";
 
-            if (m.getMessageTypeId() != null) {
+            if ((m.getMessageTypeId() != null) && (m.getResultStorage().equals("kpidb"))) {
                 msg = MessageType.getMessageById(slug, m.getMessageTypeId());
                 messageId = String.valueOf(m.getMessageTypeId());
                 JSONObject msgFormat = new JSONObject(msg.getFormat());
@@ -80,7 +80,7 @@ public class JobResource {
                         new KPISchema(msgFormat)));
             }
 
-            if (m.getJobType().matches("streaming")){
+            if (m.getJobType().matches("streaming") && (m.getDependJobId() == null)){
                 RunnerInstance runner = new RunnerInstance(slug, msg.getName());
                 if (runner.engine.getName().matches("livy"))
                     runner.loadLivySession(m, r, msg, messageId);

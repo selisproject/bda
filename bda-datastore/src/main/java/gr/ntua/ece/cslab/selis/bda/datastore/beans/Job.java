@@ -173,7 +173,7 @@ public class Job implements Serializable {
 
     public void setSessionId(Integer sessionId) { this.sessionId = sessionId; }
 
-    public int getDependJobId() { return dependJobId; }
+    public Integer getDependJobId() { return dependJobId; }
 
     public void setDependJobId(int dependJobId) { this.dependJobId = dependJobId; }
 
@@ -377,8 +377,12 @@ public class Job implements Serializable {
             statement.setInt(5, this.recipeId);
             statement.setString(6, this.scheduleInfo);
             statement.setString(7, this.resultStorage);
-            statement.setInt(8, this.dependJobId);
-
+            if (this.dependJobId == null) {
+                statement.setNull(8, Types.INTEGER);
+            }
+            else {
+                statement.setInt(8, this.dependJobId);
+            }
 
             try {
                 ResultSet resultSet = statement.executeQuery();
@@ -456,22 +460,21 @@ public class Job implements Serializable {
         LOGGER.log(Level.INFO, "SUCCESS: Create jobs table in metadata schema.");
     }
 
-    public static boolean hasChildren(String slug, int jobId) throws SQLException, SystemConnectorException {
+    public boolean hasChildren(String slug) throws SQLException, SystemConnectorException {
         List<Job> jobs = getJobs(slug);
         boolean hasChildren = false;
         for (Job job : jobs)
-            if (job.getDependJobId() == jobId) {
+            if (job.getDependJobId() == this.id) {
                 hasChildren = true;
                 break;
             }
         return hasChildren;
     }
 
-    public static void setChildrenSessionId(String slug, int jobId,
-                                               int sessionId) throws SQLException, SystemConnectorException {
+    public void setChildrenSessionId(String slug) throws SQLException, SystemConnectorException {
         List<Job> jobs = getJobs(slug);
         for (Job job : jobs)
-            if (job.getDependJobId() == jobId)
-                storeSession(slug, job.getId(), sessionId);
+            if (job.getDependJobId() == this.id)
+                storeSession(slug, job.getId(), this.sessionId);
     }
 }
