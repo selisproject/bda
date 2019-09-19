@@ -24,6 +24,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector
 
 import java.io.*;
 import java.sql.*;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 import java.nio.file.Paths;
@@ -59,7 +60,7 @@ public class Recipe implements Serializable {
         "name                VARCHAR(64) NOT NULL UNIQUE, " +
         "description         VARCHAR(256), " +
         "language_id         INTEGER NOT NULL, " +
-        "executable_path     VARCHAR(512) NOT NULL UNIQUE, " +
+        "executable_path     VARCHAR(512) NOT NULL, " +
         "engine_id           INTEGER NOT NULL, " +
         "args                JSON" +
         ");";
@@ -82,13 +83,19 @@ public class Recipe implements Serializable {
         "DELETE FROM metadata.recipes WHERE id = ?;";
 
     private final static String GET_RECIPE_BY_ID =
-         "SELECT * FROM metadata.recipes WHERE id = ?;";
+        "SELECT * FROM metadata.recipes WHERE id = ?;";
 
     private final static String GET_RECIPE_BY_NAME =
-         "SELECT * FROM metadata.recipes WHERE name = ?;";
+        "SELECT * FROM metadata.recipes WHERE name = ?;";
 
     private final static String SET_EXECUTABLE_PATH =
-         "UPDATE metadata.recipes SET executable_path = ? WHERE id = ?;";
+        "UPDATE metadata.recipes SET executable_path = ? WHERE id = ?;";
+
+    private final static String GET_SHARED_RECIPE_BY_ID =
+        "SELECT * FROM shared_recipes WHERE id = ?;";
+
+    private final static String GET_SHARED_RECIPES =
+        "SELECT * FROM shared_recipes;";
 
     public Recipe() {}
 
@@ -468,7 +475,7 @@ public class Recipe implements Serializable {
      * @param slug           The SCN's slug.
      * @param recipeInStream A `InputStream` from where we read the recipe binary.
      * @param recipeName     The recipe binary's name.
-     * @return               A `String` with the jecipe binary's absolute path.
+     * @return               A `String` with the recipe binary's absolute path.
      * @throws IOException
      */
     public static String saveRecipeForSlug(
@@ -544,5 +551,73 @@ public class Recipe implements Serializable {
         }
 
         return recipeFilename;
+    }
+
+    public static Recipe createFromSharedRecipe(int id, String name, RecipeArguments args) throws Exception {
+        PostgresqlConnector connector = (PostgresqlConnector ) SystemConnector.getInstance().getBDAconnector();
+        Connection connection = connector.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_SHARED_RECIPE_BY_ID);
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                Recipe shRecipe = new Recipe(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getInt("language_id"),
+                        resultSet.getString("executable_path"),
+                        resultSet.getInt("engine_id"),
+                        new Gson().fromJson(new JsonParser().parse(resultSet.getString("args")).getAsJsonObject(), RecipeArguments.class)
+                );
+
+                if ((shRecipe.args.getDimension_tables().size() == args.getDimension_tables().size()) &&
+                    (shRecipe.args.getMessage_types().size() == args.getMessage_types().size()) &&
+                    (shRecipe.args.getOther_args().size() == args.getOther_args().size())){
+                    shRecipe.args = args;
+                    shRecipe.name = name;
+                } else {
+                    throw new Exception("Mismatch between shared recipe arguments and provided arguments.");
+                }
+                return shRecipe;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new SQLException("Shared Recipe object not found.");
+    }
+
+    public static List<Recipe> getSharedRecipes() throws SQLException, SystemConnectorException {
+        PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getBDAconnector();
+        Connection connection = connector.getConnection();
+
+        List<Recipe> shRecipes = new LinkedList<>();
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_SHARED_RECIPES);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Recipe shRecipe = new Recipe(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getInt("language_id"),
+                        resultSet.getString("executable_path"),
+                        resultSet.getInt("engine_id"),
+                        new Gson().fromJson(new JsonParser().parse(resultSet.getString("args")).getAsJsonObject(), RecipeArguments.class)
+                );
+
+                shRecipe.id = resultSet.getInt("id");
+                shRecipes.add(shRecipe);
+            }
+
+            return shRecipes;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new SQLException("Failed to retrieve shared Recipes info.");
     }
 }
