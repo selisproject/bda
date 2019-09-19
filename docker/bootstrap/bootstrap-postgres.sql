@@ -57,7 +57,7 @@ CREATE TABLE connectors (
     address            VARCHAR(256) NOT NULL,
     port               VARCHAR(5) NOT NULL,
     metadata           JSON,
-    is_external        BOOLEAN DEFAULT(false)
+    type               VARCHAR(64) NOT NULL
 );
 
 ALTER TABLE connectors OWNER TO selis;
@@ -109,7 +109,7 @@ CREATE TABLE connectors (
     address            VARCHAR(256) NOT NULL,
     port               VARCHAR(5) NOT NULL,
     metadata           JSON,
-    is_external        BOOLEAN DEFAULT(false)
+    type               VARCHAR(64) NOT NULL
 );
 
 ALTER TABLE connectors OWNER TO selis;

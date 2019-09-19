@@ -54,7 +54,7 @@ public class MessageResource {
         try {
             if (m.getExternalConnectorId()!=null){
                 Connector conn = Connector.getConnectorInfoById(m.getExternalConnectorId());
-                if (!conn.isExternal())
+                if (conn.getType().matches("SELIS"))
                     return Response.serverError().entity(
                             new RequestResponse("ERROR", "Could not insert new Message Type. Connector is not external.")
                     ).build();
@@ -105,7 +105,7 @@ public class MessageResource {
         }
         try {
             conn = Connector.getConnectorInfoById(connectorId);
-            if (!conn.isExternal())
+            if (conn.getType().matches("SELIS"))
                 return Response.serverError().entity(
                         new RequestResponse("ERROR", "Could not insert new Message Type. Connector is not external.")
                 ).build();
@@ -245,7 +245,7 @@ public class MessageResource {
         try {
             Connector connector = Connector.getConnectorInfoById(id);
             for (ScnDbInfo scn: ScnDbInfo.getScnDbInfo())
-                if (connector.isExternal() && MessageType.checkExternalMessageTypesExist(scn.getSlug()))
+                if (!connector.getType().matches("SELIS") && MessageType.checkExternalMessageTypesExist(scn.getSlug()))
                     subscriptions.add(PubSubSubscription.getMessageSubscriptions(scn.getSlug(), true));
         } catch (Exception e) {
             e.printStackTrace();

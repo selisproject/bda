@@ -43,6 +43,11 @@ public class ConnectorResource {
 
         String details = "";
         try {
+            if (!(connector.getType().matches("SELIS") || connector.getType().matches("AEOLIX"))) {
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not register new Connector. Invalid type.")
+                ).build();
+            }
             connector.save();
             details = Integer.toString(connector.getId());
         } catch (Exception e) {
