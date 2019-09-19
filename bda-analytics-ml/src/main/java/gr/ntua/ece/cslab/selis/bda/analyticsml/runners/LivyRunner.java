@@ -231,7 +231,10 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         for (String arg: other_args)
             arguments.append(",").append(arg);
 
-        builder.append("result = ").append(recipeClass).append(".run(spark, ").append(arguments).append("); ");
+        if (this.job.getDependJobId() != null)
+            arguments.append(", result_").append(this.job.getDependJobId());
+
+        builder.append("result_").append(this.job.getId()).append(" = ").append(recipeClass).append(".run(spark, ").append(arguments).append("); ");
         if (this.job.getResultStorage().equals("kpidb")){
 
             builder.append("RecipeDataLoader.save_result_to_kpidb('")
@@ -248,7 +251,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                         .append(columns).append("',");
             }
 
-            builder.append("result);");
+            builder.append("result_").append(this.job.getId()).append(");");
         }
         else if (this.job.getResultStorage().equals("pubsub")) {
             Connector conn = Connector.getConnectorInfoById(scn.getConnectorId());
@@ -257,8 +260,12 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                     .append(conn.getPort()).append("','")
                     .append(configuration.pubsub.getCertificateLocation()).append("','")
                     .append(scn.getSlug()).append("','")
-                    .append(recipe.getName()).append("_").append(job.getId()).append("',result);");
+                    .append(recipe.getName()).append("_").append(job.getId())
+                    .append("',result_").append(this.job.getId()).append(");");
         }
+
+        // TODO : handle hdfs case
+
         return builder.toString();
     }
 
