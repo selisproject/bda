@@ -20,6 +20,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionLanguage;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.RecipeArguments;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 
 import javax.servlet.http.HttpServletResponse;
@@ -47,7 +48,7 @@ public class RecipeResource {
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response insert(@PathParam("slug") String slug,
-                                  Recipe r) {
+                           Recipe r) {
         String details = "";
 
         try {
@@ -79,15 +80,47 @@ public class RecipeResource {
             else {
                 LOGGER.log(Level.WARNING, "Bad engine id or language id provided!");
                 return Response.serverError().entity(
-                        new RequestResponse("ERROR", "Could not create Job. Invalid json.")
+                        new RequestResponse("ERROR", "Could not create Recipe. Invalid json.")
                 ).build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.log(Level.SEVERE, e.toString());
 
             return Response.serverError().entity(
-                    new RequestResponse("ERROR", "Could not create Job.")
+                    new RequestResponse("ERROR", "Could not create Recipe.")
+            ).build();
+        }
+
+        return Response.ok(
+                new RequestResponse("OK", details)
+        ).build();
+    }
+
+    /**
+     * Method to create a Recipe from an existing shared recipe
+     * @param recipeId the shared recipe id
+     * @param args the recipe arguments
+     */
+    @POST
+    @Path("{slug}/{recipeId}")
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response insert(@PathParam("slug") String slug,
+                           @PathParam("recipeId") int recipeId,
+                           @QueryParam("name") String name,
+                           RecipeArguments args) {
+        String details = "";
+        Recipe r;
+
+        try {
+            r = Recipe.createFromSharedRecipe(recipeId, name, args);
+            r.save(slug);
+            details = Integer.toString(r.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Could not create Recipe.")
             ).build();
         }
 

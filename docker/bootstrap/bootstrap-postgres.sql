@@ -62,6 +62,17 @@ CREATE TABLE connectors (
 
 ALTER TABLE connectors OWNER TO selis;
 
+CREATE TABLE shared_recipes (
+    id                  SERIAL PRIMARY KEY,
+    name                VARCHAR(64) NOT NULL UNIQUE,
+    description         VARCHAR(256),
+    language_id         INTEGER NOT NULL,
+    executable_path     VARCHAR(512) NOT NULL,
+    engine_id           INTEGER NOT NULL,
+    args                JSON
+    );
+
+ALTER TABLE shared_recipes OWNER TO selis;
 
 \connect selis_test_db
 
@@ -113,3 +124,15 @@ CREATE TABLE connectors (
 );
 
 ALTER TABLE connectors OWNER TO selis;
+
+CREATE TABLE shared_recipes (
+    id                  SERIAL PRIMARY KEY,
+    name                VARCHAR(64) NOT NULL UNIQUE,
+    description         VARCHAR(256),
+    language_id         INTEGER NOT NULL,
+    executable_path     VARCHAR(512) NOT NULL,
+    engine_id           INTEGER NOT NULL,
+    args                JSON
+    );
+
+ALTER TABLE shared_recipes OWNER TO selis;
