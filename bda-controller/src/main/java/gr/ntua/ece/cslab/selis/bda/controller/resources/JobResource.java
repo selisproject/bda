@@ -88,6 +88,12 @@ public class JobResource {
                     runner.loadLivySession(m, r, msg, messageId);
             }
 
+            if (m.getDependJobId() != null) {
+                Job parentJob = Job.getJobById(slug, m.getDependJobId());
+                parentJob.setChildrenSessionId(slug);
+            }
+
+
             if (!(m.getScheduleInfo().equals("")))
                 CronJobScheduler.schedule_job(slug, m);
 

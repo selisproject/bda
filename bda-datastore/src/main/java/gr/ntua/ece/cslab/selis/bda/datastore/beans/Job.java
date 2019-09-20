@@ -96,7 +96,7 @@ public class Job implements Serializable {
 
     public Job(String name, String description, boolean active, Integer messageTypeId,
                int recipeId, String resultStorage, String scheduleInfo,
-               int dependJobId) {
+               Integer dependJobId) {
         this.name = name;
         this.description = description;
         this.active = active;
