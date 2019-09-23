@@ -1,0 +1,11 @@
+{
+	"message_type": "MsgType2",
+	"scn_slug": "pipe",
+	"id":2,
+	"payload": {
+		"other_values" : {
+			"aString" : "A string from msg1",
+			"anInt" : 10
+		}
+	}
+}

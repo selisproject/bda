@@ -1,0 +1,11 @@
+{
+  "name" : "selis-gw",
+  "address" : "selis-gw.cslab.ece.ntua.gr",
+  "port" : 20000,
+  "metadata" : {
+    "username": "",
+    "password": "",
+    "datasources": []
+  },
+  "external" : false
+}

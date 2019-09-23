@@ -22,7 +22,7 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionLanguage;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.PostgresqlConnector;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Job;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 
@@ -41,7 +41,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private String scnSlug;
     private MessageType msgInfo;
     private Recipe recipe;
-    private JobDescription job;
+    private Job job;
     private static WebTarget resource;
     private static Configuration configuration;
     private String recipeClass;
@@ -49,7 +49,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private String sessionId;
 
     public LivyRunner(Recipe recipe, MessageType msgInfo,
-                      String messageId, JobDescription job, String scnSlug) throws Exception{
+                      String messageId, Job job, String scnSlug) throws Exception{
 
         this.messageId = messageId;
         this.msgInfo = msgInfo;
@@ -72,7 +72,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             throw e;
         }
 
-        this.sessionId = String.valueOf(job.getLivySessionId());
+        this.sessionId = String.valueOf(job.getSessionId());
     }
 
     public String createSession(){
@@ -89,7 +89,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         Map<String, String> classpath = new HashMap<>();
         List<String> files = new ArrayList<>();
-        files.add(recipe.getExecutablePath());
+        //files.add(recipe.getExecutablePath());
         files.add(dataLoaderLibrary);
         // For client mode with old configuration
         //data.put("files", files);
@@ -179,6 +179,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private List<String> buildDataLoadingPythonCode(ScnDbInfo scn) throws SQLException, SystemConnectorException {
 
         StringBuilder builder = new StringBuilder();
+        builder.append("spark.sparkContext.addFile('").append(recipe.getExecutablePath()).append("'); ");
         builder.append("import RecipeDataLoader; import ").append(recipeClass).append("; ");
 
         StringBuilder arguments = new StringBuilder();
@@ -231,8 +232,11 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         for (String arg: other_args)
             arguments.append(",").append(arg);
 
-        builder.append("result = ").append(recipeClass).append(".run(spark, ").append(arguments).append("); ");
-        if (this.job.isJobResultPersist()){
+        if (!(this.job.getDependJobId() == null))
+            arguments.append(", result_").append(this.job.getDependJobId());
+
+        builder.append("result_").append(this.job.getId()).append(" = ").append(recipeClass).append(".run(spark, ").append(arguments).append("); ");
+        if (this.job.getResultStorage().equals("kpidb")){
 
             builder.append("RecipeDataLoader.save_result_to_kpidb('")
                     .append(PostgresqlConnector.getPostgresConnectionHost(configuration.kpiBackend.getDbUrl())).append("','")
@@ -248,16 +252,21 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                         .append(columns).append("',");
             }
 
-            builder.append("result);");
-        } else {
+            builder.append("result_").append(this.job.getId()).append(");");
+        }
+        else if (this.job.getResultStorage().equals("pubsub")) {
             Connector conn = Connector.getConnectorInfoById(scn.getConnectorId());
             builder.append("RecipeDataLoader.publish_result('")
                     .append(conn.getAddress()).append("','")
                     .append(conn.getPort()).append("','")
                     .append(configuration.pubsub.getCertificateLocation()).append("','")
                     .append(scn.getSlug()).append("','")
-                    .append(recipe.getName()).append("_").append(job.getId()).append("',result);");
+                    .append(recipe.getName()).append("_").append(job.getId())
+                    .append("',result_").append(this.job.getId()).append(");");
         }
+
+        // TODO : handle hdfs case
+
         return builder.toString();
     }
 
@@ -289,13 +298,15 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
 
         // Create session if it is required
-        if (job.getJobType().matches("batch") && sessionId.matches("null")){
+        if (job.getJobType().matches("batch") && sessionId.matches("null") && job.getDependJobId() == null){
             LOGGER.log(Level.INFO,"Creating session for batch job..");
             sessionId = createSession();
         }
         else if (job.getJobType().matches("batch") && !sessionId.matches("null")) {
-            LOGGER.log(Level.SEVERE,"Found existing session for batch job. This should never happen!");
-            return;
+            if (job.getDependJobId() == null) {
+                LOGGER.log(Level.SEVERE, "Found existing session for batch job with no parent job. This should never happen!");
+                return;
+            }
         }
         else if (job.getJobType().matches("streaming") && sessionId.matches("null")){
             LOGGER.log(Level.SEVERE,"Streaming job has no open session. This should never happen!");
@@ -362,7 +373,18 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
 
         // Delete session
-        if (job.getJobType().matches("batch"))
-            deleteSession(sessionId);
+        try {
+            if (!(job.hasChildren(scnSlug))) {
+                if (job.getJobType().matches("batch"))
+                    deleteSession(sessionId);
+            }
+            else {
+                job.setChildrenSessionId(scnSlug);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (SystemConnectorException e) {
+            e.printStackTrace();
+        }
     }
 }

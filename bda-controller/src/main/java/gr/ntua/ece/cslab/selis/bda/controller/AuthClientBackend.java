@@ -16,36 +16,78 @@
 
 package gr.ntua.ece.cslab.selis.bda.controller;
 
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+import org.apache.hadoop.hdfs.DFSClient;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.keycloak.authorization.client.AuthzClient;
-import org.keycloak.authorization.client.Configuration;
+
 
 public class AuthClientBackend {
-    private static AuthClientBackend authClientBackend = null;
-    private static Configuration configuration = null;
-    public AuthzClient authzClient = null;
 
-    private AuthClientBackend() {
-        authzClient = AuthzClient.create(configuration);
-    }
+    public static String getAccessToken() {
+        Configuration.AuthClientBackend authClientBackend = Configuration.getInstance().authClientBackend;
+        StringBuilder builder = new StringBuilder();
+        builder.append(authClientBackend.getAuthServerUrl());
+        builder.append("realms/");
+        builder.append(authClientBackend.getRealm());
+        builder.append("/protocol/openid-connect/token");
+        String POST_URL = builder.toString();
 
-    public static void init(String authServerUrl, String realm, String clientId, String secret) {
-        Map<String, Object> credentials = new HashMap<String, Object>();
+        HttpClient httpclient = HttpClients.createDefault();
+        HttpPost httppost = new HttpPost(POST_URL);
 
-        credentials.put("secret", secret);
+        // Request parameters and other properties.
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("client_id", authClientBackend.getClientId()));
+        params.add(new BasicNameValuePair("username", authClientBackend.getBdaUsername()));
+        params.add(new BasicNameValuePair("password", authClientBackend.getBdaPassword()));
+        params.add(new BasicNameValuePair("grant_type", "password"));
+        params.add(new BasicNameValuePair("client_secret", authClientBackend.getClientSecret()));
 
-        configuration = new Configuration(
-            authServerUrl, realm, clientId, credentials, null
-        );
-    }
-
-    public static AuthClientBackend getInstance() {
-        if (authClientBackend == null) {
-            authClientBackend = new AuthClientBackend();
+        try {
+            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return "";
         }
 
-        return authClientBackend;
+        //Execute and get the response.
+        HttpResponse response = null;
+        try {
+            response = httpclient.execute(httppost);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+
+        String results = null;
+        try {
+            results = EntityUtils.toString(response.getEntity());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+
+        JSONObject responseObject = new JSONObject(results);
+
+        //System.out.println(responseObject);
+
+        return (String) responseObject.get("access_token");
     }
+
 }

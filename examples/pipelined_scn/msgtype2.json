@@ -1,0 +1,9 @@
+{
+	"name":"MsgType2",
+	"description":"Message Type triggering second job of Workflow",
+	"active": true,
+	"format":"{'message_type': 'MsgType2', 'scn_slug': 'pipe', 'id' : 'integer', 'payload': {'other_values': 'jsonb'}}",
+	"externalConnectorId": null,
+	"externalDatasource": ""
+}
+

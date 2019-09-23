@@ -20,7 +20,7 @@ import gr.ntua.ece.cslab.selis.bda.analyticsml.runners.LivyRunner;
 import gr.ntua.ece.cslab.selis.bda.analyticsml.runners.RunnerFactory;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
-import gr.ntua.ece.cslab.selis.bda.datastore.beans.JobDescription;
+import gr.ntua.ece.cslab.selis.bda.datastore.beans.Job;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 
 import java.sql.SQLException;
@@ -31,7 +31,7 @@ public class RunnerInstance {
     private final static Logger LOGGER = Logger.getLogger(RunnerInstance.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
     private String scnSlug;
     private MessageType msgInfo;
-    private JobDescription job;
+    private Job job;
     private Recipe recipe;
     public ExecutionEngine engine;
 
@@ -46,7 +46,7 @@ public class RunnerInstance {
         }
         try {
             // TODO: handle multiple jobs related to a single message
-            job = JobDescription.getJobByMessageId(scnSlug, msgInfo.getId());
+            job = Job.getJobByMessageId(scnSlug, msgInfo.getId());
         } catch (SQLException e) {
             throw new Exception("No job found for message " + messageType + ".");
         }
@@ -65,7 +65,7 @@ public class RunnerInstance {
         this.scnSlug = scnSlug;
         this.msgInfo = null;
 
-        job = JobDescription.getJobById(scnSlug, jobId);
+        job = Job.getJobById(scnSlug, jobId);
         recipe = Recipe.getRecipeById(scnSlug, job.getRecipeId());
 
         try {
@@ -76,7 +76,7 @@ public class RunnerInstance {
         }
     }
 
-    public void loadLivySession(JobDescription j, Recipe r, MessageType m, String messageId){
+    public void loadLivySession(Job j, Recipe r, MessageType m, String messageId){
         LOGGER.log(Level.INFO, "Creating session for " + j.getName() + " job.");
         new Thread(() -> {
             try {
@@ -85,7 +85,7 @@ public class RunnerInstance {
                 if (sessionId==null)
                     return;
                 // TODO: Load dataframes in session
-                JobDescription.storeSession(scnSlug, j.getId(), Integer.valueOf(sessionId));
+                Job.storeSession(scnSlug, j.getId(), Integer.valueOf(sessionId));
                 LOGGER.log(Level.INFO, "Session created.");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -93,16 +93,16 @@ public class RunnerInstance {
         }).start();
     }
 
-    public static void deleteLivySession(String slug, JobDescription j){
-        LOGGER.log(Level.INFO, "Destroying session with id " + j.getLivySessionId());
+    public static void deleteLivySession(String slug, Job j){
+        LOGGER.log(Level.INFO, "Destroying session with id " + j.getSessionId());
         new Thread(() -> {
             try {
-                LivyRunner.deleteSession(String.valueOf(j.getLivySessionId()));
+                LivyRunner.deleteSession(String.valueOf(j.getSessionId()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
             try {
-                JobDescription.storeSession(slug, j.getId(), null);
+                Job.storeSession(slug, j.getId(), null);
             } catch (Exception e) {
             }
         }).start();

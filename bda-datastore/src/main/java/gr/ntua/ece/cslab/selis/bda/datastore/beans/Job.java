@@ -28,8 +28,8 @@ import java.lang.UnsupportedOperationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class JobDescription implements Serializable {
-    private final static Logger LOGGER = Logger.getLogger(JobDescription.class.getCanonicalName());
+public class Job implements Serializable {
+    private final static Logger LOGGER = Logger.getLogger(Job.class.getCanonicalName());
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
     private transient int id;
@@ -39,10 +39,11 @@ public class JobDescription implements Serializable {
     private boolean active;
     private Integer messageTypeId;
     private int recipeId;
-    private String jobType;
-    private transient Integer livySessionId;
-    private boolean jobResultPersist;
-    private int scheduleTime;
+    private transient String jobType;
+    private String resultStorage;
+    private String scheduleInfo;
+    private transient Integer sessionId;
+    private Integer dependJobId;
 
     private boolean exists = false;
 
@@ -53,34 +54,35 @@ public class JobDescription implements Serializable {
         "description        VARCHAR(256), " +
         "message_type_id    INTEGER REFERENCES metadata.message_type(id), " +
         "recipe_id          INTEGER REFERENCES metadata.recipes(id), " +
-        "job_type           VARCHAR(20), " +
-        "livy_session_id    INTEGER," +
-        "schedule_time      INTEGER, "+
-        "job_result_persist BOOLEAN NOT NULL," +
+        "session_id         INTEGER," +
+        "schedule_info      VARCHAR(256), "+
+        "result_storage     VARCHAR(256)," +
+        "depend_job_id      INTEGER," +
         "active             BOOLEAN DEFAULT(true) " +
         ");";
 
     private final static String JOBS_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist, schedule_time " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, session_id, schedule_info, result_storage, depend_job_id " +
         "FROM metadata.jobs";
 
+
     private final static String ACTIVE_JOBS_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, job_result_persist, schedule_time " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, session_id, schedule_info, result_storage, depend_job_id " +
         "FROM metadata.jobs " +
         "WHERE active = true;";
 
     private final static String GET_JOB_BY_ID_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, livy_session_id, job_result_persist, schedule_time " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, session_id, schedule_info, result_storage, depend_job_id " +
         "FROM metadata.jobs " +
         "WHERE id = ?;";
 
     private final static String GET_JOB_BY_MESSAGE_ID_QUERY =
-        "SELECT id, name, description, active, message_type_id, recipe_id, job_type, livy_session_id, job_result_persist, schedule_time " +
+        "SELECT id, name, description, active, message_type_id, recipe_id, session_id, schedule_info, result_storage, depend_job_id " +
         "FROM metadata.jobs " +
         "WHERE message_type_id = ?;";
 
     private final static String INSERT_JOB_QUERY =
-        "INSERT INTO metadata.jobs (name, description, active, message_type_id, recipe_id, job_type, job_result_persist, schedule_time) " +
+        "INSERT INTO metadata.jobs (name, description, active, message_type_id, recipe_id, schedule_info, result_storage, depend_job_id) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
         "RETURNING id;";
 
@@ -88,21 +90,29 @@ public class JobDescription implements Serializable {
         "DELETE FROM metadata.jobs where id = ?;";
 
     private final static String SET_LIVY_SESSION_FOR_JOB_ID_QUERY =
-        "UPDATE metadata.jobs SET livy_session_id=? where id=?;";
+        "UPDATE metadata.jobs SET session_id=? where id=?;";
 
-    public JobDescription() { }
+    private final static String GET_NUMBER_OF_CHILDREN =
+        "SELECT COUNT(*) AS counter FROM metadata.jobs WHERE depend_job_id = ?;";
 
-    public JobDescription(String name, String description, boolean active,
-                          int messageTypeId, int recipeId, String jobType,
-                          boolean jobResultPersist, int scheduleTime) {
+    private final static String SET_CHILDREN_SESSION_ID =
+            "UPDATE metadata.jobs SET session_id=? where depend_job_id=?;";
+
+    public Job() { }
+
+    public Job(String name, String description, boolean active, Integer messageTypeId,
+               int recipeId, String resultStorage, String scheduleInfo,
+               Integer dependJobId) {
         this.name = name;
         this.description = description;
         this.active = active;
-        this.messageTypeId = messageTypeId;
+        this.messageTypeId = (messageTypeId == 0) ? null : messageTypeId;
         this.recipeId = recipeId;
-        this.jobType = jobType;
-        this.jobResultPersist = jobResultPersist;
-        this.scheduleTime = scheduleTime;
+        this.resultStorage = resultStorage;
+        this.scheduleInfo = scheduleInfo;
+        this.dependJobId = (dependJobId == 0) ? null : dependJobId;
+        this.jobType = (this.messageTypeId == null) ? "batch" : "streaming";
+
     }
 
     public String getName() {
@@ -153,60 +163,69 @@ public class JobDescription implements Serializable {
         return jobType;
     }
 
-    public void setJobType(String jobType) {
-        this.jobType = jobType;
+    public void setJobType() {
+        this.jobType = (this.messageTypeId == null) ? "batch" : "streaming";
     }
 
-    public Integer getLivySessionId() { return livySessionId; }
+    public String getResultStorage() { return resultStorage; }
 
-    public void setLivySessionId(Integer livySessionId) { this.livySessionId = livySessionId; }
 
-    public boolean isJobResultPersist() { return jobResultPersist; }
+    public void setResultStorage(String resultStorage) { this.resultStorage = resultStorage; }
 
-    public void setJobResultPersist(boolean jobResultPersist) { this.jobResultPersist = jobResultPersist; }
+    public String getScheduleInfo() { return scheduleInfo; }
 
-    public int getScheduleTime() { return scheduleTime; }
+    public void setScheduleInfo(String scheduleInfo) { this.scheduleInfo = scheduleInfo; }
 
-    public void setScheduleTime(int scheduleTime) { this.scheduleTime = scheduleTime; }
+    public Integer getSessionId() { return sessionId; }
+
+    public void setSessionId(Integer sessionId) { this.sessionId = sessionId; }
+
+    public Integer getDependJobId() { return dependJobId; }
+
+    public void setDependJobId(Integer dependJobId) { this.dependJobId = dependJobId; }
 
     @Override
     public String toString() {
         return "JobDescription{" +
-                "name='" + this.name + '\'' +
-                ", description='" + this.description + '\'' +
-                ", active=" + this.active +
-                ", messageTypeId=" + this.messageTypeId +
-                ", recipeId=" + this.recipeId +
-                ", jobType=" + this.jobType +
-                ", livySessionId=" + this.livySessionId +
-                ", jobResultPersist=" + this.jobResultPersist +
-                ", scheduleTime=" + this.scheduleTime +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", active=" + active +
+                ", messageTypeId=" + messageTypeId +
+                ", recipeId=" + recipeId +
+                ", jobType='" + jobType + '\'' +
+                ", resultStorage='" + resultStorage + '\'' +
+                ", scheduleInfo='" + scheduleInfo + '\'' +
+                ", sessionId=" + sessionId +
+                ", dependJobId=" + dependJobId +
+                ", exists=" + exists +
                 '}';
     }
 
-    public static List<JobDescription> getJobs(String slug) throws SQLException, SystemConnectorException {
+    public static List<Job> getJobs(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
         Connection connection = connector.getConnection();
 
-        Vector<JobDescription> jobs = new Vector<JobDescription>(DEFAULT_VECTOR_SIZE);
+        Vector<Job> jobs = new Vector<Job>(DEFAULT_VECTOR_SIZE);
 
         try {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(JOBS_QUERY);
 
+
             while (resultSet.next()) {
-                JobDescription job = new JobDescription(
+                Job job = new Job(
                     resultSet.getString("name"),
                     resultSet.getString("description"),
                     resultSet.getBoolean("active"),
                     resultSet.getInt("message_type_id"),
                     resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type"),
-                    resultSet.getBoolean("job_result_persist"),
-                    resultSet.getInt("schedule_time")
+                    resultSet.getString("result_storage"),
+                    resultSet.getString("schedule_info"),
+                    resultSet.getInt("depend_job_id")
                 );
 
                 job.id = resultSet.getInt("id");
@@ -222,29 +241,29 @@ public class JobDescription implements Serializable {
         return jobs;
      }
 
-    public static List<JobDescription> getActiveJobs(String slug) throws SQLException, SystemConnectorException {
+    public static List<Job> getActiveJobs(String slug) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
 
         Connection connection = connector.getConnection();
 
-        Vector<JobDescription> jobs = new Vector<JobDescription>(DEFAULT_VECTOR_SIZE);
+        Vector<Job> jobs = new Vector<Job>(DEFAULT_VECTOR_SIZE);
 
         try {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(ACTIVE_JOBS_QUERY);
 
             while (resultSet.next()) {
-                JobDescription job = new JobDescription(
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("active"),
-                    resultSet.getInt("message_type_id"),
-                    resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type"),
-                    resultSet.getBoolean("job_result_persist"),
-                    resultSet.getInt("schedule_time")
+                Job job = new Job(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("active"),
+                        resultSet.getInt("message_type_id"),
+                        resultSet.getInt("recipe_id"),
+                        resultSet.getString("result_storage"),
+                        resultSet.getString("schedule_info"),
+                        resultSet.getInt("depend_job_id")
                 );
 
                 job.id = resultSet.getInt("id");
@@ -260,7 +279,7 @@ public class JobDescription implements Serializable {
         return jobs;
      }
 
-    public static JobDescription getJobById(String slug, int id) throws SQLException, SystemConnectorException {
+    public static Job getJobById(String slug, int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -274,21 +293,21 @@ public class JobDescription implements Serializable {
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-                JobDescription job = new JobDescription(
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("active"),
-                    resultSet.getInt("message_type_id"),
-                    resultSet.getInt("recipe_id"),
-                    resultSet.getString("job_type"),
-                    resultSet.getBoolean("job_result_persist"),
-                    resultSet.getInt("schedule_time")
+                Job job = new Job(
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("active"),
+                        resultSet.getInt("message_type_id"),
+                        resultSet.getInt("recipe_id"),
+                        resultSet.getString("result_storage"),
+                        resultSet.getString("schedule_info"),
+                        resultSet.getInt("depend_job_id")
                 );
 
                 job.id = resultSet.getInt("id");
-                job.livySessionId = resultSet.getInt("livy_session_id");
+                job.sessionId = resultSet.getInt("session_id");
                 if (resultSet.wasNull()) {
-                    job.livySessionId = null;
+                    job.sessionId = null;
                 }
                 job.exists = true;
 
@@ -301,7 +320,7 @@ public class JobDescription implements Serializable {
         throw new SQLException("JobDescription object not found.");
     }
 
-    public static JobDescription getJobByMessageId(String slug, int id) throws SQLException, SystemConnectorException {
+    public static Job getJobByMessageId(String slug, int id) throws SQLException, SystemConnectorException {
 
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -315,21 +334,21 @@ public class JobDescription implements Serializable {
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-                JobDescription job = new JobDescription(
+                Job job = new Job(
                         resultSet.getString("name"),
                         resultSet.getString("description"),
                         resultSet.getBoolean("active"),
                         resultSet.getInt("message_type_id"),
                         resultSet.getInt("recipe_id"),
-                        resultSet.getString("job_type"),
-                        resultSet.getBoolean("job_result_persist"),
-                        resultSet.getInt("schedule_time")
+                        resultSet.getString("result_storage"),
+                        resultSet.getString("schedule_info"),
+                        resultSet.getInt("depend_job_id")
                 );
 
                 job.id = resultSet.getInt("id");
-                job.livySessionId = resultSet.getInt("livy_session_id");
+                job.sessionId = resultSet.getInt("session_id");
                 if (resultSet.wasNull()) {
-                    job.livySessionId = null;
+                    job.sessionId = null;
                 }
                 job.exists = true;
 
@@ -363,10 +382,14 @@ public class JobDescription implements Serializable {
                 statement.setInt(4, this.messageTypeId);
             }
             statement.setInt(5, this.recipeId);
-            statement.setString(6, this.jobType);
-            statement.setBoolean(7, this.jobResultPersist);
-            statement.setInt(8, this.scheduleTime);
-
+            statement.setString(6, this.scheduleInfo);
+            statement.setString(7, this.resultStorage);
+            if (this.dependJobId == null) {
+                statement.setNull(8, Types.INTEGER);
+            }
+            else {
+                statement.setInt(8, this.dependJobId);
+            }
 
             try {
                 ResultSet resultSet = statement.executeQuery();
@@ -442,5 +465,52 @@ public class JobDescription implements Serializable {
         }
 
         LOGGER.log(Level.INFO, "SUCCESS: Create jobs table in metadata schema.");
+    }
+
+    public boolean hasChildren(String slug) throws SQLException, SystemConnectorException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(GET_NUMBER_OF_CHILDREN);
+            statement.setInt(1, this.id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                int counter = resultSet.getInt("counter");
+
+                if (counter > 0)
+                    return true;
+                else
+                    return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new SQLException("JobDescription object not found.");
+    }
+
+    public void setChildrenSessionId(String slug) throws SQLException, SystemConnectorException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getDTconnector(slug);
+
+        Connection connection = connector.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(SET_CHILDREN_SESSION_ID);
+
+        statement.setInt(1, this.sessionId);
+        statement.setInt(2, this.id);
+
+        try {
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        }
     }
 }
