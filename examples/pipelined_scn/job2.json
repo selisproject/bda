@@ -1,0 +1,10 @@
+{
+    "name":"workflowJob2",
+    "description":"Second job of the workflow",
+    "active" : true,
+    "messageTypeId": 2,
+    "recipeId": 2,
+    "resultStorage" : "hdfs",
+    "scheduleInfo" : null,
+    "dependJobId" : 7
+}

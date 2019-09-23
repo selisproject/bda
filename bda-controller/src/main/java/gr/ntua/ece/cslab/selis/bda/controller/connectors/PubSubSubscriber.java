@@ -18,10 +18,24 @@ package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
 import de.tu_dresden.selis.pubsub.*;
 
+import gr.ntua.ece.cslab.selis.bda.controller.AuthClientBackend;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Tuple;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.KeyValue;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,6 +63,7 @@ public class PubSubSubscriber implements Runnable {
         this.reloadSubscriptionsFlag = true;
     }
 
+
     @Override
     public void run() {
         PubSub pubsub = null;
@@ -64,7 +79,9 @@ public class PubSubSubscriber implements Runnable {
                 if (!(subscriptions.getSubscriptions().isEmpty())) {
 
                     for (Tuple messageTypeName : subscriptions.getSubscriptions()) {
-                        Subscription subscription = new Subscription(this.authHash);
+                        String authHash = AuthClientBackend.getAccessToken();
+
+                        Subscription subscription = new Subscription(authHash);
 
                         for (KeyValue rule: messageTypeName.getTuple())
                             subscription.add(new Rule(rule.getKey(), rule.getValue(), RuleType.EQ));

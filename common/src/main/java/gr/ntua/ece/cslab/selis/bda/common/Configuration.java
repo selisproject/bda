@@ -170,7 +170,7 @@ public class Configuration {
 
     }
     public class AuthClientBackend {
-        private String authServerUrl, realm, clientId, secret;
+        private String authServerUrl, realm, clientId, clientSecret, bdaUsername, bdaPassword;
 
         public AuthClientBackend() { }
 
@@ -180,7 +180,11 @@ public class Configuration {
 
         public String getClientId() { return clientId; }
 
-        public String getSecret() { return secret; }
+        public String getClientSecret() { return clientSecret; }
+
+        public String getBdaUsername() { return bdaUsername; }
+
+        public String getBdaPassword() { return bdaPassword; }
     }
 
     public class KPIBackend {
@@ -276,8 +280,10 @@ public class Configuration {
         // Keycloak Auth Configuration.
         conf.authClientBackend.authServerUrl = properties.getProperty("keycloak.bda.url");
         conf.authClientBackend.realm = properties.getProperty("keycloak.bda.realm");
-        conf.authClientBackend.clientId = properties.getProperty("keycloak.bda.clientid");
-        conf.authClientBackend.secret = properties.getProperty("keycloak.bda.secret");
+        conf.authClientBackend.clientId = properties.getProperty("keycloak.bda.pubsub.client_id");
+        conf.authClientBackend.clientSecret = properties.getProperty("keycloak.bda.pubsub.client_secret");
+        conf.authClientBackend.bdaUsername = properties.getProperty("keycloak.bda.username");
+        conf.authClientBackend.bdaPassword = properties.getProperty("keycloak.bda.password");
 
         // KPIDB configuration
         conf.kpiBackend.dbUrl = properties.getProperty("kpi.db.url");

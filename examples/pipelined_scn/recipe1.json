@@ -1,0 +1,12 @@
+{
+  "name" : "recipe1",
+  "description" : "A recipe for the first job of a workflow",
+  "languageId" : 1,
+  "executablePath" : "",
+  "engineId" : 3,
+  "args" : {
+    "dimension_tables": ["ints"],
+    "message_types": [],
+    "other_args": []
+  }
+}

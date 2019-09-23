@@ -51,16 +51,7 @@ public class Entrypoint {
     private final static Logger LOGGER = Logger.getLogger(Entrypoint.class.getCanonicalName());
     public static Configuration configuration;
 
-    private static void authClientBackendInitialization() {
-        LOGGER.log(Level.INFO, "Initializing AuthClient backend...");
 
-        AuthClientBackend.init(
-            configuration.authClientBackend.getAuthServerUrl(),
-            configuration.authClientBackend.getRealm(),
-            configuration.authClientBackend.getClientId(),
-            configuration.authClientBackend.getSecret()
-        );
-    }
 
     public static void create_folders() {
         LOGGER.log(Level.INFO, "Creating folders for uploaded recipes and recipe results");
@@ -168,19 +159,6 @@ public class Entrypoint {
 
     }
 
-    private static void testKeycloakAuthentication() {
-        // TODO: This is just a proof of concept. Should be removed.
-        AuthClientBackend authClientBackend = AuthClientBackend.getInstance();
-
-        AuthorizationResponse response = authClientBackend.authzClient.authorization(
-            "selis-user", "123456"
-        ).authorize();
-
-        String tokenString = response.getToken();
-
-        assertNotNull(tokenString);
-    }
-
     public static void main(String[] args) throws SystemConnectorException {
         if (args.length < 1) {
             LOGGER.log(Level.WARNING, "Please provide a configuration file as a first argument");
@@ -194,45 +172,8 @@ public class Entrypoint {
 
         SystemConnector.init(args[0]);
 
-        // AuthClient backend initialization.
-        authClientBackendInitialization();
-
-        // testKeycloakAuthentication();
-
         // Create folders for uploaded recipes and recipe results
         create_folders();
-
-        // Hardcoded Analytics Job Run.
-        /*
-        AnalyticsInstance analyticsml = new AnalyticsInstance("sonae_slug");
-        analyticsml.run(1, "666");
-
-        // Hardcoded SparkLauncher example.
-        SparkAppHandle handle = null;
-        try {
-            handle = new SparkLauncher()
-                    .setMaster("yarn")
-                    .setDeployMode("cluster")
-                    .setAppResource("/uploads/2_pi.py")
-                    .setVerbose(true)
-                    .startApplication();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Hardcoded SCN creation example.
-        try {
-            ScnDbInfo scn = new ScnDbInfo(
-                "scn_slug", "scn_name", "scn_desc", "scn_db"
-            );
-            scn.save();
-
-            StorageBackend.createNewScn(scn);
-        } catch (Exception e) {
-            System.out.println("Sometimes ...");
-            e.printStackTrace();
-        }
-        */
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

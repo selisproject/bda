@@ -1,0 +1,9 @@
+{
+	"name":"MsgType1",
+	"description":"Message Type triggering first job of Workflow",
+	"active": true,
+	"format":"{'message_type': 'MsgType1', 'scn_slug': 'pipe', 'id': 'integer', 'payload': {'other_values': 'jsonb'}}",
+	"externalConnectorId": null,
+	"externalDatasource": ""
+}
+

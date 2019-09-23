@@ -1,0 +1,7 @@
+{
+  "slug" : "pipe",
+  "name" : "Pipelined_Workflows",
+  "description" : "An example for setting an SCN with a job workflow",
+  "dbname" : "pipe_db",
+  "connectorId" : 5
+}

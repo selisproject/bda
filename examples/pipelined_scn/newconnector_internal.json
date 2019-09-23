@@ -1,0 +1,11 @@
+{
+  "name" : "connector name",
+  "address" : "selis-pubsub",
+  "port" : 20000,
+  "metadata" : {
+    "username": "",
+    "password": "",
+    "datasources": []
+  },
+  "external" : false
+}
