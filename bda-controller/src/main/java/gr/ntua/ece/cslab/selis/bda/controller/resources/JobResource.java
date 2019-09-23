@@ -17,6 +17,7 @@
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
 import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.controller.cron.CronJobScheduler;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.Job;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
@@ -30,6 +31,7 @@ import org.json.JSONObject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.List;
@@ -48,15 +50,21 @@ public class JobResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response insert(@PathParam("slug") String slug,
                            Job m) {
+
         String details = "";
-        m.setJobType();
+        Job parentJob = null;
         try {
+            if (m.getDependJobId() != null) {
+                parentJob = Job.getJobById(slug, m.getDependJobId());
+            }
+
+            m.setJobType();
             if (!(m.getJobType().matches("batch") || m.getJobType().matches("streaming")))
                 return Response.serverError().entity(
                         new RequestResponse("ERROR", "Could not insert new Job. Invalid job type.")
                 ).build();
 
-            if (!((m.getMessageTypeId() == null) ^ (m.getScheduleInfo().equals("")))) {
+            if (!((m.getMessageTypeId() == null) ^ (m.getScheduleInfo() == null))) {
                 return Response.serverError().entity(
                         new RequestResponse("ERROR", "Could not insert new Job. Job is either cron or connected to a message type")
                 ).build();
@@ -82,23 +90,30 @@ public class JobResource {
                 }
             }
 
-            if (m.getJobType().matches("streaming") && (m.getDependJobId() == null)){
+            if (m.getDependJobId() != null) {
+                LOGGER.log(Level.INFO, "Parent Job Id is " + m.getDependJobId());
+                if (parentJob.getSessionId() != null)
+                    parentJob.setChildrenSessionId(slug);
+
+            }
+            else if (m.getJobType().matches("streaming")){
                 RunnerInstance runner = new RunnerInstance(slug, msg.getName());
                 if (runner.engine.getName().matches("livy"))
                     runner.loadLivySession(m, r, msg, messageId);
             }
 
-            if (m.getDependJobId() != null) {
-                Job parentJob = Job.getJobById(slug, m.getDependJobId());
-                parentJob.setChildrenSessionId(slug);
-            }
 
-
-            if (!(m.getScheduleInfo().equals("")))
+            if (m.getScheduleInfo() != null)
                 CronJobScheduler.schedule_job(slug, m);
 
         } catch (Exception e) {
             e.printStackTrace();
+
+            if ((m.getDependJobId() != null) && (parentJob == null)) {
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not insert new Job depending on non-existing Job.")
+                ).build();
+            }
 
             return Response.serverError().entity(
                     new RequestResponse("ERROR", "Could not insert new Job.")
@@ -155,7 +170,7 @@ public class JobResource {
 
         try {
             Job job = Job.getJobById(slug, jobId);
-            if (job.getJobType().matches("streaming") && job.getSessionId()!=null){
+            if (job.getJobType().matches("streaming") && job.getSessionId()!=null && job.getDependJobId() == null){
                 RunnerInstance.deleteLivySession(slug, job);
             }
             //TODO: delete kpi table, unschedule cron

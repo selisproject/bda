@@ -1,0 +1,47 @@
+{
+		"tables":[
+				{
+				"name": "ints",
+				"schema":{
+						"columnNames":["id","int1","int2"],
+						"columnTypes":[
+								{
+								"key":"id",
+								"value":"integer"
+						},{
+								"key":"int1",
+								"value":"integer"
+						},{
+								"key":"int2",
+								"value":"integer"
+						}],
+						"primaryKey":"id"
+				},
+				"data":[
+						{
+						"tuple":[
+								{
+								"key":"id",
+								"value":"1"
+						},{
+								"key":"int1",
+								"value":"2"
+						},{
+								"key":"int2",
+								"value":"3"
+						}]
+				},{
+						"tuple":[
+								{
+								"key":"id",
+								"value":"2"
+						},{
+								"key":"int1",
+								"value":"4"
+						},{
+								"key":"int2",
+								"value":"5"
+						}]
+				}]
+		}]
+}

@@ -89,7 +89,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         Map<String, String> classpath = new HashMap<>();
         List<String> files = new ArrayList<>();
-        files.add(recipe.getExecutablePath());
+        //files.add(recipe.getExecutablePath());
         files.add(dataLoaderLibrary);
         // For client mode with old configuration
         //data.put("files", files);
@@ -179,6 +179,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
     private List<String> buildDataLoadingPythonCode(ScnDbInfo scn) throws SQLException, SystemConnectorException {
 
         StringBuilder builder = new StringBuilder();
+        builder.append("spark.sparkContext.addFile('").append(recipe.getExecutablePath()).append("'); ");
         builder.append("import RecipeDataLoader; import ").append(recipeClass).append("; ");
 
         StringBuilder arguments = new StringBuilder();
@@ -231,7 +232,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         for (String arg: other_args)
             arguments.append(",").append(arg);
 
-        if (this.job.getDependJobId() != null)
+        if (!(this.job.getDependJobId() == null))
             arguments.append(", result_").append(this.job.getDependJobId());
 
         builder.append("result_").append(this.job.getId()).append(" = ").append(recipeClass).append(".run(spark, ").append(arguments).append("); ");
@@ -297,7 +298,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
 
         // Create session if it is required
-        if (job.getJobType().matches("batch") && sessionId.matches("null")){
+        if (job.getJobType().matches("batch") && sessionId.matches("null") && job.getDependJobId() == null){
             LOGGER.log(Level.INFO,"Creating session for batch job..");
             sessionId = createSession();
         }
