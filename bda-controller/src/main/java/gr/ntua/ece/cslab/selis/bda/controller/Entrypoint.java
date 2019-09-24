@@ -16,15 +16,13 @@
 
 package gr.ntua.ece.cslab.selis.bda.controller;
 
-import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
 import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 
-import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HDFSConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.cron.CronJobScheduler;
-import org.apache.commons.io.IOUtils;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -32,13 +30,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import org.keycloak.representations.idm.authorization.AuthorizationResponse;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,113 +44,6 @@ public class Entrypoint {
     public static Configuration configuration;
 
 
-
-    public static void create_folders() {
-        LOGGER.log(Level.INFO, "Creating folders for uploaded recipes and recipe results");
-
-        File theDir = new File("/uploads/");
-        if (!theDir.exists()) {
-            theDir.mkdir();
-        }
-        theDir = new File("/results/");
-        if (!theDir.exists()) {
-            theDir.mkdir();
-        }
-
-        if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
-            // Use HDFS storage for recipes and libraries.
-
-            ClassLoader classLoader = RunnerInstance.class.getClassLoader();
-            InputStream fileInStream = classLoader.getResourceAsStream("RecipeDataLoader.py");
-
-            byte[] recipeBytes = new byte[0];
-            try {
-                recipeBytes = IOUtils.toByteArray(fileInStream);
-
-                fileInStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            HDFSConnector connector = null;
-            try {
-                connector = (HDFSConnector)
-                        SystemConnector.getInstance().getHDFSConnector();
-            } catch (SystemConnectorException e) {
-                e.printStackTrace();
-            }
-
-            org.apache.hadoop.fs.FileSystem fs = connector.getFileSystem();
-
-            // Create HDFS file path object.
-            org.apache.hadoop.fs.Path outputFilePath =
-                    new org.apache.hadoop.fs.Path("/RecipeDataLoader.py");
-
-            // Write to HDFS.
-            org.apache.hadoop.fs.FSDataOutputStream outputStream = null;
-            try {
-                outputStream = fs.create(
-                        outputFilePath
-                );
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                outputStream.write(recipeBytes);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            try {
-                fileInStream = new URL(configuration.execEngine.getSparkConfJars()).openStream();
-            } catch (IOException e) {
-                LOGGER.log(Level.SEVERE, "Spark jar clients download failed!! Please check the URLs");
-            }
-
-            byte[] postgresBytes = new byte[0];
-            try {
-                postgresBytes = IOUtils.toByteArray(fileInStream);
-
-                fileInStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            String[] jar_name = configuration.execEngine.getSparkConfJars().split("/");
-            outputFilePath =
-                    new org.apache.hadoop.fs.Path("/"+jar_name[jar_name.length-1]);
-
-            try {
-                outputStream = fs.create(
-                        outputFilePath
-                );
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                outputStream.write(postgresBytes);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } else {
-            // TODO: Use local storage?
-        }
-
-    }
-
     public static void main(String[] args) throws SystemConnectorException {
         if (args.length < 1) {
             LOGGER.log(Level.WARNING, "Please provide a configuration file as a first argument");
@@ -171,9 +56,6 @@ public class Entrypoint {
         }
 
         SystemConnector.init(args[0]);
-
-        // Create folders for uploaded recipes and recipe results
-        create_folders();
 
         // SIGTERM hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

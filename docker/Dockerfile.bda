@@ -8,8 +8,12 @@ RUN useradd -mU $localuser
 
 # Create code directory.
 RUN mkdir /code
+RUN mkdir /uploads
+RUN mkdir /results
 
 RUN chown -R $localuser:$localuser /code
+RUN chown -R $localuser:$localuser /uploads
+RUN chown -R $localuser:$localuser /results
 
 # Ugly Hack to make `postgresql-client` installation
 # work with a `slim` openjdk-debian image.

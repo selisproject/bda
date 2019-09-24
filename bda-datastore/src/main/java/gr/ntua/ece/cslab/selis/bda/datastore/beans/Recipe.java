@@ -97,6 +97,10 @@ public class Recipe implements Serializable {
     private final static String GET_SHARED_RECIPES =
         "SELECT * FROM shared_recipes;";
 
+    private final static String INSERT_SHARED_RECIPE =
+        "INSERT INTO shared_recipes (name, description, language_id, executable_path, engine_id, args) " +
+        "VALUES (?, ?, ?, ? ,?, ?::json);";
+
     public Recipe() {}
 
     public Recipe(String name, String description, int languageId, String executablePath, int engineId, RecipeArguments args) {
@@ -620,4 +624,40 @@ public class Recipe implements Serializable {
 
         throw new SQLException("Failed to retrieve shared Recipes info.");
     }
+
+    public void save_as_shared() throws Exception {
+        if (!this.exists) {
+            // The object does not exist, it should be inserted.
+            PostgresqlConnector connector = (PostgresqlConnector )
+                    SystemConnector.getInstance().getBDAconnector();
+
+            Connection connection = connector.getConnection();
+
+            PreparedStatement statement = connection.prepareStatement(INSERT_SHARED_RECIPE);
+
+            statement.setString(1, this.name);
+            statement.setString(2, this.description);
+            statement.setInt(3, this.languageId);
+            statement.setString(4, this.executablePath);
+            statement.setInt(5, Integer.valueOf(this.engineId));
+            statement.setString(6, new Gson().toJson(this.args));
+
+            try {
+                ResultSet resultSet = statement.executeQuery();
+
+                if (resultSet.next()) {
+                    this.id = resultSet.getInt("id");
+                }
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            }
+        } else {
+            throw new Exception("ERROR: The shared recipe already exists and cannot be modified.");
+        }
+        LOGGER.log(Level.INFO, "SUCCESS: Insert Into shared recipes. ID: "+this.id);
+    }
+
 }

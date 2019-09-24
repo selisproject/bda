@@ -34,22 +34,12 @@ CREATE TABLE execution_engines (
 
 ALTER TABLE execution_engines OWNER TO selis;
 
-INSERT INTO execution_engines (name, engine_path, local_engine, args)
-    VALUES
-	('python3', '/usr/bin/python3', true, '{}'::json),
-	('spark', 'spark://selis-spark-master:7077', false, '{}'::json),
-	('livy', 'http://selis-livy:8998', false, '{}'::json);
-
 CREATE TABLE execution_languages (
     id              SERIAL PRIMARY KEY,
     name            VARCHAR(64) NOT NULL UNIQUE
 );
 
 ALTER TABLE execution_languages OWNER TO selis;
-
-INSERT INTO execution_languages (name)
-    VALUES
-	('python');
 
 CREATE TABLE connectors (
     id                 SERIAL PRIMARY KEY,
@@ -97,22 +87,12 @@ CREATE TABLE execution_engines (
 
 ALTER TABLE execution_engines OWNER TO selis;
 
-INSERT INTO execution_engines (name, engine_path, local_engine, args)
-    VALUES
-	('python3', '/usr/bin/python3', true, '{}'::json),
-	('spark', 'spark://selis-spark-master:7077', false, '{}'::json),
-	('livy', 'http://selis-livy:8998', false, '{}'::json);
-
 CREATE TABLE execution_languages (
     id              SERIAL PRIMARY KEY,
     name            VARCHAR(64) NOT NULL UNIQUE
 );
 
 ALTER TABLE execution_languages OWNER TO selis;
-
-INSERT INTO execution_languages (name)
-    VALUES
-	('python');
 
 CREATE TABLE connectors (
     id                 SERIAL PRIMARY KEY,
