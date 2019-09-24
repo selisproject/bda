@@ -99,7 +99,7 @@ public class Recipe implements Serializable {
 
     private final static String INSERT_SHARED_RECIPE =
         "INSERT INTO shared_recipes (name, description, language_id, executable_path, engine_id, args) " +
-        "VALUES (?, ?, ?, ? ,?, ?::json);";
+        "VALUES (?, ?, ?, ? ,?, ?::json) RETURNING id;";
 
     public Recipe() {}
 

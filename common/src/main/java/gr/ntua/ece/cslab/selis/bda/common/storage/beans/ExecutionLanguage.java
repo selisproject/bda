@@ -43,7 +43,7 @@ public class ExecutionLanguage implements Serializable {
     private String name;
 
     private static final String INSERT_LANGUAGE =
-        "INSERT INTO execution_languages (name) VALUES (?);";
+        "INSERT INTO execution_languages (name) VALUES (?) RETURNING id;";
 
     // Query to fetch all languages from db
     private static final String GET_LANGUAGES = "SELECT * FROM execution_languages;";
@@ -56,7 +56,6 @@ public class ExecutionLanguage implements Serializable {
     public ExecutionLanguage() {}
 
     public ExecutionLanguage(String name) {
-        this.id = id;
         this.name = name;
     }
 

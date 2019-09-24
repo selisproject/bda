@@ -66,9 +66,9 @@ public class DatastoreResource {
             ExecutionLanguage lang = new ExecutionLanguage("python");
             lang.save();
 
-            ExecutionEngine eng = new ExecutionEngine("python3", "/usr/bin/python3", true, "");
+            ExecutionEngine eng = new ExecutionEngine("python3", "/usr/bin/python3", true, "{}");
             eng.save();
-            eng = new ExecutionEngine("spark-livy", "http://selis-livy:8998", false, "");
+            eng = new ExecutionEngine("spark-livy", "http://selis-livy:8998", false, "{}");
             eng.save();
         } catch (Exception e) {
             e.printStackTrace();
@@ -76,6 +76,14 @@ public class DatastoreResource {
 
         if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
             // Use HDFS storage for recipes and libraries.
+            HDFSConnector connector = null;
+            try {
+                connector = (HDFSConnector)
+                        SystemConnector.getInstance().getHDFSConnector();
+            } catch (SystemConnectorException e) {
+                e.printStackTrace();
+            }
+            org.apache.hadoop.fs.FileSystem fs = connector.getFileSystem();
 
             InputStream fileInStream = classLoader.getResourceAsStream("RecipeDataLoader.py");
 
@@ -87,16 +95,6 @@ public class DatastoreResource {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            HDFSConnector connector = null;
-            try {
-                connector = (HDFSConnector)
-                        SystemConnector.getInstance().getHDFSConnector();
-            } catch (SystemConnectorException e) {
-                e.printStackTrace();
-            }
-
-            org.apache.hadoop.fs.FileSystem fs = connector.getFileSystem();
 
             // Create HDFS file path object.
             org.apache.hadoop.fs.Path outputFilePath =
@@ -124,17 +122,19 @@ public class DatastoreResource {
                 }
             }
 
-            org.apache.hadoop.fs.Path folderToUpload = new org.apache.hadoop.fs.Path(classLoader.getResource("shared_recipes/").getPath());
-
-            // Create HDFS file path object.
-            outputFilePath = new org.apache.hadoop.fs.Path("/shared_recipes");
-
             try {
-                fs.copyFromLocalFile(folderToUpload, outputFilePath);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                String path = System.getProperty("user.dir").replaceFirst("bda-controller","bda-analytics-ml/src/main/resources/shared_recipes/");
+                org.apache.hadoop.fs.Path folderToUpload = new org.apache.hadoop.fs.Path(path);
 
+                // Create HDFS file path object.
+                outputFilePath = new org.apache.hadoop.fs.Path("/");
+                fs.copyFromLocalFile(folderToUpload, outputFilePath);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to upload shared recipes.")
+                ).build();
+            }
 
             try {
                 fileInStream = new URL(configuration.execEngine.getSparkConfJars()).openStream();
@@ -191,6 +191,9 @@ public class DatastoreResource {
                 r.save_as_shared();
             } catch (Exception e) {
                 e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to populate shared recipes table.")
+                ).build();
             }
         }
         else {

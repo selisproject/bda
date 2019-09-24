@@ -47,7 +47,7 @@ public class ExecutionEngine implements Serializable {
 
     private static final String INSERT_ENGINE =
         "INSERT INTO execution_engines (name, engine_path, local_engine, args) VALUES "+
-        "(?, ?, ?, ?);";
+        "(?, ?, ?, ?::json) RETURNING id;";
 
     // Query to fetch all engines from db
     private static final String GET_ENGINES = "SELECT * FROM execution_engines;";
@@ -60,7 +60,6 @@ public class ExecutionEngine implements Serializable {
     public ExecutionEngine() {}
 
     public ExecutionEngine(String name, String engine_path, boolean local_engine, String args) {
-        this.id = id;
         this.name = name;
         this.engine_path = engine_path;
         this.local_engine = local_engine;
