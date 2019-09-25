@@ -31,17 +31,23 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @XmlRootElement(name = "ExecutionEngine")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class ExecutionEngine implements Serializable {
-
+    private final static Logger LOGGER = Logger.getLogger(ExecutionEngine.class.getCanonicalName());
 
     private int id;
     private String name;
     private String engine_path;
     private boolean local_engine;
     private String args;
+
+    private static final String INSERT_ENGINE =
+        "INSERT INTO execution_engines (name, engine_path, local_engine, args) VALUES "+
+        "(?, ?, ?, ?::json) RETURNING id;";
 
     // Query to fetch all engines from db
     private static final String GET_ENGINES = "SELECT * FROM execution_engines;";
@@ -54,7 +60,6 @@ public class ExecutionEngine implements Serializable {
     public ExecutionEngine() {}
 
     public ExecutionEngine(String name, String engine_path, boolean local_engine, String args) {
-        this.id = id;
         this.name = name;
         this.engine_path = engine_path;
         this.local_engine = local_engine;
@@ -111,6 +116,35 @@ public class ExecutionEngine implements Serializable {
                 ", local_engine=" + local_engine +
                 ", args='" + args + '\'' +
                 '}';
+    }
+
+    public void save() throws SystemConnectorException, SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getBDAconnector();
+
+        Connection connection = connector.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(INSERT_ENGINE);
+
+        statement.setString(1, this.name);
+        statement.setString(2, this.engine_path);
+        statement.setBoolean(3, this.local_engine);
+        statement.setString(4, this.args);
+
+        try {
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                this.id = resultSet.getInt("id");
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        }
+
+        LOGGER.log(Level.INFO, "SUCCESS: Insert Into execution engines. ID: "+this.id);
     }
 
     public static List<ExecutionEngine> getEngines() throws SQLException, SystemConnectorException {

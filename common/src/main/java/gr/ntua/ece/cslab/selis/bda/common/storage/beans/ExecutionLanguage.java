@@ -31,14 +31,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @XmlRootElement(name = "ExecutionLanguage")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class ExecutionLanguage implements Serializable {
-
+    private final static Logger LOGGER = Logger.getLogger(ExecutionLanguage.class.getCanonicalName());
 
     private int id;
     private String name;
+
+    private static final String INSERT_LANGUAGE =
+        "INSERT INTO execution_languages (name) VALUES (?) RETURNING id;";
 
     // Query to fetch all languages from db
     private static final String GET_LANGUAGES = "SELECT * FROM execution_languages;";
@@ -51,7 +56,6 @@ public class ExecutionLanguage implements Serializable {
     public ExecutionLanguage() {}
 
     public ExecutionLanguage(String name) {
-        this.id = id;
         this.name = name;
     }
 
@@ -78,6 +82,32 @@ public class ExecutionLanguage implements Serializable {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    public void save() throws SystemConnectorException, SQLException {
+        PostgresqlConnector connector = (PostgresqlConnector )
+                SystemConnector.getInstance().getBDAconnector();
+
+        Connection connection = connector.getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(INSERT_LANGUAGE);
+
+        statement.setString(1, this.name);
+
+        try {
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                this.id = resultSet.getInt("id");
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        }
+
+        LOGGER.log(Level.INFO, "SUCCESS: Insert Into execution languages. ID: "+this.id);
     }
 
     public static List<ExecutionLanguage> getLanguages() throws SQLException, SystemConnectorException {

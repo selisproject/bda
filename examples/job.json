@@ -3,8 +3,8 @@
     "description":"sales_forecast_job",
     "messageTypeId": 1,
     "recipeId": 1,
-    "jobType": "batch",
-    "jobResultPersist": true,
-    "schedule_time":0,
+    "resultStorage": "kpidb",
+    "scheduleInfo": null,
+    "dependJobId" : null,
     "active": true
 }

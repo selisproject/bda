@@ -16,8 +16,15 @@
 
 package gr.ntua.ece.cslab.selis.bda.controller.resources;
 
+import gr.ntua.ece.cslab.selis.bda.analyticsml.RunnerInstance;
+import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionEngine;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ExecutionLanguage;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
+import gr.ntua.ece.cslab.selis.bda.common.storage.connectors.HDFSConnector;
 import gr.ntua.ece.cslab.selis.bda.controller.connectors.PubSubConnector;
 import gr.ntua.ece.cslab.selis.bda.datastore.StorageBackend;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
@@ -25,8 +32,13 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import com.google.common.base.Splitter;
+import org.apache.commons.io.IOUtils;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,6 +49,195 @@ import java.util.logging.Logger;
 @Path("datastore")
 public class DatastoreResource {
     private final static Logger LOGGER = Logger.getLogger(DatastoreResource.class.getCanonicalName());
+
+    /**
+     * Perform initial upload of libraries and shared recipes in HDFS and populate
+     * shared_recipes, execution_engines and execution_languages tables.
+     */
+    @POST
+    @Path("init")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response initialUploads() {
+
+        Configuration configuration = Configuration.getInstance();
+        ClassLoader classLoader = RunnerInstance.class.getClassLoader();
+
+        try {
+            ExecutionLanguage lang = new ExecutionLanguage("python");
+            lang.save();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Failed to populate execution languages table.")
+            ).build();
+        }
+
+        try {
+            ExecutionEngine eng = new ExecutionEngine("python3", "/usr/bin/python3", true, "{}");
+            eng.save();
+            eng = new ExecutionEngine("spark-livy", "http://selis-livy:8998", false, "{}");
+            eng.save();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.serverError().entity(
+                    new RequestResponse("ERROR", "Failed to populate execution engines table.")
+            ).build();
+        }
+
+        if (configuration.execEngine.getRecipeStorageType().startsWith("hdfs")) {
+            // Use HDFS storage for recipes and libraries.
+            HDFSConnector connector;
+            try {
+                connector = (HDFSConnector)
+                        SystemConnector.getInstance().getHDFSConnector();
+            } catch (SystemConnectorException e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to get HDFS connector.")
+                ).build();
+            }
+            org.apache.hadoop.fs.FileSystem fs = connector.getFileSystem();
+
+            InputStream fileInStream = classLoader.getResourceAsStream("RecipeDataLoader.py");
+
+            byte[] recipeBytes;
+            try {
+                recipeBytes = IOUtils.toByteArray(fileInStream);
+
+                fileInStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to create stream of Recipes library file.")
+                ).build();
+            }
+
+            // Create HDFS file path object.
+            org.apache.hadoop.fs.Path outputFilePath =
+                    new org.apache.hadoop.fs.Path("/RecipeDataLoader.py");
+
+            // Write to HDFS.
+            org.apache.hadoop.fs.FSDataOutputStream outputStream = null;
+            try {
+                outputStream = fs.create(
+                        outputFilePath
+                );
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to create Recipes library file in HDFS.")
+                ).build();
+            }
+
+            try {
+                outputStream.write(recipeBytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to upload Recipes library to HDFS.")
+                ).build();
+            } finally {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            try {
+                String path = System.getProperty("user.dir").replaceFirst("bda-controller","bda-analytics-ml/src/main/resources/shared_recipes/");
+                org.apache.hadoop.fs.Path folderToUpload = new org.apache.hadoop.fs.Path(path);
+
+                // Create HDFS file path object.
+                outputFilePath = new org.apache.hadoop.fs.Path("/");
+                fs.copyFromLocalFile(folderToUpload, outputFilePath);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to upload shared recipes to HDFS.")
+                ).build();
+            }
+
+            try {
+                fileInStream = new URL(configuration.execEngine.getSparkConfJars()).openStream();
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "Spark jar clients download failed!! Please check the URLs");
+            }
+
+            byte[] postgresBytes;
+            try {
+                postgresBytes = IOUtils.toByteArray(fileInStream);
+
+                fileInStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to create Spark jar stream.")
+                ).build();
+            }
+            String[] jar_name = configuration.execEngine.getSparkConfJars().split("/");
+            outputFilePath =
+                    new org.apache.hadoop.fs.Path("/" + jar_name[jar_name.length - 1]);
+
+            try {
+                outputStream = fs.create(
+                        outputFilePath
+                );
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to create Spark jar file in HDFS.")
+                ).build();
+            }
+
+            try {
+                outputStream.write(postgresBytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to upload Spark jars to HDFS.")
+                ).build();
+            } finally {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            try {
+                RecipeArguments args = new RecipeArguments();
+                List<String> args_list = new LinkedList<>();
+                args_list.add("maxIter");
+                args_list.add("regParam");
+                args_list.add("elasticNetParam");
+                args.setOther_args(args_list);
+                List<String> input_df_args_list = new LinkedList<>();
+                input_df_args_list.add("eventLogMessageType1");
+                args.setMessage_types(input_df_args_list);
+
+                Recipe r = new Recipe("Linear Regression", "Simple regression algorithm using Spark MLlib",
+                        1, "hdfs:///shared_recipes/linear_regression.py", 2, args);
+                r.save_as_shared();
+
+                r = new Recipe("Binomial Logistic Regression", "Simple binary classification algorithm using Spark MLlib",
+                        1, "hdfs:///shared_recipes/binomial_logistic_regression.py", 2, args);
+                r.save_as_shared();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Failed to populate shared recipes table.")
+                ).build();
+            }
+        }
+        else {
+            // Upload any shared recipes for local execution
+        }
+
+        return Response.ok(
+                new RequestResponse("OK", "")
+        ).build();
+    }
 
     /**
      * Create new SCN databases/schemas/tables.

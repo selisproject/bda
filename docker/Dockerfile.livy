@@ -27,6 +27,7 @@ RUN \
 
 # Add configuration files.
 ADD ./bootstrap/livy/livy.conf "${LIVY_PREFIX}/conf/"
+ADD ./bootstrap/livy/livy-client.conf "${LIVY_PREFIX}/conf/"
 
 ENV LIVY_HOME=${LIVY_PREFIX}
 
