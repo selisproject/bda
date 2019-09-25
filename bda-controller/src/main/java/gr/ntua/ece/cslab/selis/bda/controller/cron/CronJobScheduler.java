@@ -33,9 +33,9 @@ public class CronJobScheduler {
         try {
             for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
                 for (Job job : Job.getActiveJobs(scn.getSlug())) {
-                    Integer scheduleTime = Integer.parseInt(job.getScheduleInfo());
-                    if (scheduleTime != null) {
+                    if (job.getScheduleInfo() != null) {
                         schedule_job(scn.getSlug(), job);
+
                     }
                 }
             }
