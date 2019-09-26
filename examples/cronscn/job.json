@@ -3,8 +3,8 @@
     "description":"sales_forecast_cron_job",
     "messageTypeId": null,
     "recipeId": 1,
-    "jobType": "batch",
-    "jobResultPersist": false,
-    "scheduleTime":10,
+    "resultStorage": "pubsub",
+    "scheduleInfo": null,
+    "dependJobId" : null,
     "active": true
 }

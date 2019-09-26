@@ -208,6 +208,7 @@ public class DatastoreResource {
             try {
                 RecipeArguments args = new RecipeArguments();
                 List<String> args_list = new LinkedList<>();
+                args_list.add("labelColumnName");
                 args_list.add("maxIter");
                 args_list.add("regParam");
                 args_list.add("elasticNetParam");
@@ -216,12 +217,20 @@ public class DatastoreResource {
                 input_df_args_list.add("eventLogMessageType1");
                 args.setMessage_types(input_df_args_list);
 
-                Recipe r = new Recipe("Linear Regression", "Simple regression algorithm using Spark MLlib",
-                        1, "hdfs:///shared_recipes/linear_regression.py", 2, args);
+                Recipe r = new Recipe("Linear Regression model train", "Simple regression training algorithm using Spark MLlib",
+                        1, "hdfs:///shared_recipes/linear_regression_train.py", 2, args);
                 r.save_as_shared();
 
-                r = new Recipe("Binomial Logistic Regression", "Simple binary classification algorithm using Spark MLlib",
-                        1, "hdfs:///shared_recipes/binomial_logistic_regression.py", 2, args);
+                r = new Recipe("Binomial Logistic Regression model train", "Simple binary classification training algorithm using Spark MLlib",
+                        1, "hdfs:///shared_recipes/binomial_logistic_regression_train.py", 2, args);
+                r.save_as_shared();
+
+                args = new RecipeArguments();
+                r = new Recipe("Linear Regression prediction", "Simple regression prediction using Spark MLlib",
+                        1, "hdfs:///shared_recipes/linear_regression_predict.py", 2, args);
+                r.save_as_shared();
+                r = new Recipe("Binomial Logistic Regression prediction", "Simple binary classification prediction using Spark MLlib",
+                        1, "hdfs:///shared_recipes/binomial_logistic_regression_predict.py", 2, args);
                 r.save_as_shared();
             } catch (Exception e) {
                 e.printStackTrace();

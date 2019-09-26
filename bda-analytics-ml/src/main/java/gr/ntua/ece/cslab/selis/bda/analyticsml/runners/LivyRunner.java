@@ -230,7 +230,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         List<String> other_args = recipe.getArgs().getOther_args();
         for (String arg: other_args)
-            arguments.append(",").append(arg);
+            arguments.append(",'").append(arg).append("'");
 
         if (!(this.job.getDependJobId() == null))
             arguments.append(", result_").append(this.job.getDependJobId());

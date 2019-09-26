@@ -348,7 +348,7 @@ public class MessageType implements Serializable {
             e.printStackTrace();
         }
 
-        throw new SQLException("JobDescription object not found.");
+        throw new SQLException("MessageType object not found.");
     }
 
     public void save(String slug) throws SQLException, SystemConnectorException {
