@@ -24,7 +24,7 @@ SELIS_JDK_PULL_IMAGE="openjdk:8-slim-stretch"
 SELIS_POSTGRES_PULL_IMAGE="postgres:11-alpine"
 SELIS_HBASE_PULL_IMAGE="dajobe/hbase:latest"
 SELIS_KEYCLOAK_PULL_IMAGE="jboss/keycloak:latest"
-SELIS_PUBSUB_PULL_IMAGE="tudselis/pubsub:dev-1809221630"
+SELIS_PUBSUB_PULL_IMAGE="tudselis/pubsub:dev-1909261330"
 
 SELIS_BDA_CONTAINER="selis-controller"
 SELIS_HBASE_MASTER_CONTAINER="selis-hbase-master"
@@ -43,7 +43,7 @@ SELIS_LIVY_CONTAINER="selis-livy"
 # Clean all. ###################################################################
 ################################################################################
 
-if [ "$1" == "clean" ]
+if [ "" == "clean" ]
 then
     echo "Running clean all process..."
 
@@ -142,7 +142,7 @@ fi
 
 SELIS_HBASE_VOLUME_EXISTS=0
 SELIS_POSTGRES_VOLUME_EXISTS=0
-for i in $(docker volume list | awk '{ print $2 }')
+for i in $(docker volume list | awk '{ print  }')
 do
     if [ "$i" == "$SELIS_POSTGRES_VOLUME" ]
     then
@@ -250,9 +250,9 @@ fi
 # Run containers. ##############################################################
 ################################################################################
 
-if [ "$1" == "run" ]
+if [ "" == "run" ]
 then
-    if [ "$2" == "postgres" ] || [ "$2" == "all" ]
+    if [ "" == "postgres" ] || [ "" == "all" ]
     then
         echo "Running selis postgres container..."
 
@@ -265,7 +265,7 @@ then
             "$SELIS_POSTGRES_IMAGE"
     fi
 
-    if [ "$2" == "hadoop" ] || [ "$2" == "all" ]
+    if [ "" == "hadoop" ] || [ "" == "all" ]
     then
         echo "Running selis hadoop master container."
 
@@ -296,7 +296,7 @@ then
             /docker-entrypoint.sh worker
     fi
 
-    if [ "$2" == "hbase" ] || [ "$2" == "all" ]
+    if [ "" == "hbase" ] || [ "" == "all" ]
     then
         echo "Running selis hbase master container..."
 
@@ -331,7 +331,7 @@ then
         #     /bootstrap-hbase.d/bootstrap-hbase.sh
     fi
 
-   if [ "$2" == "keycloak" ] || [ "$2" == "all" ]
+   if [ "" == "keycloak" ] || [ "" == "all" ]
    then
         echo "Running selis keycloak container."
 
@@ -347,7 +347,7 @@ then
             "$SELIS_KEYCLOAK_PULL_IMAGE"
     fi
 
-    if [ "$2" == "spark" ] || [ "$2" == "all" ]
+    if [ "" == "spark" ] || [ "" == "all" ]
     then
         echo "Running selis spark worker container."
 
@@ -368,7 +368,7 @@ then
             /docker-entrypoint.sh nodemanager block
     fi
 
-    if [ "$2" == "pubsub" ] || [ "$2" == "all" ]
+    if [ "" == "pubsub" ] || [ "" == "all" ]
     then
         echo "Running pubsub container."
 
@@ -383,7 +383,7 @@ then
             "$SELIS_PUBSUB_PULL_IMAGE"
     fi
 
-    if [ "$2" == "livy" ] || [ "$2" == "all" ]
+    if [ "" == "livy" ] || [ "" == "all" ]
     then
         echo "Running livy container."
 
@@ -396,7 +396,7 @@ then
             /docker-entrypoint.sh
     fi
 
-    if [ "$2" == "controller" ] || [ "$2" == "all" ]
+    if [ "" == "controller" ] || [ "" == "all" ]
     then
         echo "Running selis controller container."
 
@@ -416,7 +416,7 @@ fi
 # Start containers. ############################################################
 ################################################################################
 
-if [ "$1" == "startall" ]
+if [ "" == "startall" ]
 then
     echo "Starting all containers..."
 
@@ -440,7 +440,7 @@ fi
 # Stop containers. #############################################################
 ################################################################################
 
-if [ "$1" == "stopall" ]
+if [ "" == "stopall" ]
 then
     echo "Stopping all containers..."
 
