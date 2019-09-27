@@ -106,8 +106,11 @@ public class PubSubConnector {
             if (!subscriberRunners.containsKey(SCNslug)) {
                 LOGGER.log(Level.INFO, "Initializing internal PubSub subscriber for "+SCNslug);
                 try {
+                    String authhash="";
+                    if (!configuration.authClientBackend.isAuthEnabled())
+                        authhash=configuration.pubsub.getAuthHash();
                     PubSubSubscriber subscriber = new PubSubSubscriber(
-                            configuration.pubsub.getAuthHash(),
+                            authhash,
                             configuration.pubsub.getCertificateLocation(),
                             SCNslug);
                     subscriber.reloadSubscriptions(subscriptions);

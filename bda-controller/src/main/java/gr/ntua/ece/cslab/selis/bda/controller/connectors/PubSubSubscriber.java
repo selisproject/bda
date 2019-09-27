@@ -66,7 +66,8 @@ public class PubSubSubscriber implements Runnable {
                 if (!(subscriptions.getSubscriptions().isEmpty())) {
 
                     for (Tuple messageTypeName : subscriptions.getSubscriptions()) {
-                        String authHash = AuthClientBackend.getAccessToken();
+                        if (authHash.matches(""))
+                            authHash = AuthClientBackend.getAccessToken();
 
                         Subscription subscription = new Subscription(authHash);
 
