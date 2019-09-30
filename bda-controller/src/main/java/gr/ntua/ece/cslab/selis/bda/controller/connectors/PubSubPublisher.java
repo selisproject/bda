@@ -34,7 +34,7 @@ public class PubSubPublisher {
     public PubSubPublisher(String hostname, int portNumber) {
         Configuration configuration = Configuration.getInstance();
 
-        String certificateLocation = configuration.subscriber.getCertificateLocation();
+        String certificateLocation = configuration.pubSubServer.getCertificateLocation();
 
         this.publisher = new PubSub(certificateLocation, hostname, portNumber);
     }

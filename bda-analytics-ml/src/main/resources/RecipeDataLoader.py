@@ -137,7 +137,7 @@ def save_result_to_kpidb(kpidb_host, kpidb_port, kpidb_name, username, password,
 
 def publish_result(pubsub_address, pubsub_port, pubsub_cert, scn_slug, message_type, result):
     PUBSUB_SERVICE_URL = 'https://'+pubsub_address+':'+pubsub_port+'/publish'
-    ctx = ssl.create_default_context(cafile=pubsub_cert)
+    ctx = ssl.create_default_context(cadata=pubsub_cert)
 
     headers = {
         'Content-Type': 'application/json'

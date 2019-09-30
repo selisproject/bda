@@ -256,10 +256,19 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         }
         else if (this.job.getResultStorage().equals("pubsub")) {
             Connector conn = Connector.getConnectorInfoById(scn.getConnectorId());
+            String address=conn.getMetadata().getPubSubServerAddress();
+            Integer port=conn.getMetadata().getPubSubServerPort();
+            String cert=conn.getMetadata().getPubSubServerCertificate();
+            if (address==null)
+                address = configuration.pubSubServer.getAddress();
+            if (port==null)
+                port=configuration.pubSubServer.getPort();
+            if (cert==null)
+                cert=configuration.pubSubServer.getCertificateLocation()+'/'+configuration.pubSubServer.getCertificateFile();
             builder.append("RecipeDataLoader.publish_result('")
-                    .append(conn.getAddress()).append("','")
-                    .append(conn.getPort()).append("','")
-                    .append(configuration.subscriber.getCertificateLocation()).append("','")
+                    .append(address).append("','")
+                    .append(port).append("','")
+                    .append(cert).append("','")
                     .append(scn.getSlug()).append("','")
                     .append(recipe.getName()).append("_").append(job.getId())
                     .append("',result_").append(this.job.getId()).append(");");

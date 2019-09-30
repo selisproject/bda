@@ -38,6 +38,7 @@ public class PubSubSubscription implements Serializable {
     private List<Tuple> subscriptions;
     private String pubSubHostname;
     private Integer pubSubPort;
+    private String pubSubCertificate;
     private List<Tuple> metadata;
 
     public PubSubSubscription() {
@@ -65,6 +66,14 @@ public class PubSubSubscription implements Serializable {
     }
 
     public void setPubSubPort(Integer pubSubPort) { this.pubSubPort = pubSubPort; }
+
+    public String getPubSubCertificate() {
+        return pubSubCertificate;
+    }
+
+    public void setPubSubCertificate(String pubSubCertificate) {
+        this.pubSubCertificate = pubSubCertificate;
+    }
 
     public String getScnSlug() { return scnSlug; }
 
@@ -106,6 +115,7 @@ public class PubSubSubscription implements Serializable {
 
         String pubsubhost = connector.getMetadata().getPubSubServerAddress();
         Integer pubsubport = connector.getMetadata().getPubSubServerPort();
+        String pubsubcert = connector.getMetadata().getPubSubServerCertificate();
 
         List<Tuple> messageTypeNames = new Vector<>();
         List<Tuple> messagesMetadata = new Vector<>();
@@ -139,6 +149,7 @@ public class PubSubSubscription implements Serializable {
         subscriptions.setSubscriptions(messageTypeNames);
         subscriptions.setPubSubHostname(pubsubhost);
         subscriptions.setPubSubPort(pubsubport);
+        subscriptions.setPubSubCertificate(pubsubcert);
         subscriptions.setMetadata(messagesMetadata);
         return subscriptions;
     }

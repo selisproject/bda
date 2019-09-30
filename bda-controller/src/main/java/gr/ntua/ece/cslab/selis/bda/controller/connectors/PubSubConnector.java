@@ -17,7 +17,6 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
-import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
@@ -26,9 +25,8 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
-import java.sql.SQLException;
+import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,6 +91,15 @@ public class PubSubConnector {
             LOGGER.log(Level.WARNING, "Failed to get subscriptions. Aborting reload of subscriber for "+SCNslug);
             return;
         }
+        String authhash="";
+        if (!configuration.authClientBackend.isAuthEnabled())
+            authhash=configuration.pubSubSubscriber.getAuthHash();
+        if (subscriptions.getPubSubHostname()==null)
+            subscriptions.setPubSubHostname(configuration.pubSubServer.getAddress());
+        if (subscriptions.getPubSubPort()==null)
+            subscriptions.setPubSubPort(configuration.pubSubServer.getPort());
+        if (subscriptions.getPubSubCertificate()==null)
+            subscriptions.setPubSubCertificate(configuration.pubSubServer.getCertificateLocation()+'/'+configuration.pubSubServer.getCertificateFile());
 
         Connector conn;
         try {
@@ -119,13 +126,14 @@ public class PubSubConnector {
             if (!subscriberRunners.containsKey(SCNslug)) {
                 LOGGER.log(Level.INFO, "Initializing internal PubSub subscriber for "+SCNslug);
                 try {
-                    String authhash="";
-                    if (!configuration.authClientBackend.isAuthEnabled())
-                        authhash=configuration.subscriber.getAuthHash();
-                    PubSubSubscriber subscriber = new PubSubSubscriber(
-                            authhash,
-                            configuration.subscriber.getCertificateLocation(),
-                            SCNslug);
+                    PubSubSubscriber subscriber = new PubSubSubscriber(authhash, SCNslug);
+                    if (!subscriptions.getPubSubCertificate().matches(configuration.pubSubServer.getCertificateLocation()+'/'+configuration.pubSubServer.getCertificateFile())) {
+                        String certFilename = configuration.pubSubServer.getCertificateLocation() + '/' + conn.getMetadata().getPubSubServerAddress() + ".crt";
+                        try (PrintWriter out = new PrintWriter(certFilename)) {
+                            out.println(subscriptions.getPubSubCertificate());
+                        }
+                        subscriptions.setPubSubCertificate(certFilename);
+                    }
                     subscriber.reloadSubscriptions(subscriptions);
                     subscriberRunners.put(SCNslug, subscriber);
                     Thread s = new Thread(subscriber, "Subscriber_" + SCNslug);
@@ -143,7 +151,9 @@ public class PubSubConnector {
             Client client = ClientBuilder.newClient();
             String address = conn.getAddress();
             Integer port = conn.getPort();
-            WebTarget resource = client.target(configuration.subscriber.getUrl().replaceFirst("\\{}", address).replace("\\{\\}", port.toString()));
+            WebTarget resource = client.target(configuration.pubSubSubscriber.getUrl()
+                                  .replaceFirst("\\{}", address)
+                                  .replace("\\{\\}", port.toString()));
             Invocation.Builder request = resource.request();
 
             try {

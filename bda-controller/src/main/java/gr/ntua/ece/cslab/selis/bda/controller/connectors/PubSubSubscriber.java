@@ -30,14 +30,12 @@ public class PubSubSubscriber implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(PubSubSubscriber.class.getCanonicalName()+" [" + Thread.currentThread().getName() + "]");
 
     private String authHash;
-    private String certificateLocation;
     private String SCNslug;
     private volatile PubSubSubscription subscriptions = new PubSubSubscription();
     private volatile boolean reloadSubscriptionsFlag = true;
 
-    public PubSubSubscriber(String authHash, String cert, String scn) {
+    public PubSubSubscriber(String authHash, String scn) {
         this.authHash = authHash;
-        this.certificateLocation = cert;
         this.SCNslug = scn;
     }
 
@@ -61,7 +59,8 @@ public class PubSubSubscriber implements Runnable {
             try {
                 String hostname = subscriptions.getPubSubHostname();
                 Integer portNumber = subscriptions.getPubSubPort();
-                pubsub = new PubSub(this.certificateLocation, hostname, portNumber);
+                String certificateFile = subscriptions.getPubSubCertificate();
+                pubsub = new PubSub(certificateFile, hostname, portNumber);
 
                 if (!(subscriptions.getSubscriptions().isEmpty())) {
 

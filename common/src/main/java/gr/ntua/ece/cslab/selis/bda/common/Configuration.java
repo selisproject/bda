@@ -40,7 +40,8 @@ public class Configuration {
     public final Server server;
     public final StorageBackend storageBackend;
     public final ExecutionEngine execEngine;
-    public final PubSubSubscriber subscriber;
+    public final PubSubServer pubSubServer;
+    public final PubSubSubscriber pubSubSubscriber;
     public final AuthClientBackend authClientBackend;
     public final KPIBackend kpiBackend;
 
@@ -146,14 +147,35 @@ public class Configuration {
         public String getLivyURL() { return livyURL; }
     }
 
+    public class PubSubServer {
+        private String address, certificateLocation, certificateFile;
+        private Integer port;
+
+        public PubSubServer(){ }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public Integer getPort() {
+            return port;
+        }
+
+        public String getCertificateLocation() {
+            return certificateLocation;
+        }
+
+        public String getCertificateFile() {
+            return certificateFile;
+        }
+    }
+
     public class PubSubSubscriber {
-        private String authHash, url, certificateLocation;
+        private String authHash, url;
 
         public PubSubSubscriber(){ }
 
         public String getAuthHash() { return authHash; }
-
-        public String getCertificateLocation() { return certificateLocation; }
 
         public String getUrl() { return url; }
 
@@ -201,7 +223,8 @@ public class Configuration {
     private Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
-        this.subscriber = new PubSubSubscriber();
+        this.pubSubServer = new PubSubServer();
+        this.pubSubSubscriber = new PubSubSubscriber();
         this.authClientBackend = new AuthClientBackend();
         this.kpiBackend = new KPIBackend();
         this.execEngine = new ExecutionEngine();
@@ -259,10 +282,15 @@ public class Configuration {
 
         conf.storageBackend.hdfsMasterURL = properties.getProperty("backend.hdfs.master.url");
 
+        // Pub/Sub internal server Configuration
+        conf.pubSubServer.certificateLocation = properties.getProperty("pubsub.certificate.storage.prefix");
+        conf.pubSubServer.address = properties.getProperty("pubsub.address");
+        conf.pubSubServer.port = Integer.valueOf(properties.getProperty("pubsub.port"));
+        conf.pubSubServer.certificateFile = properties.getProperty("pubsub.certificate");
+
         // Pub/Sub Subscriber Configuration.
-        conf.subscriber.authHash = properties.getProperty("pubsub.subscriber.authhash");
-        conf.subscriber.certificateLocation = properties.getProperty("pubsub.certificate.location");
-        conf.subscriber.url = properties.getProperty("pubsub.subscriber.url");
+        conf.pubSubSubscriber.authHash = properties.getProperty("pubsub.subscriber.authhash");
+        conf.pubSubSubscriber.url = properties.getProperty("pubsub.subscriber.url");
 
         // Keycloak Auth Configuration.
         conf.authClientBackend.authEnabled = Boolean.valueOf(properties.getProperty("keycloak.enabled"));
