@@ -42,6 +42,7 @@ public class Connector implements Serializable {
     private Integer port;
     private ConnectorMetadata metadata;
     private String type;
+    private transient boolean internal;
 
     private final static String INSERT_CONNECTOR_QUERY =
             "INSERT INTO connectors (name, address, port, metadata, type) " +
@@ -75,6 +76,7 @@ public class Connector implements Serializable {
         this.port = port;
         this.metadata = metadata;
         this.type = type;
+        this.internal = ((this.address == null) && (this.port == null)) ? true : false;
     }
 
     public int getId() {
@@ -97,9 +99,7 @@ public class Connector implements Serializable {
         this.address = address;
     }
 
-    public Integer getPort() {
-        return port;
-    }
+    public Integer getPort() { return port; }
 
     public void setPort(Integer port) {
         this.port = port;
@@ -121,6 +121,14 @@ public class Connector implements Serializable {
         this.type = type;
     }
 
+    public boolean isInternal() {
+        return internal;
+    }
+
+    public void setInternal() {
+        this.internal = ((this.address == null) && (this.port == null)) ? true : false;
+    }
+
     @Override
     public String toString() {
         return "Connector{" +
@@ -128,7 +136,8 @@ public class Connector implements Serializable {
                 ", address='" + address + '\'' +
                 ", port=" + port +
                 ", metadata='" + metadata + '\'' +
-                ", isType=" + type +
+                ", type='" + type + '\'' +
+                ", isInternal=" + internal +
                 '}';
     }
 

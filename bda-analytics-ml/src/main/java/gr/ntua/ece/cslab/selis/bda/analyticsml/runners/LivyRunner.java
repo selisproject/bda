@@ -254,7 +254,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             builder.append("RecipeDataLoader.publish_result('")
                     .append(conn.getAddress()).append("','")
                     .append(conn.getPort()).append("','")
-                    .append(configuration.pubsub.getCertificateLocation()).append("','")
+                    .append(configuration.subscriber.getCertificateLocation()).append("','")
                     .append(scn.getSlug()).append("','")
                     .append(recipe.getName()).append("_").append(job.getId()).append("',result);");
         }

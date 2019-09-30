@@ -17,6 +17,8 @@
 package gr.ntua.ece.cslab.selis.bda.controller.connectors;
 
 import gr.ntua.ece.cslab.selis.bda.common.Configuration;
+import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
+import gr.ntua.ece.cslab.selis.bda.common.storage.beans.Connector;
 import gr.ntua.ece.cslab.selis.bda.common.storage.beans.ScnDbInfo;
 import gr.ntua.ece.cslab.selis.bda.controller.beans.PubSubSubscription;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
@@ -24,7 +26,9 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +38,6 @@ public class PubSubConnector {
     private static Configuration configuration;
     private static PubSubConnector pubSubConnector;
 
-    private static boolean isExternal;
     private HashMap<String, PubSubSubscriber> subscriberRunners;
     private HashMap<String, Thread> subscribers;
     //private PubSubPublisher publisher;
@@ -42,7 +45,6 @@ public class PubSubConnector {
     public PubSubConnector() {
         this.subscriberRunners = new HashMap<>();
         this.subscribers = new HashMap<>();
-        isExternal = true;
     }
 
     public static PubSubConnector getInstance() {
@@ -63,10 +65,6 @@ public class PubSubConnector {
     }
 
     private void initSCNsubscribers() {
-        isExternal = (
-            configuration.subscriber.getUrl() != null &&
-            !configuration.subscriber.getUrl().isEmpty()
-        );
 
         try {
             for (ScnDbInfo scn : ScnDbInfo.getScnDbInfo()) {
@@ -96,7 +94,22 @@ public class PubSubConnector {
             return;
         }
 
-        if (!isExternal && !externalConnector) {
+        Connector conn;
+        try {
+            if (!externalConnector)
+                conn = Connector.getConnectorInfoById(ScnDbInfo.getScnDbInfoBySlug(SCNslug).getConnectorId());
+            else {
+                Integer len = subscriptions.getSubscriptions().size();
+                String msg = subscriptions.getSubscriptions().get(len-1).getTuple().get(1).getValue();
+                conn = Connector.getConnectorInfoById(MessageType.getMessageByName(SCNslug, msg).getExternalConnectorId());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Failed to get connector info. Aborting reload of subscriber for "+SCNslug);
+            return;
+        }
+
+        if (conn.isInternal() && !externalConnector) {
             if (subscriptions.getSubscriptions().isEmpty() & subscriberRunners.containsKey(SCNslug)){
                 subscribers.get(SCNslug).interrupt();
                 subscribers.remove(SCNslug);
@@ -107,8 +120,8 @@ public class PubSubConnector {
                 LOGGER.log(Level.INFO, "Initializing internal PubSub subscriber for "+SCNslug);
                 try {
                     PubSubSubscriber subscriber = new PubSubSubscriber(
-                            configuration.pubsub.getAuthHash(),
-                            configuration.pubsub.getCertificateLocation(),
+                            configuration.subscriber.getAuthHash(),
+                            configuration.subscriber.getCertificateLocation(),
                             SCNslug);
                     subscriber.reloadSubscriptions(subscriptions);
                     subscriberRunners.put(SCNslug, subscriber);
@@ -125,16 +138,9 @@ public class PubSubConnector {
         }
         else {
             Client client = ClientBuilder.newClient();
-            WebTarget resource;
-            if (externalConnector){
-                if (configuration.externalSubscriber.getUrl() == null){
-                    LOGGER.log(Level.WARNING, "External connector subscriber url is not defined! Aborting reload of subscriptions for "+SCNslug);
-                    return;
-                }
-                resource = client.target(configuration.externalSubscriber.getUrl());
-            } else {
-                resource = client.target(configuration.subscriber.getUrl());
-            }
+            String address = conn.getAddress();
+            Integer port = conn.getPort();
+            WebTarget resource = client.target(configuration.subscriber.getUrl().replaceFirst("\\{}", address).replace("\\{\\}", port.toString()));
             Invocation.Builder request = resource.request();
 
             try {
@@ -156,9 +162,8 @@ public class PubSubConnector {
     }
 
     public void close(){
-        if (!isExternal)
-            for (Map.Entry<String, Thread> subscriber: subscribers.entrySet()){
-                subscriber.getValue().interrupt();
-            }
+        for (Map.Entry<String, Thread> subscriber: subscribers.entrySet()){
+            subscriber.getValue().interrupt();
+        }
     }
 }

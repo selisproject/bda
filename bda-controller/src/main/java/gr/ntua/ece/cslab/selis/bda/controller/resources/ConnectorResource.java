@@ -48,6 +48,11 @@ public class ConnectorResource {
                         new RequestResponse("ERROR", "Could not register new Connector. Invalid type.")
                 ).build();
             }
+            if (!connector.getType().matches("SELIS") && (connector.getPort()==null || connector.getAddress()==null)) {
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not register new Connector. Non SELIS subscribers are external and must have an address and a port.")
+                ).build();
+            }
             connector.save();
             details = Integer.toString(connector.getId());
         } catch (Exception e) {

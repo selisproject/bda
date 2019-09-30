@@ -104,8 +104,8 @@ public class PubSubSubscription implements Serializable {
             throw e;
         }
 
-        String pubsubhost = connector.getAddress();
-        Integer pubsubport = connector.getPort();
+        String pubsubhost = connector.getMetadata().getPubSubServerAddress();
+        Integer pubsubport = connector.getMetadata().getPubSubServerPort();
 
         List<Tuple> messageTypeNames = new Vector<>();
         List<Tuple> messagesMetadata = new Vector<>();
