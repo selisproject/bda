@@ -40,9 +40,7 @@ public class Configuration {
     public final Server server;
     public final StorageBackend storageBackend;
     public final ExecutionEngine execEngine;
-    public final PubSubServer pubsub;
     public final PubSubSubscriber subscriber;
-    public final PubSubSubscriber externalSubscriber;
     public final AuthClientBackend authClientBackend;
     public final KPIBackend kpiBackend;
 
@@ -147,21 +145,15 @@ public class Configuration {
 
         public String getLivyURL() { return livyURL; }
     }
-    public class PubSubServer {
-        private String authHash, certificateLocation;
 
-        public PubSubServer(){
-        }
+    public class PubSubSubscriber {
+        private String authHash, url, certificateLocation;
+
+        public PubSubSubscriber(){ }
 
         public String getAuthHash() { return authHash; }
 
         public String getCertificateLocation() { return certificateLocation; }
-
-    }
-    public class PubSubSubscriber {
-        private String url;
-
-        public PubSubSubscriber(){ }
 
         public String getUrl() { return url; }
 
@@ -209,9 +201,7 @@ public class Configuration {
     private Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
-        this.pubsub = new PubSubServer();
         this.subscriber = new PubSubSubscriber();
-        this.externalSubscriber = new PubSubSubscriber();
         this.authClientBackend = new AuthClientBackend();
         this.kpiBackend = new KPIBackend();
         this.execEngine = new ExecutionEngine();
@@ -269,13 +259,10 @@ public class Configuration {
 
         conf.storageBackend.hdfsMasterURL = properties.getProperty("backend.hdfs.master.url");
 
-        // Pub/Sub Configuration.
-        conf.pubsub.authHash = properties.getProperty("pubsub.authhash");
-        conf.pubsub.certificateLocation = properties.getProperty("pubsub.certificate.location");
-
         // Pub/Sub Subscriber Configuration.
+        conf.subscriber.authHash = properties.getProperty("pubsub.subscriber.authhash");
+        conf.subscriber.certificateLocation = properties.getProperty("pubsub.certificate.location");
         conf.subscriber.url = properties.getProperty("pubsub.subscriber.url");
-        conf.externalSubscriber.url = properties.getProperty("pubsub.external.subscriber.url");
 
         // Keycloak Auth Configuration.
         conf.authClientBackend.authEnabled = Boolean.valueOf(properties.getProperty("keycloak.enabled"));
