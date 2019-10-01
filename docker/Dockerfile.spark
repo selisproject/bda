@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install --yes --no-install-recommends python3 pyth
     apt-get clean autoclean && \
     pip3 install psycopg2-binary py-dateutil requests numpy pandas
 
-# Create hadoop, resources directories.
-RUN mkdir -p ${SPARK_PREFIX} /resources
+# Create spark directory.
+RUN mkdir -p ${SPARK_PREFIX}
 
 # Download, install spark.
 RUN curl -L ${SPARK_URL} | tar -xz --strip=1 -C ${SPARK_PREFIX}
@@ -31,12 +31,6 @@ ENV YARN_CONF_DIR      "${HADOOP_PREFIX}/etc/hadoop"
 # Set spark environment variables.
 ENV SPARK_HOME "${SPARK_PREFIX}"
 ENV PYSPARK_PYTHON "/usr/bin/python3"
-
-# Download postgresql jar.
-#RUN curl https://jdbc.postgresql.org/download/postgresql-42.2.1.jar --output /resources/postgresql-42.2.1.jar
-
-# Add the certificate, used to connect to pubsub.
-ADD ./bootstrap/root.crt /resources/
 
 ADD ./bootstrap/spark/docker-entrypoint.sh /
 
