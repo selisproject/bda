@@ -23,6 +23,9 @@ curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json"
 curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" "http://localhost:9999/api/messages/{scn_slug}/{message_id}?connector_id={connector_id}&external_datasource={datasource_name}"
 
 // Extras
+// Create recipe from a shared recipe
+curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @recipe_args.json http://localhost:9999/api/recipes/{scn_slug}/{shared_recipe_id}?name=myrecipe && echo
+
 // Store message in eventlog
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore/{scn_slug}/ && echo
 
