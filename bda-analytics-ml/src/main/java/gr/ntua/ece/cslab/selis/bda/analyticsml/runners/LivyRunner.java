@@ -29,6 +29,9 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.Recipe;
 import org.json.JSONObject;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
@@ -222,7 +225,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
         return Arrays.asList(builder.toString(), args);
     }
 
-    private String buildRecipePythonCode(ScnDbInfo scn, String args) throws SQLException, SystemConnectorException {
+    private String buildRecipePythonCode(ScnDbInfo scn, String args) throws SQLException, SystemConnectorException, IOException {
 
         StringBuilder builder = new StringBuilder();
         StringBuilder arguments = new StringBuilder();
@@ -264,7 +267,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
             if (port==null)
                 port=configuration.pubSubServer.getPort();
             if (cert==null)
-                cert=configuration.pubSubServer.getCertificateLocation()+'/'+configuration.pubSubServer.getCertificateFile();
+                cert=new String(Files.readAllBytes(Paths.get(configuration.pubSubServer.getCertificateLocation()+'/'+configuration.pubSubServer.getCertificateFile())));
             builder.append("RecipeDataLoader.publish_result('")
                     .append(address).append("','")
                     .append(port).append("','")
@@ -301,8 +304,8 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                 code = dataLoadingCode + recipeCode;
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE,"Building the code has failed. Aborting launching the job.");
             e.printStackTrace();
+            LOGGER.log(Level.SEVERE,"Building the code has failed. Aborting launching the job.");
             return;
         }
 

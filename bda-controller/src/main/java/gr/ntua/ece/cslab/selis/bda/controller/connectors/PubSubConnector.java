@@ -25,6 +25,7 @@ import gr.ntua.ece.cslab.selis.bda.datastore.beans.MessageType;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.Response;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -129,7 +130,8 @@ public class PubSubConnector {
                     PubSubSubscriber subscriber = new PubSubSubscriber(authhash, SCNslug);
                     if (!subscriptions.getPubSubCertificate().matches(configuration.pubSubServer.getCertificateLocation()+'/'+configuration.pubSubServer.getCertificateFile())) {
                         String certFilename = configuration.pubSubServer.getCertificateLocation() + '/' + conn.getMetadata().getPubSubServerAddress() + ".crt";
-                        try (PrintWriter out = new PrintWriter(certFilename)) {
+
+                        try (PrintWriter out = new PrintWriter(new FileOutputStream(certFilename, false))) {
                             out.println(subscriptions.getPubSubCertificate());
                         }
                         subscriptions.setPubSubCertificate(certFilename);
