@@ -38,6 +38,7 @@ pubsub.certificate.location = /resources/root.crt
 pubsub.external.subscriber.url = http://selis-subscriber:8090/api/message/reload
 
 # keycloak configuration parameters.
+keycloak.enabled      = false
 keycloak.bda.url      = http://selis-keycloak:8080/auth/
 keycloak.bda.realm    = selis-bda-realm
 keycloak.bda.pubsub.client_id = pubsub_client_id
@@ -48,7 +49,6 @@ keycloak.bda.password = password
 # Spark configuration
 spark.livy.url             = http://selis-livy:8998
 spark.master               = yarn
-spark.master.url           = spark://selis-hadoop-master:7077
 spark.deploy_mode          = cluster
 spark.conf.driver_memory   = 512m
 spark.conf.executor_cores  = 1

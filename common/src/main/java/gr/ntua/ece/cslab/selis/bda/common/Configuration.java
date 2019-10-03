@@ -110,7 +110,6 @@ public class Configuration {
     }
     public class ExecutionEngine {
         private String sparkMaster;
-        private String sparkMasterURL;
         private String sparkDeployMode;
         private String sparkConfJars;
         private String sparkConfPackages;
@@ -127,8 +126,6 @@ public class Configuration {
         public ExecutionEngine(){}
 
         public String getSparkMaster() { return sparkMaster; }
-
-        public String getSparkMasterURL() { return sparkMasterURL; }
 
         public String getSparkDeployMode() { return sparkDeployMode; }
 
@@ -170,9 +167,12 @@ public class Configuration {
 
     }
     public class AuthClientBackend {
+        private Boolean authEnabled;
         private String authServerUrl, realm, clientId, clientSecret, bdaUsername, bdaPassword;
 
         public AuthClientBackend() { }
+
+        public Boolean isAuthEnabled() { return authEnabled; }
 
         public String getAuthServerUrl() { return authServerUrl; }
 
@@ -278,6 +278,7 @@ public class Configuration {
         conf.externalSubscriber.url = properties.getProperty("pubsub.external.subscriber.url");
 
         // Keycloak Auth Configuration.
+        conf.authClientBackend.authEnabled = Boolean.valueOf(properties.getProperty("keycloak.enabled"));
         conf.authClientBackend.authServerUrl = properties.getProperty("keycloak.bda.url");
         conf.authClientBackend.realm = properties.getProperty("keycloak.bda.realm");
         conf.authClientBackend.clientId = properties.getProperty("keycloak.bda.pubsub.client_id");
@@ -291,8 +292,7 @@ public class Configuration {
         conf.kpiBackend.dbPassword = properties.getProperty("kpi.db.password");
 
         // Execution engine configuration
-        conf.execEngine.sparkMaster = properties.getProperty("spark.master"); 
-        conf.execEngine.sparkMasterURL = properties.getProperty("spark.master.url");
+        conf.execEngine.sparkMaster = properties.getProperty("spark.master");
         conf.execEngine.sparkDeployMode = properties.getProperty("spark.deploy_mode");
         conf.execEngine.sparkConfJars = properties.getProperty("spark.conf.jars");
         conf.execEngine.sparkConfPackages = properties.getProperty("spark.conf.packages");

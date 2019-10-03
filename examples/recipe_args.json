@@ -1,0 +1,5 @@
+{
+  "dimension_tables": ["inventoryitems"],
+  "message_types": ["SonaeSalesForecast"],
+  "other_args": []
+}

@@ -186,7 +186,7 @@ public class Job implements Serializable {
 
     @Override
     public String toString() {
-        return "JobDescription{" +
+        return "Job{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
@@ -317,7 +317,7 @@ public class Job implements Serializable {
             e.printStackTrace();
         }
 
-        throw new SQLException("JobDescription object not found.");
+        throw new SQLException("Job object not found.");
     }
 
     public static Job getJobByMessageId(String slug, int id) throws SQLException, SystemConnectorException {
@@ -358,7 +358,7 @@ public class Job implements Serializable {
             e.printStackTrace();
         }
 
-        throw new SQLException("JobDescription object not found.");
+        throw new SQLException("Job object not found.");
     }
 
     public void save(String slug) throws SQLException, UnsupportedOperationException, SystemConnectorException {
@@ -491,7 +491,7 @@ public class Job implements Serializable {
             e.printStackTrace();
         }
 
-        throw new SQLException("JobDescription object not found.");
+        throw new SQLException("Job object not found.");
     }
 
     public void setChildrenSessionId(String slug) throws SQLException, SystemConnectorException {

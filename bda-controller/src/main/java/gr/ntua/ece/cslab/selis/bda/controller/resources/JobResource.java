@@ -62,9 +62,15 @@ public class JobResource {
                     ).build();
             }
 
-            if (!((j.getMessageTypeId() == null) ^ (j.getScheduleInfo() == null))) {
+            if ((j.getMessageTypeId() == null) && (j.getScheduleInfo() == null)) {
                 return Response.serverError().entity(
-                        new RequestResponse("ERROR", "Could not insert new Job. Job is either cron or connected to a message type")
+                        new RequestResponse("ERROR", "Could not insert new Job. Job must have schedule info or be connected to a message type")
+                ).build();
+            }
+
+            if ((j.getResultStorage() == null) || !(j.getResultStorage().matches("kpidb") || j.getResultStorage().matches("pubsub") || (j.getResultStorage().matches("hdfs")))) {
+                return Response.serverError().entity(
+                        new RequestResponse("ERROR", "Could not insert new Job. Job result storage must be either 'kpidb', or 'pubsub' or 'hdfs'")
                 ).build();
             }
 

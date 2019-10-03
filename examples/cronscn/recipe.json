@@ -3,10 +3,10 @@
   "description" : "recipe",
   "languageId" : 1,
   "executablePath" : "",
-  "engineId" : 3,
+  "engineId" : 2,
   "args" : {
     "dimension_tables": ["inventoryitems", "items", "minimumquantities", "agreements", "transportuncaps"],
     "message_types": ["SonaeSalesForecast"],
-    "other_args": ""
+    "other_args": []
   }
 }

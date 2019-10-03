@@ -23,7 +23,6 @@ import gr.ntua.ece.cslab.selis.bda.common.storage.SystemConnectorException;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RecipeArguments;
 import gr.ntua.ece.cslab.selis.bda.datastore.beans.RequestResponse;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
