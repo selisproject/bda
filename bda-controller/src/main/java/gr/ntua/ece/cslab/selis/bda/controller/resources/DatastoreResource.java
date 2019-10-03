@@ -232,6 +232,24 @@ public class DatastoreResource {
                 r = new Recipe("Binomial Logistic Regression prediction", "Simple binary classification prediction using Spark MLlib",
                         1, "hdfs:///shared_recipes/binomial_logistic_regression_predict.py", 2, args);
                 r.save_as_shared();
+
+                args = new RecipeArguments();
+                args_list = new LinkedList<>();
+                args_list.add("date_from");
+                args_list.add("date_to");
+                args_list.add("mmsi");
+                args.setOther_args(args_list);
+                input_df_args_list = new LinkedList<>();
+                input_df_args_list.add("Barge_activity_log");
+                args.setMessage_types(input_df_args_list);
+                List<String> input_df_dt_args_list = new LinkedList<>();
+                input_df_dt_args_list.add("barge table");
+                args.setDimension_tables(input_df_dt_args_list);
+
+                r = new Recipe("Barge Analytics", "Simple barge analytics using Spark",
+                        1, "hdfs:///shared_recipes/barge_analytics.py", 2, args);
+                r.save_as_shared();
+
             } catch (Exception e) {
                 e.printStackTrace();
                 return Response.serverError().entity(
@@ -537,3 +555,4 @@ public class DatastoreResource {
         return new LinkedList<>();
     }
 }
+
