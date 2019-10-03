@@ -186,11 +186,11 @@ public class LivyRunner extends ArgumentParser implements Runnable {
 
         if (msgInfo != null) {
             List<String> columns = msgInfo.getMessageColumns();
-            builder.append(msgInfo.getName()).append(" = RecipeDataLoader.fetch_from_eventlog_one(spark, '")
+            builder.append(msgInfo.getName()).append("_input = RecipeDataLoader.fetch_from_eventlog_one(spark, '")
                     .append(scn.getElDbname()).append("','")
                     .append(messageId).append("','")
                     .append(columns).append("'); ");
-            arguments.append(msgInfo.getName());
+            arguments.append(msgInfo.getName()).append("_input");
         }
 
         List<String> dimension_tables = recipe.getArgs().getDimension_tables();
