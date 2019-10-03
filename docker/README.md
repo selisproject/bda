@@ -5,42 +5,27 @@ SELIS Big Data Analytics Module - Docker
 About
 -----
 This set of Dockerfiles is intended for setting up a local development 
-environment. All required databases and modules are containerized and 
+environment with all the different SELIS components. 
+All required databases and modules are containerized and 
 reasonable defaults are provided. This setup is not for production usage.
+
+
+Requirements
+------------
+Latest docker.io and docker-compose v.1.24.1
+
 
 
 Getting Started
 ---------------
-Assuming that we have a running `docker` installation locally and a Pub-Sub 
-existing installation remotely (we fill the connection details in the 
-properties file), we can setup the SELIS BDA locally by executing 
+In order to setup the SELIS BDA with all the required components locally:
+ 
+1. Edit the ```.env``` file and provide local values for the unset variables.
+2. Run ```make``` from this directory to build all the required images using
+   the Dockerfiles.
+3. Run ```docker-compose up``` to create a network, the volumes and the containers 
+   of the SELIS components.
 
-```bash
-./sls.sh run all
-```
-
-This subcommand will pull, build required images, create volumes, create a
-network and launch containers for the BDA's components. When it finishes it 
-connects to the 'selis-controller' container where the BDA code that existed
-locally has been copied to be tested.
-
-Other useful subcommands are:
-
-```bash
-# Start all containers:
-./sls.sh startall
-
-# Stop all containers:
-./sls.sh stopall
-
-# Run specified container:
-./sls.sh run <postgres/hbase/keycloak/controller>
-
-# Remove all containers/images/networks/volumes:
-./sls.sh clean
-```
-A certain convention is used for naming things, for more details look 
-at `./sls.sh`.
 
 Keycloak Setup
 --------------

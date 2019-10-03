@@ -1,0 +1,110 @@
+version: "3.7"
+
+services:
+  hadoop-namenode:
+    image: selis/hadoop-namenode-${HADOOP_VERSION}:latest
+    container_name: selis-hadoop-namenode
+    networks:
+      - selis-network
+  hadoop-datanode:
+    image: selis/hadoop-datanode-${HADOOP_VERSION}:latest
+    container_name: selis-hadoop-datanode
+    depends_on:
+      - hadoop-namenode
+    networks:
+      - selis-network
+  hadoop-resourcemanager:
+    image: selis/hadoop-yarn-resourcemanager-${HADOOP_VERSION}:latest
+    container_name: selis-hadoop-yarn-resourcemanager
+    depends_on:
+      - hadoop-namenode
+    networks:
+      - selis-network
+  spark:
+    image: selis/spark-${SPARK_VERSION}:latest
+    container_name: selis-spark
+    depends_on:
+      - hadoop-namenode
+    networks:
+      - selis-network
+  zookeeper-master:
+    image: selis/zookeeper-${ZOOKEEPER_VERSION}:latest
+    container_name: selis-zookeeper-master
+    networks:
+      - selis-network
+  hbase-master:
+    image: selis/hbase-master-${HBASE_VERSION}:latest
+    container_name: selis-hbase-master
+    depends_on:
+      - hadoop-namenode
+      - zookeeper-master
+    networks:
+      - selis-network
+  hbase-regionserver:
+    image: selis/hbase-regionserver-${HBASE_VERSION}:latest
+    container_name: selis-hbase-regionserver
+    depends_on:
+      - hadoop-namenode
+      - zookeeper-master
+    networks:
+      - selis-network
+  livy:
+    image: selis/livy-${LIVY_VERSION}:latest
+    container_name: selis-livy
+    depends_on:
+      - hadoop-resourcemanager
+      - zookeeper-master
+      - spark
+    networks:
+      - selis-network
+  postgres:
+    image: selis/postgres-11
+    container_name: selis-postgres
+    volumes:
+      - selis-postgres-volume:/var/lib/postgresql/data
+    networks:
+      - selis-network
+  pubsub:
+    image: tudselis/pubsub:${PUBSUB_VERSION}
+    container_name: selis-pubsub
+    ports:
+      - 127.0.0.1:20000:20000
+      - 127.0.0.1:20001:20001
+    networks:
+      - selis-network
+  keycloak:
+    image: jboss/keycloak:${KEYCLOAK_VERSION}
+    container_name: selis-keycloak
+    depends_on:
+      - postgres
+    networks:
+      - selis-network
+  bda:
+    image: selis/bda-devel:latest
+    container_name: selis-controller
+    ports:
+      - 127.0.0.1:9999:9999
+    depends_on:
+      - postgres
+      - pubsub
+      - hadoop-namenode
+      - spark
+      - hbase-master
+      - livy
+    volumes:
+      - type: bind
+        source: ${BDA_CODE_FOLDER}
+        target: /code
+      - type: bind
+        source: ${PUBSUB_CERT}
+        target: /resources/root.crt
+    networks:
+      - selis-network
+
+volumes:
+  selis-postgres-volume:
+
+networks:
+  selis-network:
+    driver: bridge
+    external: false
