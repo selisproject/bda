@@ -1,31 +1,28 @@
-// 0. Create Pub/Sub connector
+// 0. Define supported execution languages and engines and upload initial shared recipes
+curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" http://localhost:9999/api/datastore/init && echo
+
+// 1. Create Pub/Sub connector
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @newconnector.json http://localhost:9999/api/connectors && echo
 
-// 1. Create SCN database
+// 2. Create SCN database
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @newscn.json http://localhost:9999/api/datastore && echo
 
-// 2. Bootstrap dimension tables
+// 3. Bootstrap dimension tables
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @master_data.json http://localhost:9999/api/datastore/{scn_slug}/boot && echo
 
-// 3. Create message type to subscribe to (returns message_id)
+// 4. Create message type to subscribe to (returns message_id)
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @msgtype.json http://localhost:9999/api/messages/{scn_slug} && echo
 
-// 4. Add new recipe (returns recipe_id)
-curl -ik -X POST -H "Content-type:application/json" -d @recipe.json http://localhost:9999/api/recipes/{scn_slug}/
+// 5. Add new recipe (returns recipe_id)
+curl -ik -X POST -H "Content-type:application/json" -d @recipe.json http://localhost:9999/api/recipes/{scn_slug}/ && echo
 
-// 5. Upload recipe executable
+// 6. Upload recipe executable
 curl -ik -X PUT -H "Content-type:application/octet-stream" --data-binary @recipe.py http://localhost:9999/api/recipes/{scn_slug}/{recipe_id}/recipe.py
 
-// 6. Create a new job (message-triggered or cron) (returns job_id)
+// 7. Create a new job (message-triggered or cron) (returns job_id)
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @job.json http://localhost:9999/api/jobs/{scn_slug} && echo
 
-// 7. Associate message with external connector
-curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" "http://localhost:9999/api/messages/{scn_slug}/{message_id}?connector_id={connector_id}&external_datasource={datasource_name}"
-
 // Extras
-// Create recipe from a shared recipe
-curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @recipe_args.json http://localhost:9999/api/recipes/{scn_slug}/{shared_recipe_id}?name=myrecipe && echo
-
 // Store message in eventlog
 curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @msg.json http://localhost:9999/api/datastore/{scn_slug}/ && echo
 
@@ -44,6 +41,21 @@ curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/datastore
 
 // Get Pub/Sub connectors
 curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/connectors
+
+// Associate message with external connector
+curl -ik -X PUT -H "Content-type:application/json" -H "Accept:application/json" "http://localhost:9999/api/messages/{scn_slug}/{message_id}?connector_id={connector_id}&external_datasource={datasource_name}"
+
+// Get shared recipes
+curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/sharedrecipes
+
+// Create a recipe from an existing shared recipe
+curl -ik -X POST -H "Content-type:application/json" -H "Accept:application/json" --data @recipe_args.json http://localhost:9999/api/recipes/{scn_slug}/{shared_recipe_id}?name=myrecipe && echo
+
+// Get available execution languages
+curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/xlanguages
+
+// Get available execution engines
+curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/xengines
 
 // Get Jobs
 curl -ik -X GET -H "Accept:application/json" http://localhost:9999/api/jobs/{scn_slug}/
