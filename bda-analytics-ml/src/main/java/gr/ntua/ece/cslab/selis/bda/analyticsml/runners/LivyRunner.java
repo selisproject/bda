@@ -250,6 +250,8 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                 List<String> columns = msgInfo.getMessageColumns();
                 builder.append(msgInfo.getName()).append("_input,'")
                         .append(columns).append("',");
+            } else {
+                builder.append("'','',");
             }
 
             builder.append("result_").append(this.job.getId()).append(");");

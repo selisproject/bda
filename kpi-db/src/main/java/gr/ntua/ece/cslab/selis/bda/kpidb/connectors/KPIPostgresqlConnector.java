@@ -39,12 +39,13 @@ public class KPIPostgresqlConnector implements KPIConnector {
             List<KeyValue> columns = kpi_table.getKpi_schema().getColumnTypes();
             st.addBatch("DROP TABLE IF EXISTS "+kpi_table.getKpi_name()+";");
 
-            String q="CREATE TABLE " + kpi_table.getKpi_name() + " (id SERIAL PRIMARY KEY, timestamp timestamp, ";
+            String q="CREATE TABLE " + kpi_table.getKpi_name() + " (id SERIAL PRIMARY KEY, timestamp timestamp";
             for (KeyValue element : columns){
+                q+=", ";
                 q+=element.getKey()+" "+element.getValue();
-                q+=",";
             }
-            q=q.substring(0, q.length() - 1)+");";
+            q += ");";
+            //q=q.substring(0, q.length() - 1)+");";
             System.out.println(q);
             st.addBatch(q);
             st.addBatch("ALTER TABLE " + kpi_table.getKpi_name() + " OWNER TO "+ conn.getUsername() +";");

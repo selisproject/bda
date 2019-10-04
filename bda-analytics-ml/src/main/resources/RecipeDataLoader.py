@@ -103,16 +103,23 @@ def save_result_to_kpidb(kpidb_host, kpidb_port, kpidb_name, username, password,
         'user': username,
         'password': password,
     }
-    columns = message_columns.replace(" ", "").replace('[','').replace(']','').split(',')
-    columns.remove("payload")
-    columns.remove("message_type")
-    columns.remove("scn_slug")
-    columns_str = ','+','.join(columns)
+
+    columns_str = ""
+    if message_columns != "":
+        columns = message_columns.replace(" ", "").replace('[','').replace(']','').split(',')
+        columns.remove("payload")
+        columns.remove("message_type")
+        columns.remove("scn_slug")
+        columns_str = ','+','.join(columns)
+
+
     fields = []
-    message_data = message.collect()[0]
-    for column in columns:
-        fields.append(message_data[column])
-    fields_str = ",'"+"','".join(fields)+"'"
+    fields_str = ""
+    if message != '':
+        message_data = message.collect()[0]
+        for column in columns:
+            fields.append(message_data[column])
+        fields_str = ",'"+"','".join(fields)+"'"
 
     query = KPI_DB_QUERY.format(
         kpi_table,

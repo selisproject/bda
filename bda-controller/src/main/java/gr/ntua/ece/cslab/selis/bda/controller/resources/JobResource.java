@@ -93,6 +93,15 @@ public class JobResource {
                             new KPISchema(msgFormat)));
                 }
             }
+            else {
+                if (j.getResultStorage().equals("kpidb")) {
+                    JSONObject schema = new JSONObject("{}");
+                    LOGGER.log(Level.INFO, "Create kpidb table..");
+
+                    (new KPIBackend(slug)).create(new KPITable(r.getName(),
+                            new KPISchema(schema)));
+                }
+            }
 
             if ((j.getDependJobId() != null) && (parentJob.getSessionId() != null)) {
                 LOGGER.log(Level.INFO, "Getting open session id from parent job..");
