@@ -49,7 +49,6 @@ public class KPIBackend {
 
     public List<Tuple> fetch(String kpi_name, String type, Integer value) throws Exception {
         if (type.equals("rows")) {
-            System.out.println("Before calling kpiconnector");
             return this.kpiConnector.getLast(kpi_name, value);
         }
         else
