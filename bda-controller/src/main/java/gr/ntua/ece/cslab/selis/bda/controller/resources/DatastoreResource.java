@@ -250,6 +250,31 @@ public class DatastoreResource {
                         1, "hdfs:///shared_recipes/barge_analytics.py", 2, args);
                 r.save_as_shared();
 
+                args = new RecipeArguments();
+                input_df_args_list = new LinkedList<>();
+                input_df_args_list.add("TrainEvent");
+                args.setMessage_types(input_df_args_list);
+                input_df_dt_args_list = new LinkedList<>();
+                input_df_dt_args_list.add("timetable");
+                input_df_dt_args_list.add("stations");
+                input_df_dt_args_list.add("ris");
+                args.setDimension_tables(input_df_dt_args_list);
+
+                r = new Recipe("trainETA_train", "Simple train ETA algorithm for training a model",
+                        1, "hdfs:///shared_recipes/trainETA_train_model.py", 2, args);
+                r.save_as_shared();
+
+                args = new RecipeArguments();
+                input_df_dt_args_list = new LinkedList<>();
+                input_df_dt_args_list.add("timetable");
+                input_df_dt_args_list.add("stations");
+                input_df_dt_args_list.add("ris");
+                args.setDimension_tables(input_df_dt_args_list);
+
+                r = new Recipe("trainETA_predict", "Simple ETA predictor given a trainEvent using the model produced by trainETA_train recipe",
+                        1, "hdfs:///shared_recipes/trainETA_predict.py", 2, args);
+                r.save_as_shared();
+
             } catch (Exception e) {
                 e.printStackTrace();
                 return Response.serverError().entity(
