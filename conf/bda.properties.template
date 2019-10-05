@@ -19,10 +19,10 @@ backend.db.event.username = selis
 backend.db.event.password = 123456
 backend.db.event.url      = hbase://selis-hbase-master:2181/
 backend.db.event.master.host = selis-hbase-master
-backend.db.event.quorum      = selis-hbase-master.selis-network,selis-hbase-worker.selis-network
+backend.db.event.quorum      = selis-zookeeper-master
 
 # HDFS configuration.
-backend.hdfs.master.url = hdfs://selis-hadoop-master:8020
+backend.hdfs.master.url = hdfs://selis-hadoop-namenode:8020
 
 # Storage backend: KPI db.
 kpi.db.username = selis
@@ -35,7 +35,7 @@ pubsub.port = 20000
 pubsub.authhash = myhash
 pubsub.certificate.location = /resources/root.crt
 #pubsub.subscriber.url = http://selis-subscriber:8090/api/message/reload
-pubsub.external.subscriber.url = http://selis-subscriber:8090/api/message/reload
+#pubsub.external.subscriber.url = http://selis-subscriber:8090/api/message/reload
 
 # keycloak configuration parameters.
 keycloak.enabled      = false

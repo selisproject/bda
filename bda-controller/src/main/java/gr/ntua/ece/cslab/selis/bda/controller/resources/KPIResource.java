@@ -68,9 +68,6 @@ public class KPIResource {
             @HeaderParam("Accept") String accepted
     ) {
 
-        System.out.println("Entered fetch function");
-        System.out.println(kpiname + "," + n);
-
         try {
             KPIBackend kpiBackend = new KPIBackend(scnSlug);
             List<Tuple> results = kpiBackend.fetch(kpiname, "rows", n);
@@ -113,9 +110,7 @@ public class KPIResource {
                 }
                 returnResults.put(row);
             }
-            System.out.println(accepted);
-            System.out.println(MediaType.valueOf(accepted));
-            System.out.println(returnResults.toString());
+
             if(accepted != null) {
                 MediaType mediaType = MediaType.valueOf(accepted);
                 if (mediaType.equals(MediaType.valueOf(MediaType.APPLICATION_XML)))
