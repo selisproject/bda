@@ -13,7 +13,7 @@ from pyspark.ml.regression import GBTRegressor
 def extract(row, colname):
 		return tuple(map(lambda x: row[x], row.__fields__)) + tuple(row[colname + "_ohe"].toArray().tolist())
 
-def run(spark, message_dataframe, timetable, stations, ris, trainEvents):
+def run(spark, timetable, stations, ris, trainEvents):
 	jsonSchema = spark.read.json(trainEvents.rdd.map(lambda r: r.payload)).schema
 	
 	events = trainEvents.withColumn('json', from_json(col('payload'), jsonSchema)).select("station_id", "ris_status_id", "timetable_id", "json")
