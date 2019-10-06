@@ -381,7 +381,7 @@ public class LivyRunner extends ArgumentParser implements Runnable {
                     deleteSession(sessionId);
             }
             else {
-                Job.storeSession(scnSlug, job.getId(), Integer.valueOf(sessionId));
+                job.setSessionId(Integer.valueOf(sessionId));
                 job.setChildrenSessionId(scnSlug);
             }
         } catch (SQLException e) {
