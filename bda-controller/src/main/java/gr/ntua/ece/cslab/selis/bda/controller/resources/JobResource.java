@@ -103,9 +103,11 @@ public class JobResource {
                 }
             }
 
-            if ((j.getDependJobId() != null) && (parentJob.getSessionId() != null)) {
-                LOGGER.log(Level.INFO, "Getting open session id from parent job..");
-                parentJob.setChildrenSessionId(slug);
+            if (j.getDependJobId() != null) {
+                LOGGER.log(Level.INFO, "Getting session id from parent job..");
+                if (parentJob.getSessionId() != null) {
+                    parentJob.setChildrenSessionId(slug);
+                }
             }
             else if (j.getJobType().matches("streaming")){
                 RunnerInstance runner = new RunnerInstance(slug, msg.getName());
