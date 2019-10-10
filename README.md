@@ -18,7 +18,7 @@ cd bda-controller
 /bin/sh -c ./src/main/scripts/selis-bda-server.sh
 ```
 You can watch a getting started video in the following link:
-https://youtu.be/uVzZ0OGJx0M
+https://youtu.be/zaYVfsg57bY
 
 Contact
 -------
