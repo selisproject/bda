@@ -30,6 +30,11 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * This class represents a SCN created inside the BDA. It contains information such as
+ * the SCN slug, the SCN name and a description, the database name and the connector
+ * instance that this SCN uses.
+ */
 @XmlRootElement(name = "ScnDbInfo")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class ScnDbInfo implements Serializable {
@@ -70,6 +75,14 @@ public class ScnDbInfo implements Serializable {
 
     public ScnDbInfo() { }
 
+    /**
+     * Default constructor.
+     * @param slug the SCN slug
+     * @param name a name for the SCN
+     * @param description a description for the SCN
+     * @param dbname the SCN database name
+     * @param connectorId the connector id that this SCN uses to interact with the Pub/Sub
+     */
     public ScnDbInfo(String slug, String name, String description, String dbname, Integer connectorId) {
         this.slug = slug;
         this.name = name;

@@ -37,6 +37,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "MessageType")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class MessageType implements Serializable {
+    /**
+     * This class implements the different message types which the BDA can receive. All incoming messages must be of a
+     * defined type with specific structure and content to be accepted and processed.
+     */
     private final static Logger LOGGER = Logger.getLogger(MessageType.class.getCanonicalName());
     private final static int DEFAULT_VECTOR_SIZE = 10;
 
@@ -52,6 +56,15 @@ public class MessageType implements Serializable {
 
     public MessageType() { }
 
+    /**
+     * Default constructor
+     * @param name message type name
+     * @param description message type description
+     * @param active a boolean switch indicating whether a message type is active or not
+     * @param format the actual message format, used for validation
+     * @param externalConnectorId the ID of the connector responsible for pushing this message type into the BDA
+     * @param externalDatasource the external datasource that sends this message
+     */
     public MessageType(String name, String description, boolean active, String format, Integer externalConnectorId, String externalDatasource) {
         this.name = name;
         this.description = description;
@@ -109,6 +122,9 @@ public class MessageType implements Serializable {
         return columns;
     }
 
+    /**
+     * @return String representation of MessageType objects
+     */
     @Override
     public String toString() {
         return "MessageType{" +
@@ -179,6 +195,12 @@ public class MessageType implements Serializable {
     private final static String DELETE_MESSAGE_QUERY =
         "DELETE FROM metadata.message_type WHERE id = ?;";
 
+    /**
+     * @param slug The SCN slug as defined in the configuration process
+     * @return List of all message types existing in the specified SCN
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static List<MessageType> getMessageTypes(String slug) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector ) 
             SystemConnector.getInstance().getDTconnector(slug);
@@ -213,6 +235,13 @@ public class MessageType implements Serializable {
         return messageTypes;
      }
 
+    /**
+     * @param slug The SCN slug as defined in the configuration process
+     * @param external
+     * @return List of all active message types existing in the specified SCN
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static List<MessageType> getActiveMessageTypes(String slug, boolean external) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector )
                 SystemConnector.getInstance().getDTconnector(slug);
@@ -249,6 +278,11 @@ public class MessageType implements Serializable {
         return messageTypes;
     }
 
+    /**
+     * @param slug The SCN slug as defined in the configuration process
+     * @return List of all message types existing in the specified SCN
+     * @throws SystemConnectorException
+     */
     public static List<String> getActiveMessageTypeNames(String slug) throws SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
@@ -289,6 +323,13 @@ public class MessageType implements Serializable {
         throw new SQLException("Malformed query to find messages with external connectors.");
     }
 
+    /**
+     * @param slug The SCN slug as defined in the configuration process
+     * @param name message type name
+     * @return The message type existing in the specified SCN which matches the provided name
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static MessageType getMessageByName(String slug, String name) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();
@@ -320,6 +361,13 @@ public class MessageType implements Serializable {
         throw new SQLException("MessageType object not found.");
     }
 
+    /**
+     * @param slug The SCN slug as defined in the configuration process
+     * @param id The message type ID
+     * @return The message type existing in the specified SCN which matches the provided ID
+     * @throws SQLException
+     * @throws SystemConnectorException
+     */
     public static MessageType getMessageById(String slug, int id) throws SQLException, SystemConnectorException {
         PostgresqlConnector connector = (PostgresqlConnector) SystemConnector.getInstance().getDTconnector(slug);
         Connection connection = connector.getConnection();

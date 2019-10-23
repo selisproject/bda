@@ -34,6 +34,11 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * This class represents a Connector which is used by a SCN to receive messages from the
+ * Pub/Sub. The Connector contains information about a running Connector instance (address and port),
+ * metadata required for the connection and if it connects to an external Pub/Sub.
+ */
 @XmlRootElement(name = "Connector")
 @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 public class Connector implements Serializable {
@@ -70,6 +75,14 @@ public class Connector implements Serializable {
 
     public Connector() { }
 
+    /**
+     * Default constructor.
+     * @param name a name for the connector
+     * @param address the address of the running connector instance
+     * @param port the port of the running connector instance
+     * @param metadata information required for initiating a connection with the Pub/Sub
+     * @param external whether the connector instance is connected to a SELIS or an external Pub/Sub server
+     */
     public Connector(String name, String address, Integer port, ConnectorMetadata metadata, boolean external) {
         this.name = name;
         this.address = address;

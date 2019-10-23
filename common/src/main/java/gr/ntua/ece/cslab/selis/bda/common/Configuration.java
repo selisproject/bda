@@ -46,6 +46,9 @@ public class Configuration {
     public final AuthClientBackend authClientBackend;
     public final KPIBackend kpiBackend;
 
+    /**
+     * Class to hold the BDA server configuration.
+     */
     public class Server {
         private String address;
         private Integer port;
@@ -61,6 +64,11 @@ public class Configuration {
             return port;
         }
     }
+
+    /**
+     * Class to hold the storage engines configuration. Includes the BDA db,
+     * the EventLog FS, the Dimension tables FS and the HDFS options.
+     */
     public class StorageBackend {
         // TODO: Should add username/password for every StorageBackend.
         //       Modify Constructor accordingly.
@@ -108,6 +116,11 @@ public class Configuration {
         public String getHDFSPassword() { return hdfsPassword; }
 
     }
+
+    /**
+     * Class to hold the execution engines configuration. Includes Spark and Livy options,
+     * as well as the storage folder for executables.
+     */
     public class ExecutionEngine {
         private String sparkMaster;
         private String sparkDeployMode;
@@ -147,6 +160,10 @@ public class Configuration {
 
         public String getLivyURL() { return livyURL; }
     }
+
+    /**
+     * Class to hold the Pub/Sub server configuration.
+     */
     public class PubSubServer {
         private String authHash, certificateLocation;
 
@@ -158,6 +175,10 @@ public class Configuration {
         public String getCertificateLocation() { return certificateLocation; }
 
     }
+
+    /**
+     * Class to hold the Pub/Sub subscriber configuration.
+     */
     public class PubSubSubscriber {
         private String url;
 
@@ -166,6 +187,10 @@ public class Configuration {
         public String getUrl() { return url; }
 
     }
+
+    /**
+     * Class to hold the IAM server configuration.
+     */
     public class AuthClientBackend {
         private Boolean authEnabled;
         private String authServerUrl, realm, clientId, clientSecret, bdaUsername, bdaPassword;
@@ -187,6 +212,9 @@ public class Configuration {
         public String getBdaPassword() { return bdaPassword; }
     }
 
+    /**
+     * Class to hold the KPI service configuration.
+     */
     public class KPIBackend {
         private String dbUrl, dbUsername, dbPassword;
 
@@ -198,6 +226,11 @@ public class Configuration {
 
     }
 
+    /**
+     * This method is used by all the modules to get the existing configuration object.
+     * @return the Configuration object that contains all configuration options
+     * @throws IllegalStateException
+     */
     public static Configuration getInstance() throws IllegalStateException {
         if (configuration == null) {
             throw new IllegalStateException("Configuration not initialized.");
@@ -206,6 +239,9 @@ public class Configuration {
         return configuration;
     }
 
+    /**
+     * Default constructor.
+     */
     private Configuration() {
         this.server = new Server();
         this.storageBackend = new StorageBackend();
