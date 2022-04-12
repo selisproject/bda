@@ -96,7 +96,7 @@
                     <artifactId>jersey-json</artifactId>
                 </exclusion>
             </exclusions>
-            <version>2.7.1</version>
+            <version>3.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
